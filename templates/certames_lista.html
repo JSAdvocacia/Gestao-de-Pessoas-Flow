@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certames em Análise Prévia | SIAP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar-bg { background-color: #050a18; }
+        .nav-item-active { background-color: #00965e; color: #ffffff; font-weight: 600; }
+        .nav-item-inactive { color: #94a3b8; }
+        .nav-item-inactive:hover { background-color: #0f172a; color: #f1f5f9; }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans min-h-screen flex text-slate-800 antialiased">
+
+    <!-- Sidebar Lateral Estática -->
+    <aside class="w-64 sidebar-bg shrink-0 flex flex-col justify-between border-r border-slate-800 h-screen sticky top-0 z-40">
+        <div class="p-4 space-y-6 overflow-y-auto flex-1">
+            <!-- Logo no Topo do Menu -->
+            <div class="flex items-center space-x-3 px-2 py-2">
+                <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md">
+                    <i class="fa-solid fa-shield-halved text-emerald-600 text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-white font-extrabold text-sm tracking-tight">AUDIT-FLOW</h2>
+                    <p class="text-[10px] text-emerald-400 font-bold uppercase">Auditoria de Pessoal</p>
+                </div>
+            </div>
+
+            <!-- Navegação / Itens do Menu -->
+            <nav class="space-y-1 text-xs">
+                
+                <a href="/" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-active">
+                    <i class="fa-solid fa-table-cells-large w-5 text-sm mr-2.5"></i>
+                    <span>Dashboard Geral</span>
+                </a>
+
+                <a href="/certames/novo" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-plus-circle w-5 text-sm mr-2.5 text-emerald-400"></i>
+                    <span>Novo Certame / Modalidade</span>
+                </a>
+
+                
+
+                <a href="/certames" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-list-check w-5 text-sm mr-2.5 text-emerald-400"></i>
+                    <span>Certames</span>
+                </a>
+
+                                {% set certames_menu = get_certames_menu() %}
+                {% if certames_menu %}
+                <div class="mt-1 mb-2 pl-2 space-y-2 border-l-2 border-emerald-800/60 ml-3">
+                    {% for c in certames_menu %}
+                    {% set nome_lbl = "Concurso " ~ c.numero_certame if 'CONCURSO' in c.modalidade.upper() else "Seletivo " ~ c.numero_certame %}
+                    <div class="space-y-1">
+                        <div class="text-[11px] font-extrabold text-slate-200 flex items-center px-2 py-1 bg-slate-900/90 rounded-lg border border-slate-800">
+                            <i class="fa-solid fa-file-signature text-emerald-400 mr-1.5 text-[10px]"></i>
+                            <span class="truncate">{{ nome_lbl }}</span>
+                        </div>
+                        <div class="pl-2 space-y-1 text-[11px]">
+                            <a href="/certames/{{ c.id_certame }}/wizard" class="flex items-center text-slate-300 hover:text-emerald-300 py-0.5 transition">
+                                <i class="fa-solid fa-folder-open text-emerald-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Pré-Edital</span>
+                            </a>
+                            {% if c.status_auditoria == 'PARECER_DEFINITIVO_EMITIDO' %}
+                            <a href="/certames/{{ c.id_certame }}/fase-oficial" class="flex items-center text-indigo-300 hover:text-indigo-200 font-bold py-0.5 transition">
+                                <i class="fa-solid fa-unlock text-indigo-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Oficial (Ativa)</span>
+                            </a>
+                            {% else %}
+                            <a href="/certames/{{ c.id_certame }}/fase-oficial" class="flex items-center text-slate-500 hover:text-slate-400 py-0.5 transition" title="Fase Oficial aguardando Parecer Definitivo">
+                                <i class="fa-solid fa-lock text-slate-600 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Oficial</span>
+                            </a>
+                            {% endif %}
+                            <a href="/certames/{{ c.id_certame }}/acompanhamento" class="flex items-center text-slate-300 hover:text-amber-300 py-0.5 transition">
+                                <i class="fa-solid fa-user-check text-amber-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Acompanhamento do Certame</span>
+                            </a>
+                            <!-- Submenu Recuado (Subordinação Visual) -->
+                            <a href="/certames/{{ c.id_certame }}/vigencia" class="flex items-center pl-4 text-[10.5px] text-slate-400 hover:text-amber-300 py-0.5 transition border-l-2 border-slate-700/60 ml-2">
+                                <i class="fa-solid fa-clock-rotate-left text-amber-400 text-[9px] w-3 mr-1.5"></i>
+                                <span class="truncate">Vigência do Certame</span>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                
+<div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Módulos de Auditoria
+                </div>
+
+                <a href="/modulo/lotacionograma" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-sitemap w-5 text-sm mr-2.5"></i>
+                    <span>Lotacionograma Legal</span>
+                </a>
+
+                <a href="/modulo/concursos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-list-ol w-5 text-sm mr-2.5"></i>
+                    <span>Ordem de Classificação</span>
+                </a>
+
+                <a href="/modulo/temporarios" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-user-clock w-5 text-sm mr-2.5"></i>
+                    <span>Contratos Temporários</span>
+                </a>
+
+                <a href="/modulo/afastamentos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-notes-medical w-5 text-sm mr-2.5"></i>
+                    <span>Afastamentos & Licenças</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Controle & Rastreabilidade
+                </div>
+
+                <a href="/achados" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-clipboard-check w-5 text-sm mr-2.5"></i>
+                    <span>Matriz de Achados</span>
+                </a>
+
+                <a href="/normativos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-book-bookmark w-5 text-sm mr-2.5"></i>
+                    <span>Normativos & Jurisprudência</span>
+                </a>
+
+                <a href="/usuarios" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-user-shield w-5 text-sm mr-2.5"></i>
+                    <span>Gestão de Acesso</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Repositório & IA
+                </div>
+
+                <a href="/repositorio" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-folder-open w-5 text-sm mr-2.5"></i>
+                    <span>Repositório Documental</span>
+                </a>
+
+                <a href="/importar" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-wand-magic-sparkles w-5 text-sm mr-2.5 text-indigo-400"></i>
+                    <span>Ingestão & Leitura IA</span>
+                </a>
+
+            </nav>
+        </div>
+
+        <!-- Perfil do Usuário Master / Rodapé da Sidebar -->
+        <div class="p-4 border-t border-slate-800 bg-[#070e20] shrink-0">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2.5 overflow-hidden">
+                    <div class="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center text-white font-bold text-xs shrink-0">
+                        PJ
+                    </div>
+                    <div class="truncate">
+                        <p class="text-xs font-bold text-white truncate">{{ usuario.email if usuario else 'prof.jan100@gmail.com' }}</p>
+                        <p class="text-[10px] text-emerald-400 font-semibold">Administrador Master</p>
+                    </div>
+                </div>
+                <a href="/logout" title="Sair do Sistema" class="text-slate-400 hover:text-rose-400 p-1.5 transition">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+                </a>
+            </div>
+        </div>
+
+    </aside>
+
+    <!-- Conteúdo Central -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between ">
+            <div>
+                <h1 class="text-xl font-black text-slate-900">Certames em Abertura / Análise Prévia</h1>
+                <p class="text-xs text-slate-500">Atos Prévios de Abertura de Concursos e Seletivos (TCE-MT)</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="/zerar-banco" onclick="return confirm('ATENÇÃO: Deseja realmente zerar todo o banco de dados do sistema (certames, anexos, pareceres e achados)?');" class="bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow transition flex items-center">
+                    <i class="fa-solid fa-trash-arrow-up mr-1.5"></i> Zerar Banco Geral
+                </a>
+                <a href="/certames/novo" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl shadow transition flex items-center">
+                    <i class="fa-solid fa-plus-circle mr-1.5"></i> Iniciar Novo Certame
+                </a>
+            </div>
+        </header>
+
+        <main class="p-8 max-w-6xl mx-auto w-full space-y-8">
+            {% if request.query_params.get('msg') %}
+            <div class="bg-emerald-50 border border-emerald-300 text-emerald-800 px-4 py-3 rounded-2xl shadow-sm flex items-center">
+                <i class="fa-solid fa-circle-check text-emerald-600 text-xl mr-3"></i>
+                <p class="font-bold text-xs">{{ request.query_params.get('msg') }}</p>
+            </div>
+            {% endif %}
+
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-900 text-sm flex items-center">
+                        <i class="fa-solid fa-file-contract text-emerald-600 mr-2"></i>
+                        Processos de Abertura Cadastrados
+                    </h3>
+                    <span class="bg-slate-200 text-slate-800 text-xs px-3 py-1 rounded-full font-bold">
+                        {{ certames|length }} Registro(s)
+                    </span>
+                </div>
+
+                {% if certames %}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600">
+                        <thead class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider">
+                            <tr>
+                                <th class="p-3">ID</th>
+                                <th class="p-3">Processo / Edital</th>
+                                <th class="p-3">Modalidade</th>
+                                <th class="p-3">Município / Órgão</th>
+                                <th class="p-3">Data</th>
+                                <th class="p-3">Status Auditoria</th>
+                                <th class="p-3 text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for c in certames %}
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-mono font-bold text-slate-400">#{{ c.id_certame }}</td>
+                                <td class="p-3 font-extrabold text-slate-900">{{ c.numero_certame }}</td>
+                                <td class="p-3">
+                                    <span class="bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold px-2 py-0.5 rounded text-[10px]">
+                                        {{ c.modalidade.replace('_', ' ') }}
+                                    </span>
+                                </td>
+                                <td class="p-3 text-slate-700 font-medium">{{ c.municipio }}</td>
+                                <td class="p-3 text-slate-500">{{ c.data_abertura_processo.strftime('%d/%m/%Y') }}</td>
+                                <td class="p-3">
+                                    {% if c.status_auditoria == 'PARECER_DEFINITIVO_EMITIDO' %}
+                                    <span class="bg-emerald-50 text-emerald-700 font-bold px-2.5 py-0.5 rounded border border-emerald-200 text-[10px]">
+                                        <i class="fa-solid fa-stamp mr-1"></i> DEFINITIVO EMITIDO
+                                    </span>
+                                    {% else %}
+                                    <span class="bg-amber-50 text-amber-700 font-bold px-2.5 py-0.5 rounded border border-amber-200 text-[10px]">
+                                        <i class="fa-solid fa-clock mr-1"></i> EM ANÁLISE PRÉVIA
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td class="p-3 text-center flex items-center justify-center space-x-2">
+                                    <a href="/certames/{{ c.id_certame }}/wizard" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-xl transition text-[11px] shadow flex items-center">
+                                        <i class="fa-solid fa-list-check mr-1"></i> Passo a Passo
+                                    </a>
+                                    <a href="/certames/{{ c.id_certame }}/editar" class="bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold px-2.5 py-1.5 rounded-xl transition text-[11px] flex items-center">
+                                        <i class="fa-solid fa-pen mr-1"></i> Editar
+                                    </a>
+                                    <a href="/certames/{{ c.id_certame }}/dossie" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-3 py-1.5 rounded-xl transition text-[11px] shadow flex items-center">
+                                        <i class="fa-solid fa-folder-closed mr-1"></i> Dossiê
+                                    </a>
+                                    <a href="/certames/excluir/{{ c.id_certame }}" onclick="return confirm('ATENÇÃO: Deseja realmente excluir este certame?');" class="bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold px-2 py-1.5 rounded-xl transition text-[11px]">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-12 text-center text-slate-400 space-y-3">
+                    <i class="fa-solid fa-file-signature text-slate-300 text-5xl"></i>
+                    <p class="font-bold text-slate-700 text-base">Nenhum certame cadastrado ainda</p>
+                    <p class="text-xs">Clique no botão abaixo para iniciar a instrução de um novo processo.</p>
+                    <a href="/certames/novo" class="inline-flex items-center bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow transition mt-2">
+                        <i class="fa-solid fa-plus-circle mr-2"></i> Iniciar Novo Certame
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+</body>
+</html>

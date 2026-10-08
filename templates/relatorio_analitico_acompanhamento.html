@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório Analítico de Acompanhamento do Certame — {{ certame.numero_certame }} | SIAP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; font-size: 10pt !important; color: black !important; padding: 0 !important; }
+            .page-break { page-break-before: always; }
+            .shadow-xl, .shadow-2xl, .shadow-md, .shadow-sm { box-shadow: none !important; }
+            .border { border-color: #cbd5e1 !important; }
+            .bg-slate-900 { background-color: #0f172a !important; color: white !important; }
+            .bg-slate-50 { background-color: #f8fafc !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-200 font-sans min-h-screen text-slate-800 antialiased p-4 md:p-8">
+
+    <!-- Barra de Ações Superior (Oculta na Impressão) -->
+    <div class="max-w-5xl mx-auto mb-6 bg-slate-900 text-white p-4 rounded-2xl shadow-xl flex flex-wrap items-center justify-between gap-4 no-print border border-slate-700">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-amber-600 rounded-xl flex items-center justify-center font-black text-lg shadow">
+                <i class="fa-solid fa-chart-line text-white"></i>
+            </div>
+            <div>
+                <h2 class="font-black text-sm tracking-tight">RELATÓRIO ANALÍTICO DE ACOMPANHAMENTO DO CERTAME</h2>
+                <p class="text-xs text-amber-400 font-semibold">Monitoramento de Provimentos, Vagas e Candidatos • Processo {{ certame.numero_certame }}</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-3 text-xs">
+            <a href="/certames/{{ certame.id_certame }}/acompanhamento" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-xl transition">
+                <i class="fa-solid fa-arrow-left mr-1"></i> Voltar ao Painel
+            </a>
+            <button onclick="window.print()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-5 py-2 rounded-xl shadow-lg transition flex items-center">
+                <i class="fa-solid fa-print mr-2"></i> Imprimir / Gerar PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- RELATÓRIO ANALÍTICO FORMATADO PARA IMPRESSÃO / AUDITORIA -->
+    <div class="max-w-5xl mx-auto bg-white p-8 md:p-12 rounded-3xl shadow-2xl border border-slate-300 space-y-8 text-slate-900">
+
+        <!-- CABEÇALHO OFICIAL DO MUNICÍPIO -->
+        <div class="border-b-4 border-amber-600 pb-6 text-center space-y-3">
+            <div class="flex items-center justify-center space-x-3 mb-1">
+                <div class="w-14 h-14 bg-slate-900 text-amber-400 rounded-2xl flex items-center justify-center text-2xl shadow-md border border-slate-700">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+            </div>
+            <div>
+                <h1 class="text-xs font-black uppercase tracking-widest text-slate-500">ESTADO DE MATO GROSSO • CONTROLADORIA INTERNA MUNICIPAL</h1>
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight uppercase mt-1">
+                    RELATÓRIO ANALÍTICO DE ACOMPANHAMENTO DO CERTAME
+                </h2>
+                <p class="text-xs font-bold text-amber-700 uppercase tracking-wider mt-0.5">
+                    Gestão de Provimentos, Convocações, Posse e Vagas Remanescentes (Controle Pós-Homologação)
+                </p>
+            </div>
+
+            <div class="pt-3 flex flex-wrap justify-center gap-2 text-xs font-mono">
+                <span class="bg-slate-100 border border-slate-300 px-3 py-1 rounded-lg font-bold text-slate-800">
+                    CERTAME: {{ certame.numero_certame }}
+                </span>
+                <span class="bg-slate-100 border border-slate-300 px-3 py-1 rounded-lg font-bold text-slate-800">
+                    ÓRGÃO: {{ certame.orgao_solicitante }}
+                </span>
+                <span class="bg-slate-100 border border-slate-300 px-3 py-1 rounded-lg font-bold text-slate-800">
+                    EMISSÃO: {{ data_hoje.strftime('%d/%m/%Y') }}
+                </span>
+            </div>
+        </div>
+
+        <!-- 1. QUADRO SINTÉTICO CONSOLIDADO DE VAGAS -->
+        <section class="space-y-3">
+            <h3 class="text-xs font-black uppercase text-amber-800 tracking-wider flex items-center border-b border-slate-200 pb-2">
+                <i class="fa-solid fa-cubes mr-2 text-amber-600"></i> I. Resumo Geral de Provimentos do Certame
+            </h3>
+
+            {% set tot_vagas = matriz_cargos|sum(attribute='vagas_edital') %}
+            {% set tot_convocados = matriz_cargos|sum(attribute='convocados') %}
+            {% set tot_empossados = matriz_cargos|sum(attribute='empossados') %}
+            {% set tot_desistencias = matriz_cargos|sum(attribute='desistencias') %}
+            {% set tot_fim_fila = matriz_cargos|sum(attribute='fim_de_fila') %}
+            {% set tot_sub_judice = matriz_cargos|sum(attribute='sub_judice') %}
+            {% set tot_saldo = matriz_cargos|sum(attribute='saldo') %}
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 text-center">
+                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase">Vagas Edital</p>
+                    <p class="text-lg font-black text-slate-900">{{ tot_vagas }}</p>
+                </div>
+                <div class="bg-blue-50 p-3 rounded-2xl border border-blue-200">
+                    <p class="text-[10px] font-bold text-blue-700 uppercase">Convocados</p>
+                    <p class="text-lg font-black text-blue-900">{{ tot_convocados }}</p>
+                </div>
+                <div class="bg-emerald-50 p-3 rounded-2xl border border-emerald-200">
+                    <p class="text-[10px] font-bold text-emerald-700 uppercase">Empossados</p>
+                    <p class="text-lg font-black text-emerald-900">{{ tot_empossados }}</p>
+                </div>
+                <div class="bg-rose-50 p-3 rounded-2xl border border-rose-200">
+                    <p class="text-[10px] font-bold text-rose-700 uppercase">Desistências</p>
+                    <p class="text-lg font-black text-rose-900">{{ tot_desistencias }}</p>
+                </div>
+                <div class="bg-purple-50 p-3 rounded-2xl border border-purple-200">
+                    <p class="text-[10px] font-bold text-purple-700 uppercase">Fim de Fila</p>
+                    <p class="text-lg font-black text-purple-900">{{ tot_fim_fila }}</p>
+                </div>
+                <div class="bg-amber-50 p-3 rounded-2xl border border-amber-200">
+                    <p class="text-[10px] font-bold text-amber-700 uppercase">Sub Júdice</p>
+                    <p class="text-lg font-black text-amber-900">{{ tot_sub_judice }}</p>
+                </div>
+                <div class="bg-indigo-50 p-3 rounded-2xl border border-indigo-200">
+                    <p class="text-[10px] font-bold text-indigo-700 uppercase">Saldo Livre</p>
+                    <p class="text-lg font-black text-indigo-900">{{ tot_saldo }}</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. MATRIZ ANALÍTICA DE CONSOLIDAÇÃO POR CARGO -->
+        <section class="space-y-3">
+            <h3 class="text-xs font-black uppercase text-amber-800 tracking-wider flex items-center border-b border-slate-200 pb-2">
+                <i class="fa-solid fa-table-list mr-2 text-amber-600"></i> II. Matriz de Acompanhamento por Cargo
+            </h3>
+
+            <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-900 text-white uppercase text-[10px] font-bold">
+                        <tr>
+                            <th class="p-3">Cargo</th>
+                            <th class="p-3 text-center">Vagas Edital</th>
+                            <th class="p-3 text-center">Convocados</th>
+                            <th class="p-3 text-center">Empossados</th>
+                            <th class="p-3 text-center">Desistências</th>
+                            <th class="p-3 text-center">Fim de Fila</th>
+                            <th class="p-3 text-center">Sub Júdice</th>
+                            <th class="p-3 text-center">Saldo a Prover</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 font-medium">
+                        {% for item in matriz_cargos %}
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-3 font-extrabold text-slate-900">{{ item.cargo }}</td>
+                            <td class="p-3 text-center font-bold text-slate-700">{{ item.vagas_edital }}</td>
+                            <td class="p-3 text-center text-blue-700 font-bold">{{ item.convocados }}</td>
+                            <td class="p-3 text-center text-emerald-700 font-black">{{ item.empossados }}</td>
+                            <td class="p-3 text-center text-rose-700 font-bold">{{ item.desistencias }}</td>
+                            <td class="p-3 text-center text-purple-700 font-bold">{{ item.fim_fila }}</td>
+                            <td class="p-3 text-center text-amber-700 font-bold">{{ item.sub_judice }}</td>
+                            <td class="p-3 text-center">
+                                <span class="bg-indigo-100 text-indigo-900 font-black px-2 py-0.5 rounded text-[11px]">
+                                    {{ item.saldo }} vaga(s)
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 3. QUADRO NOMINAL DE CANDIDATOS E SITUAÇÃO DE PROVIMENTO -->
+        <section class="space-y-3 page-break">
+            <h3 class="text-xs font-black uppercase text-amber-800 tracking-wider flex items-center border-b border-slate-200 pb-2">
+                <i class="fa-solid fa-users-view-finder mr-2 text-amber-600"></i> III. Relação Nominal de Candidatos e Evolução de Status
+            </h3>
+
+            {% if candidatos %}
+            <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-800 text-white uppercase text-[10px] font-bold">
+                        <tr>
+                            <th class="p-3">Classif. Orig.</th>
+                            <th class="p-3">Classif. Efetiva</th>
+                            <th class="p-3">Nome do Candidato</th>
+                            <th class="p-3">Cargo</th>
+                            <th class="p-3">CPF</th>
+                            <th class="p-3 text-center">Status Atual</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        {% for cand in candidatos %}
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-3 font-mono font-bold text-slate-600 text-center">{{ cand.classificacao_original }}º</td>
+                            <td class="p-3 font-mono font-bold text-indigo-600 text-center">{{ cand.classificacao_efetiva }}º</td>
+                            <td class="p-3 font-bold text-slate-900">{{ cand.nome_completo }}</td>
+                            <td class="p-3 text-slate-700 font-medium">{{ cand.cargo.nome_cargo if cand.cargo else 'Não informado' }}</td>
+                            <td class="p-3 font-mono text-slate-500">{{ cand.cpf or '***.***.***-**' }}</td>
+                            <td class="p-3 text-center">
+                                {% if cand.status_atual == 'EMPOSSADO' %}
+                                <span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px]">EMPOSSADO</span>
+                                {% elif cand.status_atual == 'CONVOCADO' %}
+                                <span class="bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded text-[10px]">CONVOCADO</span>
+                                {% elif 'DESISTENTE' in cand.status_atual %}
+                                <span class="bg-rose-100 text-rose-800 font-bold px-2 py-0.5 rounded text-[10px]">DESISTENTE</span>
+                                {% elif 'FILA' in cand.status_atual %}
+                                <span class="bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded text-[10px]">FINAL DA FILA</span>
+                                {% elif 'JÚDICE' in cand.status_atual %}
+                                <span class="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded text-[10px]">SUB JÚDICE</span>
+                                {% else %}
+                                <span class="bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded text-[10px]">{{ cand.status_atual }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-xs text-slate-500 italic">Nenhum candidato cadastrado para este certame.</p>
+            {% endif %}
+        </section>
+
+        <!-- 4. HISTÓRICO DE ATOS DE CONVOCAÇÃO REGISTRADOS -->
+        <section class="space-y-3">
+            <h3 class="text-xs font-black uppercase text-amber-800 tracking-wider flex items-center border-b border-slate-200 pb-2">
+                <i class="fa-solid fa-file-contract mr-2 text-amber-600"></i> IV. Histórico de Atos de Nomeação, Posse e Movimentações
+            </h3>
+
+            {% if atos_registrados %}
+            <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-800 text-white uppercase text-[10px] font-bold">
+                        <tr>
+                            <th class="p-3">Data do Ato</th>
+                            <th class="p-3">Número do Ato / Portaria</th>
+                            <th class="p-3">Tipo do Ato</th>
+                            <th class="p-3">Resumo dos Impactos e Candidatos Afetados</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        {% for ato in atos_registrados %}
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-3 font-mono text-slate-600">{{ ato.data_ato.strftime('%d/%m/%Y') }}</td>
+                            <td class="p-3 font-bold text-slate-900">{{ ato.numero_ato }}</td>
+                            <td class="p-3 font-semibold text-amber-700">{{ ato.tipo_ato.replace('_', ' ') }}</td>
+                            <td class="p-3 text-slate-700 leading-relaxed">{{ ato.resumo_afetados }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-xs text-slate-500 italic">Nenhum ato de convocação ou posse registrado formalmente até o momento.</p>
+            {% endif %}
+        </section>
+
+        <!-- 5. ALERTAS E APURAÇÃO DE CONTROLE INTERNO -->
+        <section class="space-y-3">
+            <h3 class="text-xs font-black uppercase text-amber-800 tracking-wider flex items-center border-b border-slate-200 pb-2">
+                <i class="fa-solid fa-triangle-exclamation mr-2 text-amber-600"></i> V. Apuração de Conformidade & Alertas do Controle Interno
+            </h3>
+
+            {% if alertas_controle %}
+            <div class="space-y-2">
+                {% for al in alertas_controle %}
+                <div class="p-3 rounded-2xl border text-xs flex items-start space-x-3
+                    {% if al.tipo == 'PRETERICAO_ORDEM' %} bg-rose-50 border-rose-200 text-rose-900
+                    {% elif al.tipo == 'PRAZO_POSSE_EXCEDIDO' %} bg-amber-50 border-amber-200 text-amber-900
+                    {% else %} bg-slate-50 border-slate-200 text-slate-900 {% endif %}">
+                    <i class="fa-solid fa-circle-exclamation text-base mt-0.5 shrink-0
+                        {% if al.tipo == 'PRETERICAO_ORDEM' %} text-rose-600
+                        {% elif al.tipo == 'PRAZO_POSSE_EXCEDIDO' %} text-amber-600
+                        {% else %} text-slate-600 {% endif %}"></i>
+                    <div>
+                        <p class="font-black uppercase text-[10px] tracking-wider">{{ al.tipo.replace('_', ' ') }}</p>
+                        <p class="font-bold text-xs mt-0.5">{{ al.mensagem }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl text-xs text-emerald-900 flex items-center">
+                <i class="fa-solid fa-circle-check text-emerald-600 text-lg mr-2"></i>
+                <span>Nenhuma desconformidade de ordem de classificação ou estouro de prazo de posse identificada pela auditoria.</span>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- 6. TERMO DE VALIDAÇÃO E ASSINATURAS -->
+        <section class="pt-8 border-t-2 border-slate-200 space-y-8 page-break">
+            <p class="text-xs text-slate-600 text-justify leading-relaxed">
+                Certifico que as informações constantes neste Relatório Analítico de Acompanhamento do Certame foram extraídas dos atos oficiais publicados pelo Poder Executivo Municipal e confrontadas com o banco de dados oficial do Sistema de Acompanhamento de Concursos Públicos da Controladoria Interna, estando em perfeita consonância com os parâmetros legais e jurisprudenciais do Tribunal de Contas do Estado de Mato Grosso (TCE-MT).
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 pt-6 text-center text-xs">
+                <div class="space-y-1">
+                    <div class="border-b border-slate-400 w-3/4 mx-auto mb-2"></div>
+                    <p class="font-black text-slate-900">AUDITORIA DE CONTROLE INTERNO</p>
+                    <p class="text-slate-500 text-[11px]">Controladoria Geral Municipal</p>
+                </div>
+                <div class="space-y-1">
+                    <div class="border-b border-slate-400 w-3/4 mx-auto mb-2"></div>
+                    <p class="font-black text-slate-900">GESTOR DE RECURSOS HUMANOS</p>
+                    <p class="text-slate-500 text-[11px]">Secretaria Municipal de Administração</p>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>

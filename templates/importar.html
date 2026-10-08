@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingestão & Leitura IA | SIAP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar-bg { background-color: #050a18; }
+        .nav-item-active { background-color: #00965e; color: #ffffff; font-weight: 600; }
+        .nav-item-inactive { color: #94a3b8; }
+        .nav-item-inactive:hover { background-color: #0f172a; color: #f1f5f9; }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans min-h-screen flex text-slate-800 antialiased">
+
+    <!-- Sidebar Lateral Estática -->
+    <aside class="w-64 sidebar-bg shrink-0 flex flex-col justify-between border-r border-slate-800 h-screen sticky top-0 z-40">
+        <div class="p-4 space-y-6 overflow-y-auto flex-1">
+            <!-- Logo no Topo do Menu -->
+            <div class="flex items-center space-x-3 px-2 py-2">
+                <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md">
+                    <i class="fa-solid fa-shield-halved text-emerald-600 text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-white font-extrabold text-sm tracking-tight">AUDIT-FLOW</h2>
+                    <p class="text-[10px] text-emerald-400 font-bold uppercase">Auditoria de Pessoal</p>
+                </div>
+            </div>
+
+            <!-- Navegação / Itens do Menu -->
+            <nav class="space-y-1 text-xs">
+                
+                <a href="/" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-table-cells-large w-5 text-sm mr-2.5"></i>
+                    <span>Dashboard Geral</span>
+                </a>
+
+                <a href="/certames/novo" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-plus-circle w-5 text-sm mr-2.5 text-emerald-400"></i>
+                    <span>Novo Certame / Modalidade</span>
+                </a>
+
+                
+
+                <a href="/certames" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-list-check w-5 text-sm mr-2.5 text-emerald-400"></i>
+                    <span>Certames</span>
+                </a>
+
+                                {% set certames_menu = get_certames_menu() %}
+                {% if certames_menu %}
+                <div class="mt-1 mb-2 pl-2 space-y-2 border-l-2 border-emerald-800/60 ml-3">
+                    {% for c in certames_menu %}
+                    {% set nome_lbl = "Concurso " ~ c.numero_certame if 'CONCURSO' in c.modalidade.upper() else "Seletivo " ~ c.numero_certame %}
+                    <div class="space-y-1">
+                        <div class="text-[11px] font-extrabold text-slate-200 flex items-center px-2 py-1 bg-slate-900/90 rounded-lg border border-slate-800">
+                            <i class="fa-solid fa-file-signature text-emerald-400 mr-1.5 text-[10px]"></i>
+                            <span class="truncate">{{ nome_lbl }}</span>
+                        </div>
+                        <div class="pl-2 space-y-1 text-[11px]">
+                            <a href="/certames/{{ c.id_certame }}/wizard" class="flex items-center text-slate-300 hover:text-emerald-300 py-0.5 transition">
+                                <i class="fa-solid fa-folder-open text-emerald-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Pré-Edital</span>
+                            </a>
+                            {% if c.status_auditoria == 'PARECER_DEFINITIVO_EMITIDO' %}
+                            <a href="/certames/{{ c.id_certame }}/fase-oficial" class="flex items-center text-indigo-300 hover:text-indigo-200 font-bold py-0.5 transition">
+                                <i class="fa-solid fa-unlock text-indigo-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Oficial (Ativa)</span>
+                            </a>
+                            {% else %}
+                            <a href="/certames/{{ c.id_certame }}/fase-oficial" class="flex items-center text-slate-500 hover:text-slate-400 py-0.5 transition" title="Fase Oficial aguardando Parecer Definitivo">
+                                <i class="fa-solid fa-lock text-slate-600 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Oficial</span>
+                            </a>
+                            {% endif %}
+                            <a href="/certames/{{ c.id_certame }}/acompanhamento" class="flex items-center text-slate-300 hover:text-amber-300 py-0.5 transition">
+                                <i class="fa-solid fa-user-check text-amber-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Acompanhamento do Certame</span>
+                            </a>
+                            <!-- Submenu Recuado (Subordinação Visual) -->
+                            <a href="/certames/{{ c.id_certame }}/vigencia" class="flex items-center pl-4 text-[10.5px] text-slate-400 hover:text-amber-300 py-0.5 transition border-l-2 border-slate-700/60 ml-2">
+                                <i class="fa-solid fa-clock-rotate-left text-amber-400 text-[9px] w-3 mr-1.5"></i>
+                                <span class="truncate">Vigência do Certame</span>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                
+<div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Módulos de Auditoria
+                </div>
+
+                <a href="/modulo/lotacionograma" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-sitemap w-5 text-sm mr-2.5"></i>
+                    <span>Lotacionograma Legal</span>
+                </a>
+
+                <a href="/modulo/concursos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-list-ol w-5 text-sm mr-2.5"></i>
+                    <span>Ordem de Classificação</span>
+                </a>
+
+                <a href="/modulo/temporarios" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-user-clock w-5 text-sm mr-2.5"></i>
+                    <span>Contratos Temporários</span>
+                </a>
+
+                <a href="/modulo/afastamentos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-notes-medical w-5 text-sm mr-2.5"></i>
+                    <span>Afastamentos & Licenças</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Controle & Rastreabilidade
+                </div>
+
+                <a href="/achados" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-clipboard-check w-5 text-sm mr-2.5"></i>
+                    <span>Matriz de Achados</span>
+                </a>
+
+                <a href="/normativos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-book-bookmark w-5 text-sm mr-2.5"></i>
+                    <span>Normativos & Jurisprudência</span>
+                </a>
+
+                <a href="/usuarios" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-user-shield w-5 text-sm mr-2.5"></i>
+                    <span>Gestão de Acesso</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Repositório & IA
+                </div>
+
+                <a href="/repositorio" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-folder-open w-5 text-sm mr-2.5"></i>
+                    <span>Repositório Documental</span>
+                </a>
+
+                <a href="/importar" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-active">
+                    <i class="fa-solid fa-wand-magic-sparkles w-5 text-sm mr-2.5 text-indigo-400"></i>
+                    <span>Ingestão & Leitura IA</span>
+                </a>
+
+            </nav>
+        </div>
+
+        <!-- Perfil do Usuário Master / Rodapé da Sidebar -->
+        <div class="p-4 border-t border-slate-800 bg-[#070e20] shrink-0">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2.5 overflow-hidden">
+                    <div class="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center text-white font-bold text-xs shrink-0">
+                        PJ
+                    </div>
+                    <div class="truncate">
+                        <p class="text-xs font-bold text-white truncate">{{ usuario.email if usuario else 'prof.jan100@gmail.com' }}</p>
+                        <p class="text-[10px] text-emerald-400 font-semibold">Administrador Master</p>
+                    </div>
+                </div>
+                <a href="/logout" title="Sair do Sistema" class="text-slate-400 hover:text-rose-400 p-1.5 transition">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+                </a>
+            </div>
+        </div>
+
+    </aside>
+
+    <!-- Conteúdo Central -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between ">
+            <div>
+                <h1 class="text-xl font-black text-slate-900">Ingestão & Extração Automatizada por IA</h1>
+                <p class="text-xs text-slate-500">Leitura estruturada de Editais, Portarias de Convocação e Quadros de Pessoal</p>
+            </div>
+            <a href="/repositorio" class="bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-sm flex items-center transition">
+                <i class="fa-solid fa-folder-open mr-1.5"></i> Ver Acervo Custodiado
+            </a>
+        </header>
+
+        <main class="p-8 space-y-8">
+            
+            {% if mensagem %}
+            <div class="bg-emerald-50 border border-emerald-300 text-emerald-800 px-4 py-3 rounded-2xl shadow-sm flex items-center">
+                <i class="fa-solid fa-circle-check text-emerald-600 text-xl mr-3"></i>
+                <div>
+                    <p class="font-bold text-sm">Documento Processado e Custodiado!</p>
+                    <p class="text-xs">{{ mensagem }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Seção de Leitura e Filtro Automático por IA (PDF) -->
+            <section class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-8 rounded-3xl shadow-lg border border-indigo-500/30">
+                <div class="max-w-3xl">
+                    <span class="bg-indigo-500/30 text-indigo-300 border border-indigo-400/40 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Inteligência Artificial & OCR Heurístico
+                    </span>
+                    <h2 class="text-2xl font-black mt-3">Leitura e Filtragem Automática de PDF</h2>
+                    <p class="text-slate-300 text-sm mt-2 leading-relaxed">
+                        Envie um arquivo PDF oficial. A IA extrairá as entidades, identificará cargos, quantitativos e classificações, custodiando o documento no repositório probatório e executando a auditoria contínua.
+                    </p>
+
+                    <form action="/importar/ia-pdf" method="post" enctype="multipart/form-data" class="mt-6 space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-300 mb-1">Tipo do Documento</label>
+                                <select id="import_tipo_select" name="tipo_documento" onchange="toggleOutroImport(this.value)" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-xs text-white font-bold focus:ring-2 focus:ring-indigo-400 focus:outline-none">
+                                    <option value="AUTO">✨ Detecção Automática pela IA</option>
+                                    
+                                    <optgroup label="── 1. Atos Prévios ao Edital (TCE-MT) ──">
+                                        <option value="MINUTA_EDITAL">1. Minuta do Edital Normativo (Cargos, vagas, vencimentos, taxas, isenções)</option>
+                                        <option value="LOTACIONOGRAMA">2. Lotacionograma Atualizado do Município</option>
+                                        <option value="LOTACIONOGRAMA_ANALITICO">3. Demonstrativo Analítico do Lotacionograma (Criadas, ocupadas, vagas livres)</option>
+                                        <option value="LEI_AUTORIZADORA">4. Lei Autorizadora Municipal / Plano de Cargos, Carreiras e Salários</option>
+                                        <option value="ESTUDO_IMPACTO_LRF">5. Estudo de Impacto Orçamentário e Financeiro (Art. 16, I da LRF + CRC Contador)</option>
+                                        <option value="DECLARACAO_COMPATIBILIDADE">6. Declaração de Compatibilidade Orçamentária (LRF, LOA, LDO e PPA pelo Prefeito)</option>
+                                        <option value="PORTARIA_COMISSAO">7. Portaria de Nomeação da Comissão Organizadora (Diário Oficial)</option>
+                                        <option value="COMPROVANTE_LICITACAO_BANCA">8. Processo Licitatório da Banca Examinadora (Pregão Presencial / Contrato)</option>
+                                        <option value="DECLARACAO_CONCURSO_PRETERITO">9. Declaração de Inexistência de Aprovados Pretéricos Validada</option>
+                                        <option value="PARECER_JURIDICO_PROCURADORIA">10. Parecer Jurídico da Procuradoria Municipal / Consultoria Legal</option>
+                                    </optgroup>
+
+                                    <optgroup label="── 2. Personalizado / Outros ──">
+                                        <option value="OUTROS_DOCUMENTOS_COMPLEMENTARES">11. Outros Documentos (Especificar Nome Personalizado...)</option>
+                                    </optgroup>
+                                </select>
+
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-300 mb-1">
+                                    Arquivo(s) (PDF, TXT ou CSV) <span class="bg-indigo-500/30 text-indigo-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-indigo-400/40 ml-1"><i class="fa-solid fa-sparkles text-amber-300 mr-1"></i>Multi-arquivos</span>
+                                </label>
+                                <input type="file" name="arquivos" multiple accept=".pdf,.txt,.csv" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-1.5 text-xs text-slate-300 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer">
+                            </div>
+                        </div>
+
+                        <!-- Campo para Especificar Tipo Personalizado -->
+                        <div id="box_outro_import" class="hidden bg-slate-800/90 border border-indigo-500/50 p-3 rounded-xl">
+                            <label class="block text-xs font-bold text-indigo-300 mb-1">Nome Personalizado do Documento:</label>
+                            <input type="text" name="outro_tipo_nome" placeholder="Ex: Certidão do Tribunal de Contas, Ata da Sessão Licitatória..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-400">
+                        </div>
+
+                        <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-6 py-3 rounded-xl shadow-md text-sm flex items-center transition">
+                            <i class="fa-solid fa-bolt mr-2"></i> Processar PDF com IA e Executar Auditoria
+                        </button>
+                    </form>
+
+                    <script>
+                        function toggleOutroImport(val) {
+                            const box = document.getElementById('box_outro_import');
+                            if (val === 'OUTROS_DOCUMENTOS_COMPLEMENTARES') {
+                                box.classList.remove('hidden');
+                            } else {
+                                box.classList.add('hidden');
+                            }
+                        }
+                    </script>
+                </div>
+            </section>
+
+            <!-- Cards de Ingestão Direta / Manual -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Card 1: Lotacionograma -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
+                    <div>
+                        <div class="w-10 h-10 bg-emerald-50 text-emerald-700 rounded-xl flex items-center justify-center text-lg mb-3">
+                            <i class="fa-solid fa-sitemap"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-base">1. Lotacionograma Legal</h3>
+                        <p class="text-xs text-slate-500 mt-1">Importe a relação de cargos e limites de vagas criadas pelas Leis Municipais.</p>
+                    </div>
+                    <form action="/importar/texto-direto" method="post" class="space-y-3">
+                        <input type="hidden" name="tipo_documento" value="LOTACIONOGRAMA">
+                        <textarea name="conteudo_texto" rows="4" placeholder="Exemplo:&#10;ENF-01; Enfermeiro Padrão; 15 vagas; Lei 1.200/2020&#10;MED-01; Médico Clínico; 8 vagas; Lei 1.200/2020" class="w-full border border-slate-200 rounded-xl p-3 text-xs font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"></textarea>
+                        <button type="submit" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-xs transition">
+                            Importar Lotacionograma
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Card 2: Edital de Concurso -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
+                    <div>
+                        <div class="w-10 h-10 bg-indigo-50 text-indigo-700 rounded-xl flex items-center justify-center text-lg mb-3">
+                            <i class="fa-solid fa-file-signature"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-base">2. Edital de Concurso</h3>
+                        <p class="text-xs text-slate-500 mt-1">Cadastre editais, vagas homologadas imediatas e cadastro reserva por cargo.</p>
+                    </div>
+                    <form action="/importar/texto-direto" method="post" class="space-y-3">
+                        <input type="hidden" name="tipo_documento" value="EDITAL">
+                        <textarea name="conteudo_texto" rows="4" placeholder="Exemplo:&#10;Edital nº 003/2026-ADM&#10;Enfermeiro Padrão - 5 vagas&#10;Médico Clínico - 3 vagas" class="w-full border border-slate-200 rounded-xl p-3 text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                        <button type="submit" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-xs transition">
+                            Importar Edital
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Card 3: Portarias de Convocação -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
+                    <div>
+                        <div class="w-10 h-10 bg-blue-50 text-blue-700 rounded-xl flex items-center justify-center text-lg mb-3">
+                            <i class="fa-solid fa-bullhorn"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-base">3. Convocações & Portarias</h3>
+                        <p class="text-xs text-slate-500 mt-1">Carregue a lista de chamadas para confrontar a ordem cronológica e saltos na fila.</p>
+                    </div>
+                    <form action="/importar/texto-direto" method="post" class="space-y-3">
+                        <input type="hidden" name="tipo_documento" value="CONVOCACAO">
+                        <textarea name="conteudo_texto" rows="4" placeholder="Exemplo:&#10;Portaria nº 205/2026&#10;01º - Maria Eduarda - Cargo: Enfermeiro Padrão&#10;06º - Marcos Pereira - Cargo: Enfermeiro Padrão" class="w-full border border-slate-200 rounded-xl p-3 text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+                        <button type="submit" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-xs transition">
+                            Importar Convocações
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+</body>
+</html>

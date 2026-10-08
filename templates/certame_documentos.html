@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passo 2: Ingestão de Documentos | Auditoria Pré-Edital</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar-bg { background-color: #050a18; }
+        .nav-item-active { background-color: #00965e; color: #ffffff; font-weight: 600; }
+        .nav-item-inactive { color: #94a3b8; }
+        .nav-item-inactive:hover { background-color: #0f172a; color: #f1f5f9; }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans min-h-screen flex text-slate-800 antialiased">
+
+    <!-- Sidebar Lateral Estática -->
+    <aside class="w-64 sidebar-bg shrink-0 flex flex-col justify-between border-r border-slate-800 h-screen sticky top-0 z-40">
+        <div class="p-4 space-y-6 overflow-y-auto flex-1">
+            <!-- Logo no Topo do Menu -->
+            <div class="flex items-center space-x-3 px-2 py-2">
+                <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md">
+                    <i class="fa-solid fa-shield-halved text-emerald-600 text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-white font-extrabold text-sm tracking-tight">AUDIT-FLOW</h2>
+                    <p class="text-[10px] text-emerald-400 font-bold uppercase">Auditoria de Pessoal</p>
+                </div>
+            </div>
+
+            <!-- Navegação / Itens do Menu -->
+            <nav class="space-y-1 text-xs">
+                
+                <a href="/" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-active">
+                    <i class="fa-solid fa-table-cells-large w-5 text-sm mr-2.5"></i>
+                    <span>Dashboard Geral</span>
+                </a>
+
+                <a href="/certames/novo" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-plus-circle w-5 text-sm mr-2.5 text-emerald-400"></i>
+                    <span>Novo Certame / Modalidade</span>
+                </a>
+
+                
+
+                <a href="/certames" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-list-check w-5 text-sm mr-2.5 text-emerald-400"></i>
+                    <span>Certames</span>
+                </a>
+
+                                {% set certames_menu = get_certames_menu() %}
+                {% if certames_menu %}
+                <div class="mt-1 mb-2 pl-2 space-y-2 border-l-2 border-emerald-800/60 ml-3">
+                    {% for c in certames_menu %}
+                    {% set nome_lbl = "Concurso " ~ c.numero_certame if 'CONCURSO' in c.modalidade.upper() else "Seletivo " ~ c.numero_certame %}
+                    <div class="space-y-1">
+                        <div class="text-[11px] font-extrabold text-slate-200 flex items-center px-2 py-1 bg-slate-900/90 rounded-lg border border-slate-800">
+                            <i class="fa-solid fa-file-signature text-emerald-400 mr-1.5 text-[10px]"></i>
+                            <span class="truncate">{{ nome_lbl }}</span>
+                        </div>
+                        <div class="pl-2 space-y-1 text-[11px]">
+                            <a href="/certames/{{ c.id_certame }}/wizard" class="flex items-center text-slate-300 hover:text-emerald-300 py-0.5 transition">
+                                <i class="fa-solid fa-folder-open text-emerald-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Pré-Edital</span>
+                            </a>
+                            {% if c.status_auditoria == 'PARECER_DEFINITIVO_EMITIDO' %}
+                            <a href="/certames/{{ c.id_certame }}/fase-oficial" class="flex items-center text-indigo-300 hover:text-indigo-200 font-bold py-0.5 transition">
+                                <i class="fa-solid fa-unlock text-indigo-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Oficial (Ativa)</span>
+                            </a>
+                            {% else %}
+                            <a href="/certames/{{ c.id_certame }}/fase-oficial" class="flex items-center text-slate-500 hover:text-slate-400 py-0.5 transition" title="Fase Oficial aguardando Parecer Definitivo">
+                                <i class="fa-solid fa-lock text-slate-600 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Oficial</span>
+                            </a>
+                            {% endif %}
+                            <a href="/certames/{{ c.id_certame }}/acompanhamento" class="flex items-center text-slate-300 hover:text-amber-300 py-0.5 transition">
+                                <i class="fa-solid fa-user-check text-amber-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Acompanhamento do Certame</span>
+                            </a>
+                            <!-- Submenu Recuado (Subordinação Visual) -->
+                            <a href="/certames/{{ c.id_certame }}/vigencia" class="flex items-center pl-4 text-[10.5px] text-slate-400 hover:text-amber-300 py-0.5 transition border-l-2 border-slate-700/60 ml-2">
+                                <i class="fa-solid fa-clock-rotate-left text-amber-400 text-[9px] w-3 mr-1.5"></i>
+                                <span class="truncate">Vigência do Certame</span>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                
+<div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Módulos de Auditoria
+                </div>
+
+                <a href="/modulo/lotacionograma" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-sitemap w-5 text-sm mr-2.5"></i>
+                    <span>Lotacionograma Legal</span>
+                </a>
+
+                <a href="/modulo/concursos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-list-ol w-5 text-sm mr-2.5"></i>
+                    <span>Ordem de Classificação</span>
+                </a>
+
+                <a href="/modulo/temporarios" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-user-clock w-5 text-sm mr-2.5"></i>
+                    <span>Contratos Temporários</span>
+                </a>
+
+                <a href="/modulo/afastamentos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-notes-medical w-5 text-sm mr-2.5"></i>
+                    <span>Afastamentos & Licenças</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Controle & Rastreabilidade
+                </div>
+
+                <a href="/achados" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-clipboard-check w-5 text-sm mr-2.5"></i>
+                    <span>Matriz de Achados</span>
+                </a>
+
+                <a href="/normativos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-book-bookmark w-5 text-sm mr-2.5"></i>
+                    <span>Normativos & Jurisprudência</span>
+                </a>
+
+                <a href="/usuarios" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-user-shield w-5 text-sm mr-2.5"></i>
+                    <span>Gestão de Acesso</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Repositório & IA
+                </div>
+
+                <a href="/repositorio" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-folder-open w-5 text-sm mr-2.5"></i>
+                    <span>Repositório Documental</span>
+                </a>
+
+                <a href="/importar" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-wand-magic-sparkles w-5 text-sm mr-2.5 text-indigo-400"></i>
+                    <span>Ingestão & Leitura IA</span>
+                </a>
+
+            </nav>
+        </div>
+
+        <!-- Perfil do Usuário Master / Rodapé da Sidebar -->
+        <div class="p-4 border-t border-slate-800 bg-[#070e20] shrink-0">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2.5 overflow-hidden">
+                    <div class="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center text-white font-bold text-xs shrink-0">
+                        PJ
+                    </div>
+                    <div class="truncate">
+                        <p class="text-xs font-bold text-white truncate">{{ usuario.email if usuario else 'prof.jan100@gmail.com' }}</p>
+                        <p class="text-[10px] text-emerald-400 font-semibold">Administrador Master</p>
+                    </div>
+                </div>
+                <a href="/logout" title="Sair do Sistema" class="text-slate-400 hover:text-rose-400 p-1.5 transition">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+                </a>
+            </div>
+        </div>
+
+    </aside>
+
+    <!-- Conteúdo Central -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between ">
+            <div>
+                <h1 class="text-xl font-black text-slate-900">Passo 2: Instrução Documental do Certame</h1>
+                <p class="text-xs text-slate-500">
+                    Processo {{ certame.numero_certame }} • Modalidade: 
+                    <span class="font-bold text-emerald-600">{{ certame.modalidade.replace('_', ' ') }}</span>
+                </p>
+            </div>
+            <a href="/certames/{{ certame.id_certame }}/analise-tce" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl shadow transition flex items-center">
+                <span>Ir para Análise TCE-MT</span>
+                <i class="fa-solid fa-arrow-right ml-1.5"></i>
+            </a>
+        </header>
+
+        <main class="p-8 max-w-6xl mx-auto w-full space-y-8">
+
+            <!-- Banner do Certame -->
+            <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 rounded-3xl shadow-lg border border-indigo-500/30 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div>
+                    <span class="bg-indigo-500/30 text-indigo-300 border border-indigo-400/40 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                        Instrução Prévia de Remessa TCE-MT
+                    </span>
+                    <h2 class="text-xl font-black mt-2">{{ certame.municipio }} — {{ certame.numero_certame }}</h2>
+                    <p class="text-slate-300 text-xs mt-1">Prefeito: <strong>{{ certame.prefeito_ordenador }}</strong> • Secretário: <strong>{{ certame.secretario_solicitante }}</strong></p>
+                </div>
+                <div class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 text-center">
+                    <p class="text-[10px] text-slate-300 uppercase font-bold">Documentos Anexados</p>
+                    <p class="text-2xl font-black text-emerald-400">{{ certame.anexos|length }} / 8</p>
+                </div>
+            </div>
+
+            <!-- Upload de PDF / Documentos com Leitura de IA -->
+            <section class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 space-y-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-black text-slate-900 flex items-center">
+                            <i class="fa-solid fa-wand-magic-sparkles text-indigo-600 mr-2"></i>
+                            Anexar Documento Obrigatório para Leitura com IA
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            O arquivo enviado será lido pela IA, extraindo os dados e alimentando o checklist de fiscalização do TCE-MT.
+                        </p>
+                    </div>
+                </div>
+
+                <form action="/certames/{{ certame.id_certame }}/anexar" method="post" enctype="multipart/form-data" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Tipo de Documento</label>
+                            <select id="tipo_documento_select" name="tipo_documento" required onchange="toggleOutroDocumento(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                <optgroup label="── 1. Atos Prévios ao Edital (TCE-MT) ──">
+                                    <option value="MINUTA_EDITAL">1. Minuta do Edital Normativo (Cargos, vagas, vencimentos, taxas, isenções)</option>
+                                    <option value="LOTACIONOGRAMA">2. Lotacionograma Atualizado do Município</option>
+                                    <option value="LOTACIONOGRAMA_ANALITICO">3. Demonstrativo Analítico do Lotacionograma (Criadas, ocupadas, vagas livres)</option>
+                                    <option value="LEI_AUTORIZADORA">4. Lei Autorizadora Municipal / Plano de Cargos, Carreiras e Salários</option>
+                                    <option value="ESTUDO_IMPACTO_LRF">5. Estudo de Impacto Orçamentário e Financeiro (Art. 16, I da LRF + CRC Contador)</option>
+                                    <option value="DECLARACAO_COMPATIBILIDADE">6. Declaração de Compatibilidade Orçamentária (LRF, LOA, LDO e PPA pelo Prefeito)</option>
+                                    <option value="PORTARIA_COMISSAO">7. Portaria de Nomeação da Comissão Organizadora (Diário Oficial)</option>
+                                    <option value="COMPROVANTE_LICITACAO_BANCA">8. Processo Licitatório da Banca Examinadora (Pregão Presencial / Contrato)</option>
+                                    <option value="DECLARACAO_CONCURSO_PRETERITO">9. Declaração de Inexistência de Aprovados Pretéricos Validada</option>
+                                    <option value="PARECER_JURIDICO_PROCURADORIA">10. Parecer Jurídico da Procuradoria Municipal / Consultoria Legal</option>
+                                </optgroup>
+
+                                <optgroup label="── 2. Personalizado / Outros ──">
+                                    <option value="OUTROS_DOCUMENTOS_COMPLEMENTARES">11. Outros Documentos (Especificar Nome Personalizado...)</option>
+                                </optgroup>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Arquivo (PDF ou Texto)</label>
+                            <input type="file" name="arquivo" accept=".pdf,.txt,.csv" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-slate-700 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500 cursor-pointer">
+                        </div>
+                    </div>
+
+                    <!-- Campo Dinâmico para Especificar Nome Personalizado -->
+                    <div id="box_outro_tipo" class="hidden bg-emerald-50/70 border border-emerald-200 p-4 rounded-2xl">
+                        <label class="block font-black text-emerald-900 text-xs mb-1">
+                            <i class="fa-solid fa-pen text-emerald-600 mr-1"></i>
+                            Digite o Nome do Documento Personalizado:
+                        </label>
+                        <input type="text" id="outro_tipo_input" name="outro_tipo_nome" placeholder="Ex: Ata da Sessão Licitatória nº 05/2024, Certidão Negativa Trabalhista, etc." class="w-full bg-white border border-emerald-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-2.5 rounded-xl shadow text-xs flex items-center transition">
+                            <i class="fa-solid fa-cloud-arrow-up mr-2"></i> Anexar & Processar pela IA
+                        </button>
+                    </div>
+                </form>
+
+                <script>
+                    function toggleOutroDocumento(val) {
+                        const box = document.getElementById('box_outro_tipo');
+                        const input = document.getElementById('outro_tipo_input');
+                        if (val === 'OUTROS_DOCUMENTOS_COMPLEMENTARES') {
+                            box.classList.remove('hidden');
+                            input.focus();
+                        } else {
+                            box.classList.add('hidden');
+                        }
+                    }
+                </script>
+            </section>
+
+            <!-- Lista de Documentos Anexados ao Certame -->
+            <section class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-800 text-sm flex items-center">
+                        <i class="fa-solid fa-paperclip text-slate-500 mr-2"></i>
+                        Documentos Já Anexados ao Processo {{ certame.numero_certame }}
+                    </h3>
+                </div>
+
+                {% if certame.anexos %}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600">
+                        <thead class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider">
+                            <tr>
+                                <th class="p-3">Tipo do Documento</th>
+                                <th class="p-3">Nome do Arquivo</th>
+                                <th class="p-3">Data de Upload</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for anexo in certame.anexos %}
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-slate-900">
+                                    <span class="bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-lg">
+                                        {{ anexo.tipo_documento.replace('_', ' ') }}
+                                    </span>
+                                </td>
+                                <td class="p-3 text-slate-700 font-mono flex items-center">
+                                    <i class="fa-regular fa-file-pdf text-red-500 mr-2 text-sm"></i>
+                                    {{ anexo.nome_arquivo }}
+                                </td>
+                                <td class="p-3 text-slate-500">{{ anexo.data_upload.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td class="p-3">
+                                    <span class="bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded border border-emerald-200 text-[10px]">
+                                        <i class="fa-solid fa-check mr-1"></i> PROCESSADO IA
+                                    </span>
+                                </td>
+                                <td class="p-3 text-center">
+                                    <div class="flex items-center justify-center space-x-1.5">
+                                        <a href="/anexos/{{ anexo.id_anexo }}/visualizar" target="_blank" title="Visualizar / Imprimir PDF" class="bg-slate-100 hover:bg-slate-200 text-slate-700 p-1.5 rounded-lg text-xs transition">
+                                            <i class="fa-solid fa-eye text-slate-600"></i>
+                                        </a>
+                                        
+                                        <button type="button" onclick="abrirModalAtualizar({{ anexo.id_anexo }}, '{{ anexo.tipo_documento }}', '{{ anexo.nome_arquivo }}')" title="Atualizar / Substituir Arquivo" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-2.5 py-1 rounded-lg text-[11px] border border-indigo-200 transition flex items-center">
+                                            <i class="fa-solid fa-arrows-rotate mr-1"></i> Atualizar
+                                        </button>
+
+                                        <form action="/anexos/excluir/{{ anexo.id_anexo }}" method="post" onsubmit="return confirm('ATENÇÃO: Deseja realmente excluir o documento \'{{ anexo.nome_arquivo }}\'?\n\nEste arquivo será removido do repositório, o PDF será apagado e as evidências probatórias do dossiê serão imediatamente atualizadas.');" class="inline">
+                                            <button type="submit" title="Excluir do Dossiê e Evidências" class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-2.5 py-1 rounded-lg text-[11px] border border-rose-200 transition flex items-center">
+                                                <i class="fa-solid fa-trash-can mr-1"></i> Excluir
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-12 text-center text-slate-400 space-y-2">
+                    <i class="fa-solid fa-file-circle-plus text-slate-300 text-4xl mb-1"></i>
+                    <p class="font-bold text-slate-700 text-sm">Nenhum documento anexado ainda</p>
+                    <p class="text-xs">Utilize o formulário acima para enviar a minuta do edital, lotacionograma e leis autorizadoras.</p>
+                </div>
+                {% endif %}
+            </section>
+
+            <!-- Modal de Atualização de Documento -->
+            <div id="modal_atualizar_anexo" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+                <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-lg w-full p-6 space-y-5">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                        <h3 class="font-black text-slate-900 text-base flex items-center">
+                            <i class="fa-solid fa-arrows-rotate text-indigo-600 mr-2"></i>
+                            Atualizar / Substituir Documento do Dossiê
+                        </h3>
+                        <button type="button" onclick="fecharModalAtualizar()" class="text-slate-400 hover:text-slate-600 p-1">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
+                    </div>
+
+                    <form id="form_atualizar_anexo" method="post" enctype="multipart/form-data" class="space-y-4">
+                        <div class="bg-indigo-50/70 border border-indigo-100 p-3 rounded-2xl">
+                            <p class="text-xs text-indigo-900 font-bold">Arquivo Atual: <span id="modal_anexo_nome" class="font-mono text-indigo-700"></span></p>
+                            <p class="text-[11px] text-slate-500 mt-0.5">Tipo do Documento: <span id="modal_anexo_tipo" class="font-bold text-slate-700"></span></p>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-xs text-slate-700 mb-1">Novo Arquivo (PDF ou Texto)</label>
+                            <input type="file" name="arquivo" accept=".pdf,.txt,.csv" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-700 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer">
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-xs text-slate-700 mb-1">Ou Cole a Nova Transcrição em Texto (Opcional)</label>
+                            <textarea name="conteudo_texto" rows="3" placeholder="Insira o novo texto oficial se preferir..." class="w-full border border-slate-200 rounded-xl p-2.5 text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                        </div>
+
+                        <div class="flex justify-end space-x-3 pt-2">
+                            <button type="button" onclick="fecharModalAtualizar()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2 rounded-xl">Cancelar</button>
+                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow flex items-center">
+                                <i class="fa-solid fa-bolt mr-1.5"></i> Substituir & Reprocessar IA
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+                function abrirModalAtualizar(idAnexo, tipo, nome) {
+                    document.getElementById('modal_anexo_nome').innerText = nome;
+                    document.getElementById('modal_anexo_tipo').innerText = tipo;
+                    document.getElementById('form_atualizar_anexo').action = '/anexos/atualizar/' + idAnexo;
+                    document.getElementById('modal_atualizar_anexo').classList.remove('hidden');
+                    document.getElementById('modal_atualizar_anexo').classList.add('flex');
+                }
+                function fecharModalAtualizar() {
+                    document.getElementById('modal_atualizar_anexo').classList.remove('flex');
+                    document.getElementById('modal_atualizar_anexo').classList.add('hidden');
+                }
+            </script>
+
+            <!-- Ações Finais de Avanço -->
+            <div class="flex justify-between items-center pt-4">
+                <a href="/certames/novo" class="text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center">
+                    <i class="fa-solid fa-arrow-left mr-1.5"></i> Voltar à Escolha da Modalidade
+                </a>
+
+                <a href="/certames/{{ certame.id_certame }}/analise-tce" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-8 py-3.5 rounded-2xl shadow-lg text-sm flex items-center transition">
+                    <span>Executar Comparativo de Exigências TCE-MT</span>
+                    <i class="fa-solid fa-microchip ml-2"></i>
+                </a>
+            </div>
+
+        </main>
+    </div>
+
+</body>
+</html>

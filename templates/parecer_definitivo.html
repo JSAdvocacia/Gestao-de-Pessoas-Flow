@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ parecer.numero_parecer }} | Controladoria e Auditoria Municipal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; padding: 0 !important; }
+            .print-shadow-none { shadow: none !important; border: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-200 font-sans min-h-screen text-slate-900 p-4 md:p-8">
+
+    <!-- Barra de Ações (No Print) -->
+    <div class="max-w-4xl mx-auto mb-6 flex items-center justify-between no-print">
+        <a href="/certames" class="bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs px-4 py-2 rounded-xl transition flex items-center">
+            <i class="fa-solid fa-arrow-left mr-1.5"></i> Voltar à Lista de Certames
+        </a>
+
+        <div class="flex items-center space-x-3">
+            <a href="/certames/{{ certame.id_certame }}/parecer-previo" class="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition flex items-center">
+                <i class="fa-solid fa-pen-to-square mr-1.5"></i> Editar Parecer
+            </a>
+            <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs px-6 py-2.5 rounded-xl shadow-lg transition flex items-center">
+                <i class="fa-solid fa-print mr-2 text-sm"></i> Imprimir / Salvar PDF Definitivo
+            </button>
+        </div>
+    </div>
+
+    <!-- Documento Oficial do Parecer Técnico -->
+    <article class="max-w-4xl mx-auto bg-white p-10 md:p-14 shadow-2xl rounded-sm border border-slate-300 space-y-6 text-sm leading-relaxed font-serif text-justify print-shadow-none">
+
+        <!-- Cabeçalho Oficial -->
+        <header class="text-center space-y-1 pb-4 border-b-2 border-slate-900">
+            <div class="w-16 h-16 mx-auto mb-2 flex items-center justify-center">
+                <svg viewBox="0 0 100 100" class="w-14 h-14 text-emerald-700">
+                    <rect width="100" height="100" fill="#00965e" rx="10"/>
+                    <path d="M50 15 L80 40 L50 90 L20 40 Z" fill="#ffffff"/>
+                    <circle cx="50" cy="45" r="12" fill="#ffcb05"/>
+                </svg>
+            </div>
+            <p class="font-bold text-xs uppercase tracking-widest text-slate-700">Estado de Mato Grosso</p>
+            <h1 class="font-extrabold text-base uppercase text-slate-900">{{ certame.orgao_solicitante }}</h1>
+            <p class="font-bold text-xs uppercase text-emerald-800 tracking-wider">Controladoria e Auditoria Municipal - CAM</p>
+        </header>
+
+        <!-- Faixa de Título do Parecer -->
+        <div class="bg-slate-200 text-center py-2 px-4 border-y border-slate-400 font-sans font-black text-base uppercase tracking-wide">
+            PARECER TÉCNICO DA CONTROLADORIA MUNICIPAL
+        </div>
+
+        <div class="text-center font-sans font-black text-lg py-1">
+            {{ parecer.numero_parecer }}
+        </div>
+
+        <!-- Assunto -->
+        <div class="bg-slate-100 p-4 border border-slate-300 font-sans text-xs">
+            <span class="font-bold uppercase text-slate-900">Assunto:</span> {{ parecer.assunto }}
+        </div>
+
+        <!-- Fundamentação Legal -->
+        <div class="space-y-4">
+            <p class="indent-8">
+                {{ parecer.fundamentacao_legal }}
+            </p>
+            <p class="indent-8 font-semibold italic text-slate-700">
+                Enfatizamos que o referido parecer é especificadamente sobre a parte cabível ao Controle Interno da Prefeitura no referido certame.
+            </p>
+        </div>
+
+        <!-- Seções do Relatório -->
+        <section class="space-y-4">
+            <h3 class="font-sans font-bold uppercase text-slate-900 border-b border-slate-300 pb-1">DOCUMENTOS EXIGIDOS:</h3>
+            <p class="indent-8 whitespace-pre-line">{{ parecer.documentos_exigidos_texto }}</p>
+        </section>
+
+        <section class="space-y-4">
+            <h3 class="font-sans font-bold uppercase text-slate-900 border-b border-slate-300 pb-1">DA JUSTIFICATIVA:</h3>
+            <p class="indent-8 whitespace-pre-line">{{ parecer.justificativa_texto }}</p>
+        </section>
+
+        <section class="space-y-4">
+            <h3 class="font-sans font-bold uppercase text-slate-900 border-b border-slate-300 pb-1">DA AUTORIZAÇÃO:</h3>
+            <p class="indent-8 whitespace-pre-line">{{ parecer.autorizacao_texto }}</p>
+        </section>
+
+        <section class="space-y-4">
+            <h3 class="font-sans font-bold uppercase text-slate-900 border-b border-slate-300 pb-1">DA ENTIDADE EXECUTORA:</h3>
+            <p class="indent-8 whitespace-pre-line">{{ parecer.banca_executora_texto }}</p>
+        </section>
+
+        <section class="space-y-4">
+            <h3 class="font-sans font-bold uppercase text-slate-900 border-b border-slate-300 pb-1">DO REGULAMENTO E AUTORIZAÇÃO:</h3>
+            <p class="indent-8 whitespace-pre-line">{{ parecer.regulamento_autorizacao_texto }}</p>
+        </section>
+
+        <section class="space-y-4">
+            <h3 class="font-sans font-bold uppercase text-slate-900 border-b border-slate-300 pb-1">DO IMPACTO ORÇAMENTÁRIO/FINANCEIRO:</h3>
+            <p class="indent-8 whitespace-pre-line">{{ parecer.impacto_orcamentario_texto }}</p>
+        </section>
+
+        <section class="space-y-4">
+            <h3 class="font-sans font-bold uppercase text-slate-900 border-b border-slate-300 pb-1">DA DECLARAÇÃO DE COMPATIBILIDADE:</h3>
+            <p class="indent-8 whitespace-pre-line">{{ parecer.declaracao_compatibilidade_texto }}</p>
+        </section>
+
+        <section class="space-y-4">
+            <h3 class="font-sans font-bold uppercase text-slate-900 border-b border-slate-300 pb-1">DA COMISSÃO ORGANIZADORA:</h3>
+            <p class="indent-8 whitespace-pre-line">{{ parecer.comissao_organizadora_texto }}</p>
+        </section>
+
+        <section class="space-y-4">
+            <h3 class="font-sans font-bold uppercase text-slate-900 border-b border-slate-300 pb-1">DO LOTACIONOGRAMA:</h3>
+            <p class="indent-8 whitespace-pre-line">{{ parecer.lotacionograma_texto }}</p>
+        </section>
+
+        <section class="space-y-4">
+            <h3 class="font-sans font-bold uppercase text-slate-900 border-b border-slate-300 pb-1">DO EDITAL NORMATIVO & DISCREPÂNCIAS:</h3>
+            <p class="indent-8 whitespace-pre-line">{{ parecer.edital_normativo_texto }}</p>
+            <div class="bg-amber-50 p-4 border border-amber-300 rounded font-sans text-xs text-amber-950 font-medium">
+                <span class="font-bold uppercase text-amber-900">Ressalva Identificada:</span>
+                <p class="mt-1 whitespace-pre-line">{{ parecer.discrepancias_ressalvas_texto }}</p>
+            </div>
+        </section>
+
+        <section class="space-y-4">
+            <h3 class="font-sans font-bold uppercase text-slate-900 border-b border-slate-300 pb-1">DA PUBLICIDADE AMPLA E VEÍCULO OFICIAL (DOC/TCE-MT):</h3>
+            <p class="indent-8 whitespace-pre-line">{{ parecer.publicacao_ampla_doc_tce_texto }}</p>
+        </section>
+
+        <section class="space-y-4">
+            <h3 class="font-sans font-bold uppercase text-slate-900 border-b border-slate-300 pb-1">DA RESERVA OBRIGATÓRIA DE VAGAS (COTAS PCD):</h3>
+            <p class="indent-8 whitespace-pre-line">{{ parecer.reserva_vagas_pcd_texto }}</p>
+        </section>
+
+        <section class="space-y-4">
+            <h3 class="font-sans font-bold uppercase text-slate-900 border-b border-slate-300 pb-1">DO PRAZO E ISENÇÕES DE INSCRIÇÃO:</h3>
+            <p class="indent-8 whitespace-pre-line">{{ parecer.prazos_isencoes_texto }}</p>
+        </section>
+
+        <!-- Conclusão Definitiva do Parecer -->
+        <section class="space-y-4 pt-2">
+            <h3 class="font-sans font-extrabold uppercase text-slate-900 border-b-2 border-slate-900 pb-1 text-base">DO PARECER FINAL:</h3>
+            
+            <div class="p-6 rounded border-2 {% if parecer.tipo_conclusao == 'FAVORAVEL' %}bg-emerald-50 border-emerald-600 text-emerald-950{% elif parecer.tipo_conclusao == 'FAVORAVEL_COM_RESSALVA' %}bg-amber-50 border-amber-600 text-amber-950{% else %}bg-red-50 border-red-600 text-red-950{% endif %} font-sans space-y-2">
+                <div class="text-center font-black text-lg uppercase tracking-wide">
+                    {% if parecer.tipo_conclusao == 'FAVORAVEL' %}
+                        PARECER FAVORÁVEL
+                    {% elif parecer.tipo_conclusao == 'FAVORAVEL_COM_RESSALVA' %}
+                        PARECER FAVORÁVEL COM RESSALVA
+                    {% else %}
+                        PARECER DESFAVORÁVEL
+                    {% endif %}
+                </div>
+                <p class="text-xs text-center font-medium leading-relaxed">
+                    {{ parecer.conclusao_parecer_texto }}
+                </p>
+            </div>
+
+            <p class="text-center font-bold font-sans text-xs mt-4">É o parecer, S.M.J.</p>
+        </section>
+
+        <!-- Data e Assinatura Oficial -->
+        <footer class="pt-12 text-center font-sans space-y-8">
+            <p class="text-sm font-semibold">
+                {{ certame.municipio }}, {{ parecer.data_emissao.strftime('%d de %B de %Y') }}.
+            </p>
+
+            <div class="inline-block border-t border-slate-900 pt-3 px-12">
+                <p class="font-bold text-sm text-slate-900">{{ parecer.auditor_responsavel }}</p>
+                <p class="text-xs text-slate-600">Controladoria e Auditoria Municipal</p>
+                <p class="text-[10px] text-slate-400 font-mono mt-1">Validação Digital TCE-MT • Resolução nº 003/2015</p>
+            </div>
+        </footer>
+
+    </article>
+
+</body>
+</html>

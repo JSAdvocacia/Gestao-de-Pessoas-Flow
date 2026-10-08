@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repositório Documental | SIAP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar-bg { background-color: #050a18; }
+        .nav-item-active { background-color: #00965e; color: #ffffff; font-weight: 600; }
+        .nav-item-inactive { color: #94a3b8; }
+        .nav-item-inactive:hover { background-color: #0f172a; color: #f1f5f9; }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans min-h-screen flex text-slate-800 antialiased">
+
+    <!-- Sidebar Lateral Estática -->
+    <aside class="w-64 sidebar-bg shrink-0 flex flex-col justify-between border-r border-slate-800 h-screen sticky top-0 z-40">
+        <div class="p-4 space-y-6 overflow-y-auto flex-1">
+            <!-- Logo no Topo do Menu -->
+            <div class="flex items-center space-x-3 px-2 py-2">
+                <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md">
+                    <i class="fa-solid fa-shield-halved text-emerald-600 text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-white font-extrabold text-sm tracking-tight">AUDIT-FLOW</h2>
+                    <p class="text-[10px] text-emerald-400 font-bold uppercase">Auditoria de Pessoal</p>
+                </div>
+            </div>
+
+            <!-- Navegação / Itens do Menu -->
+            <nav class="space-y-1 text-xs">
+                
+                <a href="/" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-table-cells-large w-5 text-sm mr-2.5"></i>
+                    <span>Dashboard Geral</span>
+                </a>
+
+                <a href="/certames/novo" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-plus-circle w-5 text-sm mr-2.5 text-emerald-400"></i>
+                    <span>Novo Certame / Modalidade</span>
+                </a>
+
+                
+
+                <a href="/certames" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-list-check w-5 text-sm mr-2.5 text-emerald-400"></i>
+                    <span>Certames</span>
+                </a>
+
+                                {% set certames_menu = get_certames_menu() %}
+                {% if certames_menu %}
+                <div class="mt-1 mb-2 pl-2 space-y-2 border-l-2 border-emerald-800/60 ml-3">
+                    {% for c in certames_menu %}
+                    {% set nome_lbl = "Concurso " ~ c.numero_certame if 'CONCURSO' in c.modalidade.upper() else "Seletivo " ~ c.numero_certame %}
+                    <div class="space-y-1">
+                        <div class="text-[11px] font-extrabold text-slate-200 flex items-center px-2 py-1 bg-slate-900/90 rounded-lg border border-slate-800">
+                            <i class="fa-solid fa-file-signature text-emerald-400 mr-1.5 text-[10px]"></i>
+                            <span class="truncate">{{ nome_lbl }}</span>
+                        </div>
+                        <div class="pl-2 space-y-1 text-[11px]">
+                            <a href="/certames/{{ c.id_certame }}/wizard" class="flex items-center text-slate-300 hover:text-emerald-300 py-0.5 transition">
+                                <i class="fa-solid fa-folder-open text-emerald-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Pré-Edital</span>
+                            </a>
+                            {% if c.status_auditoria == 'PARECER_DEFINITIVO_EMITIDO' %}
+                            <a href="/certames/{{ c.id_certame }}/fase-oficial" class="flex items-center text-indigo-300 hover:text-indigo-200 font-bold py-0.5 transition">
+                                <i class="fa-solid fa-unlock text-indigo-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Oficial (Ativa)</span>
+                            </a>
+                            {% else %}
+                            <a href="/certames/{{ c.id_certame }}/fase-oficial" class="flex items-center text-slate-500 hover:text-slate-400 py-0.5 transition" title="Fase Oficial aguardando Parecer Definitivo">
+                                <i class="fa-solid fa-lock text-slate-600 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Oficial</span>
+                            </a>
+                            {% endif %}
+                            <a href="/certames/{{ c.id_certame }}/acompanhamento" class="flex items-center text-slate-300 hover:text-amber-300 py-0.5 transition">
+                                <i class="fa-solid fa-user-check text-amber-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Acompanhamento do Certame</span>
+                            </a>
+                            <!-- Submenu Recuado (Subordinação Visual) -->
+                            <a href="/certames/{{ c.id_certame }}/vigencia" class="flex items-center pl-4 text-[10.5px] text-slate-400 hover:text-amber-300 py-0.5 transition border-l-2 border-slate-700/60 ml-2">
+                                <i class="fa-solid fa-clock-rotate-left text-amber-400 text-[9px] w-3 mr-1.5"></i>
+                                <span class="truncate">Vigência do Certame</span>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                
+<div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Módulos de Auditoria
+                </div>
+
+                <a href="/modulo/lotacionograma" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-sitemap w-5 text-sm mr-2.5"></i>
+                    <span>Lotacionograma Legal</span>
+                </a>
+
+                <a href="/modulo/concursos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-list-ol w-5 text-sm mr-2.5"></i>
+                    <span>Ordem de Classificação</span>
+                </a>
+
+                <a href="/modulo/temporarios" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-user-clock w-5 text-sm mr-2.5"></i>
+                    <span>Contratos Temporários</span>
+                </a>
+
+                <a href="/modulo/afastamentos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-notes-medical w-5 text-sm mr-2.5"></i>
+                    <span>Afastamentos & Licenças</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Controle & Rastreabilidade
+                </div>
+
+                <a href="/achados" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-clipboard-check w-5 text-sm mr-2.5"></i>
+                    <span>Matriz de Achados</span>
+                </a>
+
+                <a href="/normativos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-book-bookmark w-5 text-sm mr-2.5"></i>
+                    <span>Normativos & Jurisprudência</span>
+                </a>
+
+                <a href="/usuarios" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-user-shield w-5 text-sm mr-2.5"></i>
+                    <span>Gestão de Acesso</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Repositório & IA
+                </div>
+
+                <a href="/repositorio" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-active">
+                    <i class="fa-solid fa-folder-open w-5 text-sm mr-2.5"></i>
+                    <span>Repositório Documental</span>
+                </a>
+
+                <a href="/importar" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-wand-magic-sparkles w-5 text-sm mr-2.5 text-indigo-400"></i>
+                    <span>Ingestão & Leitura IA</span>
+                </a>
+
+            </nav>
+        </div>
+
+        <!-- Perfil do Usuário Master / Rodapé da Sidebar -->
+        <div class="p-4 border-t border-slate-800 bg-[#070e20] shrink-0">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2.5 overflow-hidden">
+                    <div class="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center text-white font-bold text-xs shrink-0">
+                        PJ
+                    </div>
+                    <div class="truncate">
+                        <p class="text-xs font-bold text-white truncate">{{ usuario.email if usuario else 'prof.jan100@gmail.com' }}</p>
+                        <p class="text-[10px] text-emerald-400 font-semibold">Administrador Master</p>
+                    </div>
+                </div>
+                <a href="/logout" title="Sair do Sistema" class="text-slate-400 hover:text-rose-400 p-1.5 transition">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+                </a>
+            </div>
+        </div>
+
+    </aside>
+
+    <!-- Conteúdo Central -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between ">
+            <div>
+                <h1 class="text-xl font-black text-slate-900">Repositório Documental Organizado por Certame</h1>
+                <p class="text-xs text-slate-500">Custódia Probatória Digital • Leitura por IA & Acervo de PDFs do Município</p>
+            </div>
+            <a href="/importar" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-sm flex items-center transition">
+                <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> Inserir / Ler Novo Arquivo PDF
+            </a>
+        </header>
+
+        <main class="p-8 max-w-6xl mx-auto w-full space-y-8">
+
+            <!-- BLOCO 1: PASTAS ORGANIZADAS POR CERTAME -->
+            <div class="space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 gap-3">
+                    <h2 class="text-lg font-black text-slate-900 flex items-center">
+                        <i class="fa-solid fa-folder-tree text-amber-500 mr-2"></i>
+                        Acervo de Certames & Seletivos Cadastrados
+                    </h2>
+                    <div class="flex items-center space-x-2">
+                        <button type="button" onclick="expandirTodasPastas()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs px-3 py-1.5 rounded-xl font-bold transition flex items-center">
+                            <i class="fa-solid fa-angles-down mr-1 text-[10px]"></i> Expandir Todas
+                        </button>
+                        <button type="button" onclick="recolherTodasPastas()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs px-3 py-1.5 rounded-xl font-bold transition flex items-center">
+                            <i class="fa-solid fa-angles-up mr-1 text-[10px]"></i> Recolher Todas
+                        </button>
+                        <span class="bg-slate-900 text-emerald-400 text-xs px-3 py-1.5 rounded-xl font-bold border border-slate-800">
+                            {{ certames|length }} Pasta(s)
+                        </span>
+                    </div>
+                </div>
+
+                {% if certames %}
+                {% for c in certames %}
+                {% set lista_anexos = c.anexos_ordenados if c.anexos_ordenados is defined else c.anexos %}
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden transition-all duration-200">
+                    
+                    <!-- Cabeçalho da Pasta do Certame (Clicável para Expandir/Recolher) -->
+                    <div class="px-6 py-4 bg-slate-900 text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 select-none">
+                        <div class="flex items-center space-x-3 cursor-pointer flex-1" onclick="togglePastaCertame({{ c.id_certame }})">
+                            <div class="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center font-black text-lg shadow shrink-0">
+                                <i id="icon_pasta_{{ c.id_certame }}" class="fa-solid fa-folder-open"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-extrabold px-2 py-0.5 rounded uppercase">
+                                        {{ c.modalidade.replace('_', ' ') }}
+                                    </span>
+                                    <span class="text-xs text-slate-400">ID #{{ c.id_certame }}</span>
+                                    <span class="bg-slate-800 text-slate-300 border border-slate-700 text-[10px] font-bold px-2 py-0.5 rounded">
+                                        {{ lista_anexos|length }} Arquivo(s)
+                                    </span>
+                                </div>
+                                <h3 class="text-base font-black text-white mt-0.5 flex items-center">
+                                    Processo {{ c.numero_certame }} — {{ c.orgao_solicitante }}
+                                    <i id="icon_chevron_{{ c.id_certame }}" class="fa-solid fa-chevron-up text-slate-400 text-xs ml-2 transition-transform duration-200"></i>
+                                </h3>
+                                <p class="text-xs text-slate-400">
+                                    Prefeito: <strong>{{ c.prefeito_ordenador }}</strong> • Ordenador/Contador: <strong>{{ c.contador_responsavel }}</strong>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Botões de Ação: Dossiês em Separado & Relatório Analítico -->
+                        <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+                            <button type="button" onclick="togglePastaCertame({{ c.id_certame }})" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-[11px] px-3 py-1.5 rounded-xl border border-slate-700 transition flex items-center mr-1">
+                                <span id="label_toggle_{{ c.id_certame }}">Recolher</span>
+                            </button>
+                            <a href="/certames/{{ c.id_certame }}/dossie-pre-edital" class="bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-[11px] px-2.5 py-1.5 rounded-xl shadow transition flex items-center" title="Dossiê e Parecer Pré-Edital">
+                                <i class="fa-solid fa-folder-closed mr-1"></i> Dossiê Pré-Edital
+                            </a>
+                            <a href="/certames/{{ c.id_certame }}/dossie-fase-oficial" class="bg-indigo-700 hover:bg-indigo-600 text-white font-bold text-[11px] px-2.5 py-1.5 rounded-xl shadow transition flex items-center" title="Dossiê e Parecer Fase Oficial">
+                                <i class="fa-solid fa-file-signature mr-1"></i> Dossiê Fase Oficial
+                            </a>
+                            <a href="/certames/{{ c.id_certame }}/dossie-geral" class="bg-slate-800 hover:bg-slate-700 text-white font-bold text-[11px] px-2.5 py-1.5 rounded-xl border border-slate-700 shadow transition flex items-center" title="Dossiê Geral Unificado">
+                                <i class="fa-solid fa-folder-tree mr-1"></i> Dossiê Geral
+                            </a>
+                            <a href="/certames/{{ c.id_certame }}/acompanhamento/relatorio-analitico" class="bg-amber-600 hover:bg-amber-500 text-white font-bold text-[11px] px-2.5 py-1.5 rounded-xl shadow transition flex items-center" title="Relatório Analítico de Acompanhamento">
+                                <i class="fa-solid fa-chart-line mr-1"></i> Relatório Analítico
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Conteúdo Expansível da Pasta -->
+                    <div id="pasta_conteudo_{{ c.id_certame }}" class="pasta-conteudo border-t border-slate-200">
+                        {% if lista_anexos %}
+                        <table class="w-full text-left text-xs text-slate-600">
+                            <thead class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider">
+                                <tr>
+                                    <th class="p-3">ID</th>
+                                    <th class="p-3">Fase / Categoria</th>
+                                    <th class="p-3">Tipo do Documento</th>
+                                    <th class="p-3">Nome do Arquivo Original</th>
+                                    <th class="p-3">Data Upload</th>
+                                    <th class="p-3 text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                {% for a in lista_anexos %}
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-3 font-mono text-slate-400">#{{ a.id_anexo }}</td>
+                                    <td class="p-3">
+                                        <span class="px-2 py-0.5 rounded font-bold text-[10px] border {{ a.fase_cor if a.fase_cor else 'bg-slate-100 text-slate-800 border-slate-300' }}">
+                                            {{ a.fase_rotulo if a.fase_rotulo else 'Certame' }}
+                                        </span>
+                                    </td>
+                                    <td class="p-3"><span class="bg-slate-100 text-slate-800 font-bold px-2 py-0.5 rounded text-[10px]">{{ a.tipo_documento.replace('_', ' ') }}</span></td>
+                                    <td class="p-3 font-bold text-slate-900 flex items-center">
+                                        <i class="fa-solid fa-file-pdf text-rose-500 mr-2 text-sm"></i>
+                                        <span>{{ a.nome_arquivo }}</span>
+                                    </td>
+                                    <td class="p-3 text-slate-500">{{ a.data_upload.strftime('%d/%m/%Y %H:%M') }}</td>
+                                    <td class="p-3 text-center flex items-center justify-center space-x-2">
+                                        <a href="/anexos/{{ a.id_anexo }}/visualizar" target="_blank" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-2.5 py-1.5 rounded-xl text-xs border border-slate-200 flex items-center transition">
+                                            <i class="fa-solid fa-eye mr-1"></i> Visualizar
+                                        </a>
+                                        <a href="/anexos/{{ a.id_anexo }}/baixar" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-2.5 py-1.5 rounded-xl text-xs border border-indigo-200 flex items-center transition">
+                                            <i class="fa-solid fa-download mr-1"></i> Baixar
+                                        </a>
+                                        <button type="button" onclick="abrirModalAtualizar({{ a.id_anexo }}, '{{ a.tipo_documento }}', '{{ a.nome_arquivo }}')" class="bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold px-2.5 py-1.5 rounded-xl text-xs border border-amber-200 flex items-center transition">
+                                            <i class="fa-solid fa-arrows-rotate mr-1"></i> Atualizar
+                                        </button>
+                                        <form action="/anexos/excluir/{{ a.id_anexo }}" method="post" class="inline" onsubmit="return confirm('Deseja realmente excluir este documento do acervo e evidências?');">
+                                            <button type="submit" class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-2.5 py-1.5 rounded-xl text-xs border border-rose-200 flex items-center transition">
+                                                <i class="fa-solid fa-trash mr-1"></i> Excluir
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="p-8 text-center text-slate-400 space-y-2">
+                        <i class="fa-solid fa-folder-open text-slate-300 text-3xl"></i>
+                        <p class="font-bold text-slate-700 text-xs">Nenhum documento anexado ainda a esta pasta de certame.</p>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="bg-white p-12 rounded-3xl text-center text-slate-400 space-y-3 border border-slate-200">
+                    <i class="fa-solid fa-folder-tree text-slate-300 text-5xl"></i>
+                    <p class="font-bold text-slate-700 text-base">Nenhum certame cadastrado no repositório</p>
+                    <p class="text-xs">Crie um novo concurso ou seletivo para organizar o acervo probatório.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Modal de Atualização de Documento -->
+            <div id="modal_atualizar_anexo" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+                <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-lg w-full p-6 space-y-5">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                        <h3 class="font-black text-slate-900 text-base flex items-center">
+                            <i class="fa-solid fa-arrows-rotate text-indigo-600 mr-2"></i>
+                            Atualizar / Substituir Documento do Dossiê
+                        </h3>
+                        <button type="button" onclick="fecharModalAtualizar()" class="text-slate-400 hover:text-slate-600 p-1">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
+                    </div>
+
+                    <form id="form_atualizar_anexo" method="post" enctype="multipart/form-data" class="space-y-4">
+                        <div class="bg-indigo-50/70 border border-indigo-100 p-3 rounded-2xl">
+                            <p class="text-xs text-indigo-900 font-bold">Arquivo Atual: <span id="modal_anexo_nome" class="font-mono text-indigo-700"></span></p>
+                            <p class="text-[11px] text-slate-500 mt-0.5">Tipo do Documento: <span id="modal_anexo_tipo" class="font-bold text-slate-700"></span></p>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-xs text-slate-700 mb-1">Novo Arquivo (PDF ou Texto)</label>
+                            <input type="file" name="arquivo" accept=".pdf,.txt,.csv" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-700 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer">
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-xs text-slate-700 mb-1">Ou Cole a Nova Transcrição em Texto (Opcional)</label>
+                            <textarea name="conteudo_texto" rows="3" placeholder="Insira o novo texto oficial se preferir..." class="w-full border border-slate-200 rounded-xl p-2.5 text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                        </div>
+
+                        <div class="flex justify-end space-x-3 pt-2">
+                            <button type="button" onclick="fecharModalAtualizar()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2 rounded-xl">Cancelar</button>
+                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow flex items-center">
+                                <i class="fa-solid fa-bolt mr-1.5"></i> Substituir & Reprocessar IA
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+                function togglePastaCertame(idCertame) {
+                    const el = document.getElementById('pasta_conteudo_' + idCertame);
+                    const iconPasta = document.getElementById('icon_pasta_' + idCertame);
+                    const iconChevron = document.getElementById('icon_chevron_' + idCertame);
+                    const labelToggle = document.getElementById('label_toggle_' + idCertame);
+
+                    if (!el) return;
+
+                    if (el.classList.contains('hidden')) {
+                        el.classList.remove('hidden');
+                        if (iconPasta) {
+                            iconPasta.classList.remove('fa-folder');
+                            iconPasta.classList.add('fa-folder-open');
+                        }
+                        if (iconChevron) {
+                            iconChevron.classList.remove('rotate-180');
+                        }
+                        if (labelToggle) {
+                            labelToggle.innerText = 'Recolher';
+                        }
+                    } else {
+                        el.classList.add('hidden');
+                        if (iconPasta) {
+                            iconPasta.classList.remove('fa-folder-open');
+                            iconPasta.classList.add('fa-folder');
+                        }
+                        if (iconChevron) {
+                            iconChevron.classList.add('rotate-180');
+                        }
+                        if (labelToggle) {
+                            labelToggle.innerText = 'Expandir';
+                        }
+                    }
+                }
+
+                function expandirTodasPastas() {
+                    const conteudos = document.querySelectorAll('.pasta-conteudo');
+                    conteudos.forEach(el => {
+                        el.classList.remove('hidden');
+                        const idCertame = el.id.replace('pasta_conteudo_', '');
+                        const iconPasta = document.getElementById('icon_pasta_' + idCertame);
+                        const iconChevron = document.getElementById('icon_chevron_' + idCertame);
+                        const labelToggle = document.getElementById('label_toggle_' + idCertame);
+                        if (iconPasta) {
+                            iconPasta.classList.remove('fa-folder');
+                            iconPasta.classList.add('fa-folder-open');
+                        }
+                        if (iconChevron) {
+                            iconChevron.classList.remove('rotate-180');
+                        }
+                        if (labelToggle) {
+                            labelToggle.innerText = 'Recolher';
+                        }
+                    });
+                }
+
+                function recolherTodasPastas() {
+                    const conteudos = document.querySelectorAll('.pasta-conteudo');
+                    conteudos.forEach(el => {
+                        el.classList.add('hidden');
+                        const idCertame = el.id.replace('pasta_conteudo_', '');
+                        const iconPasta = document.getElementById('icon_pasta_' + idCertame);
+                        const iconChevron = document.getElementById('icon_chevron_' + idCertame);
+                        const labelToggle = document.getElementById('label_toggle_' + idCertame);
+                        if (iconPasta) {
+                            iconPasta.classList.remove('fa-folder-open');
+                            iconPasta.classList.add('fa-folder');
+                        }
+                        if (iconChevron) {
+                            iconChevron.classList.add('rotate-180');
+                        }
+                        if (labelToggle) {
+                            labelToggle.innerText = 'Expandir';
+                        }
+                    });
+                }
+
+                function abrirModalAtualizar(idAnexo, tipo, nome) {
+                    document.getElementById('modal_anexo_nome').innerText = nome;
+                    document.getElementById('modal_anexo_tipo').innerText = tipo;
+                    document.getElementById('form_atualizar_anexo').action = '/anexos/atualizar/' + idAnexo;
+                    document.getElementById('modal_atualizar_anexo').classList.remove('hidden');
+                    document.getElementById('modal_atualizar_anexo').classList.add('flex');
+                }
+                function abrirModalAtualizarDocAvulso(idDoc, tipo, nome) {
+                    document.getElementById('modal_anexo_nome').innerText = nome;
+                    document.getElementById('modal_anexo_tipo').innerText = tipo;
+                    document.getElementById('form_atualizar_anexo').action = '/repositorio/atualizar/' + idDoc;
+                    document.getElementById('modal_atualizar_anexo').classList.remove('hidden');
+                    document.getElementById('modal_atualizar_anexo').classList.add('flex');
+                }
+                function fecharModalAtualizar() {
+                    document.getElementById('modal_atualizar_anexo').classList.remove('flex');
+                    document.getElementById('modal_atualizar_anexo').classList.add('hidden');
+                }
+            </script>
+
+            <!-- BLOCO 2: DOCUMENTOS AVULSOS OU GERAIS DO SISTEMA -->
+            {% if documentos_avulsos %}
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden space-y-3">
+                <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-800 text-sm flex items-center">
+                        <i class="fa-solid fa-folder text-slate-500 mr-2"></i>
+                        Documentos Avulsos e Quadros Gerais de Pessoal
+                    </h3>
+                    <span class="bg-slate-200 text-slate-800 text-xs px-2.5 py-1 rounded-full font-bold">
+                        {{ documentos_avulsos|length }} Arquivo(s)
+                    </span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600">
+                        <thead class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider">
+                            <tr>
+                                <th class="p-3">ID</th>
+                                <th class="p-3">Arquivo</th>
+                                <th class="p-3">Tipo</th>
+                                <th class="p-3">Data Upload</th>
+                                <th class="p-3 text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for doc in documentos_avulsos %}
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-mono text-slate-400">#{{ doc.id_documento }}</td>
+                                <td class="p-3 font-bold text-slate-900 flex items-center">
+                                    <i class="fa-solid fa-file-pdf text-rose-500 mr-2 text-sm"></i>
+                                    <span>{{ doc.nome_arquivo_original }}</span>
+                                </td>
+                                <td class="p-3"><span class="bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded text-[10px]">{{ doc.tipo_documento.replace('_', ' ') }}</span></td>
+                                <td class="p-3 text-slate-500">{{ doc.data_upload.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td class="p-3 text-center flex items-center justify-center space-x-2">
+                                    <a href="/repositorio/visualizar/{{ doc.id_documento }}" target="_blank" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-2.5 py-1.5 rounded-xl text-xs border border-slate-200 flex items-center transition">
+                                        <i class="fa-solid fa-eye mr-1"></i> Visualizar
+                                    </a>
+                                    <a href="/repositorio/baixar/{{ doc.id_documento }}" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-2.5 py-1.5 rounded-xl text-xs border border-indigo-200 flex items-center transition">
+                                        <i class="fa-solid fa-download mr-1"></i> Baixar
+                                    </a>
+                                    <button type="button" onclick="abrirModalAtualizarDocAvulso({{ doc.id_documento }}, '{{ doc.tipo_documento }}', '{{ doc.nome_arquivo_original }}')" class="bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold px-2.5 py-1.5 rounded-xl text-xs border border-amber-200 flex items-center transition">
+                                        <i class="fa-solid fa-arrows-rotate mr-1"></i> Atualizar
+                                    </button>
+                                    <form action="/repositorio/excluir/{{ doc.id_documento }}" method="post" class="inline" onsubmit="return confirm('Deseja realmente excluir este documento do repositório?');">
+                                        <button type="submit" class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-2.5 py-1.5 rounded-xl text-xs border border-rose-200 flex items-center transition">
+                                            <i class="fa-solid fa-trash mr-1"></i> Excluir
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+        </main>
+    </div>
+
+</body>
+</html>
+

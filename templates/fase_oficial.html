@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fase Oficial do Certame — Processo {{ certame.numero_certame }} | SIAP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar-bg { background-color: #050a18; }
+        .nav-item-active { background-color: #00965e; color: #ffffff; font-weight: 600; }
+        .nav-item-inactive { color: #94a3b8; }
+        .nav-item-inactive:hover { background-color: #0f172a; color: #f1f5f9; }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans min-h-screen flex text-slate-800 antialiased">
+
+    <!-- Sidebar Lateral Estática -->
+    <aside class="w-64 sidebar-bg shrink-0 flex flex-col justify-between border-r border-slate-800 h-screen sticky top-0 z-40">
+        <div class="p-4 space-y-6 overflow-y-auto flex-1">
+            <div class="flex items-center space-x-3 px-2 py-2">
+                <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md">
+                    <i class="fa-solid fa-shield-halved text-emerald-600 text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-white font-extrabold text-sm tracking-tight">AUDIT-FLOW</h2>
+                    <p class="text-[10px] text-emerald-400 font-bold uppercase">Auditoria de Pessoal</p>
+                </div>
+            </div>
+
+            <nav class="space-y-1 text-xs">
+                <a href="/" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-table-cells-large w-5 text-sm mr-2.5"></i>
+                    <span>Dashboard Geral</span>
+                </a>
+                <a href="/certames/novo" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-plus-circle w-5 text-sm mr-2.5 text-emerald-400"></i>
+                    <span>Novo Certame / Modalidade</span>
+                </a>
+                <a href="/certames" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-list-check w-5 text-sm mr-2.5 text-emerald-400"></i>
+                    <span>Certames</span>
+                </a>
+
+                {% set certames_menu = get_certames_menu() %}
+                {% if certames_menu %}
+                <div class="mt-1 mb-2 pl-2 space-y-2 border-l-2 border-emerald-800/60 ml-3">
+                    {% for c in certames_menu %}
+                    {% set nome_lbl = "Concurso " ~ c.numero_certame if 'CONCURSO' in c.modalidade.upper() else "Seletivo " ~ c.numero_certame %}
+                    <div class="space-y-1">
+                        <div class="text-[11px] font-extrabold text-slate-200 flex items-center px-2 py-1 bg-slate-900/90 rounded-lg border border-slate-800">
+                            <i class="fa-solid fa-file-signature text-emerald-400 mr-1.5 text-[10px]"></i>
+                            <span class="truncate">{{ nome_lbl }}</span>
+                        </div>
+                        <div class="pl-2 space-y-1 text-[11px]">
+                            <a href="/certames/{{ c.id_certame }}/wizard" class="flex items-center text-slate-300 hover:text-emerald-300 py-0.5 transition">
+                                <i class="fa-solid fa-folder-open text-emerald-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Pré-Edital</span>
+                            </a>
+                            {% if c.status_auditoria == 'PARECER_DEFINITIVO_EMITIDO' %}
+                            <a href="/certames/{{ c.id_certame }}/fase-oficial" class="flex items-center text-indigo-300 hover:text-indigo-200 font-bold py-0.5 transition">
+                                <i class="fa-solid fa-unlock text-indigo-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Oficial (Ativa)</span>
+                            </a>
+                            {% else %}
+                            <a href="/certames/{{ c.id_certame }}/fase-oficial" class="flex items-center text-slate-500 hover:text-slate-400 py-0.5 transition" title="Fase Oficial aguardando Parecer Definitivo">
+                                <i class="fa-solid fa-lock text-slate-600 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Oficial</span>
+                            </a>
+                            {% endif %}
+                            <a href="/certames/{{ c.id_certame }}/acompanhamento" class="flex items-center text-slate-300 hover:text-amber-300 py-0.5 transition">
+                                <i class="fa-solid fa-user-check text-amber-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Acompanhamento do Certame</span>
+                            </a>
+                            <!-- Submenu Recuado (Subordinação Visual) -->
+                            <a href="/certames/{{ c.id_certame }}/vigencia" class="flex items-center pl-4 text-[10.5px] text-slate-400 hover:text-amber-300 py-0.5 transition border-l-2 border-slate-700/60 ml-2">
+                                <i class="fa-solid fa-clock-rotate-left text-amber-400 text-[9px] w-3 mr-1.5"></i>
+                                <span class="truncate">Vigência do Certame</span>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Módulos de Auditoria
+                </div>
+                <a href="/modulo/lotacionograma" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-sitemap w-5 text-sm mr-2.5"></i>
+                    <span>Lotacionograma Legal</span>
+                </a>
+                <a href="/modulo/concursos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-list-ol w-5 text-sm mr-2.5"></i>
+                    <span>Ordem de Classificação</span>
+                </a>
+                <a href="/modulo/temporarios" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-user-clock w-5 text-sm mr-2.5"></i>
+                    <span>Contratos Temporários</span>
+                </a>
+                <a href="/modulo/afastamentos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-notes-medical w-5 text-sm mr-2.5"></i>
+                    <span>Afastamentos & Licenças</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Controle & Rastreabilidade
+                </div>
+                <a href="/achados" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-clipboard-check w-5 text-sm mr-2.5"></i>
+                    <span>Matriz de Achados</span>
+                </a>
+                <a href="/normativos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-book-bookmark w-5 text-sm mr-2.5"></i>
+                    <span>Normativos & Jurisprudência</span>
+                </a>
+                <a href="/usuarios" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-user-shield w-5 text-sm mr-2.5"></i>
+                    <span>Gestão de Acesso</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Repositório & IA
+                </div>
+
+                <a href="/repositorio" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-folder-open w-5 text-sm mr-2.5"></i>
+                    <span>Repositório Documental</span>
+                </a>
+
+                <a href="/importar" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-wand-magic-sparkles w-5 text-sm mr-2.5 text-indigo-400"></i>
+                    <span>Ingestão & Leitura IA</span>
+                </a>
+            </nav>
+        </div>
+
+        <div class="p-4 border-t border-slate-800 bg-[#070e20] shrink-0">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2.5 overflow-hidden">
+                    <div class="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center text-white font-bold text-xs shrink-0">PJ</div>
+                    <div class="truncate">
+                        <p class="text-xs font-bold text-white truncate">{{ usuario.email if usuario else 'prof.jan100@gmail.com' }}</p>
+                        <p class="text-[10px] text-emerald-400 font-semibold">Administrador Master</p>
+                    </div>
+                </div>
+                <a href="/logout" title="Sair do Sistema" class="text-slate-400 hover:text-rose-400 p-1.5 transition">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Conteúdo Central -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between ">
+            <div>
+                <div class="flex items-center space-x-2">
+                    <span class="bg-indigo-100 text-indigo-800 text-[10px] font-black px-2.5 py-0.5 rounded uppercase">
+                        Dashboard Informativo — Fase Oficial
+                    </span>
+                    <span class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded uppercase">
+                        <i class="fa-solid fa-lock mr-1"></i> Pré-Edital Concluído
+                    </span>
+                </div>
+                <h1 class="text-xl font-black text-slate-900 mt-1">Fase Oficial do Certame — Processo {{ certame.numero_certame }}</h1>
+                <p class="text-xs text-slate-500">Dashboard de Leitura Automática IA e Custódia Documental • {{ certame.orgao_solicitante }}</p>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <a href="/certames/{{ certame.id_certame }}/fase-oficial/gerar-relatorio-ia" onclick="return confirm('Deseja gerar o relatório completo com IA integrando todos os dados do Dashboard de Provimentos e Auditoria?');" class="bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-600 hover:from-indigo-500 hover:to-emerald-500 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-md hover:shadow-lg border border-indigo-400/30 transition flex items-center">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-2 text-amber-300"></i> Gerar relatório com IA
+                </a>
+                <a href="/certames/{{ certame.id_certame }}/editar" class="bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-xs px-3.5 py-2.5 rounded-xl border border-amber-200 transition flex items-center">
+                    <i class="fa-solid fa-pen-to-square mr-1.5"></i> Editar Dados
+                </a>
+                <a href="/certames/{{ certame.id_certame }}/wizard" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs px-4 py-2.5 rounded-xl border border-slate-300 transition flex items-center">
+                    <i class="fa-solid fa-folder-open mr-1.5"></i> Ver Fase Pré-Edital
+                </a>
+                <a href="/certames/{{ certame.id_certame }}/fase-oficial/parecer" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center">
+                    <i class="fa-solid fa-file-signature mr-1.5 text-yellow-300"></i> Parecer Técnico Fase Oficial
+                </a>
+                <a href="/certames/{{ certame.id_certame }}/dossie" class="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center">
+                    <i class="fa-solid fa-print mr-1.5"></i> Dossiê Completo
+                </a>
+            </div>
+        </header>
+
+        <main class="p-8 max-w-6xl mx-auto w-full space-y-8">
+
+            {% if mensagem %}
+            <div class="bg-emerald-50 border border-emerald-300 text-emerald-800 px-4 py-3 rounded-2xl shadow-sm flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-circle-check text-emerald-600 text-xl"></i>
+                    <p class="font-bold text-xs">{{ mensagem }}</p>
+                </div>
+                <span class="text-[10px] bg-emerald-200 text-emerald-900 font-bold px-2 py-0.5 rounded">Fase Oficial Atualizada</span>
+            </div>
+            {% endif %}
+
+            {% if certame.status_auditoria != 'PARECER_DEFINITIVO_EMITIDO' %}
+            <div class="bg-amber-50 border border-amber-300 text-amber-900 px-5 py-4 rounded-2xl shadow-sm flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-600 text-2xl"></i>
+                    <div>
+                        <p class="font-extrabold text-xs">Fase Pré-Edital em Andamento</p>
+                        <p class="text-[11px] text-amber-800">Emita o Parecer Definitivo do Controle Interno na Fase Pré-Edital para registrar o encerramento formal da etapa prévia.</p>
+                    </div>
+                </div>
+                <a href="/certames/{{ certame.id_certame }}/parecer-previo" class="bg-amber-600 hover:bg-amber-500 text-white font-extrabold text-xs px-4 py-2 rounded-xl shadow transition shrink-0">
+                    <i class="fa-solid fa-file-signature mr-1.5"></i> Ir para Parecer Definitivo
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- Banner Informativo das Fases -->
+            <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 rounded-3xl shadow-lg border border-indigo-500/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div class="space-y-1">
+                    <div class="flex items-center space-x-2">
+                        <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 text-[10px] font-extrabold px-2.5 py-0.5 rounded uppercase">
+                            {{ certame.modalidade.replace('_', ' ') }}
+                        </span>
+                        <span class="bg-indigo-500/30 text-indigo-300 text-[10px] font-bold px-2.5 py-0.5 rounded uppercase">
+                            Fase Oficial Ativa (Leitura IA)
+                        </span>
+                    </div>
+                    <h2 class="text-xl font-black text-white mt-1">{{ certame.municipio }} — {{ certame.numero_certame }}</h2>
+                    <p class="text-slate-300 text-xs">Prefeito/Ordenador: <strong>{{ certame.prefeito_ordenador }}</strong> • Banca: <strong>{{ certame.banca_examinadora }}</strong></p>
+                </div>
+
+                <div class="bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/10 text-center shrink-0">
+                    <p class="text-[10px] text-slate-300 uppercase font-bold">Status da Fase Oficial</p>
+                    <p class="text-sm font-black text-emerald-400 mt-0.5 uppercase">
+                        {% if fase_oficial and fase_oficial.status_fase_oficial == 'HOMOLOGADO_FINAL' %}
+                        <i class="fa-solid fa-stamp mr-1"></i> Homologado Definitivo
+                        {% else %}
+                        <i class="fa-solid fa-wand-magic-sparkles mr-1 text-yellow-300"></i> Em Acompanhamento IA
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <!-- BANNER DE INTEGRAÇÃO COM MÓDULO DE ACOMPANHAMENTO & LOTACIONOGRAMA -->
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div class="space-y-1">
+                    <span class="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2.5 py-0.5 rounded uppercase">
+                        <i class="fa-solid fa-sitemap mr-1 text-emerald-600"></i> Integração com Lotacionograma Oficial
+                    </span>
+                    <h3 class="text-base font-black text-slate-900 mt-1">Finalização da Fase Oficial & Importação Automática</h3>
+                    <p class="text-xs text-slate-500">Ao homologar ou finalizar a Fase Oficial, o sistema importa automaticamente todas as vagas, edital e candidatos para o <strong>Módulo de Acompanhamento</strong>, cruzando os limites legais com o <strong>Lotacionograma do Município</strong>.</p>
+                </div>
+                
+                <div class="shrink-0 flex items-center space-x-3">
+                    {% if fase_oficial and fase_oficial.status_fase_oficial == 'HOMOLOGADO_FINAL' %}
+                    <span class="bg-emerald-50 text-emerald-800 border border-emerald-300 font-extrabold text-xs px-4 py-2.5 rounded-xl flex items-center">
+                        <i class="fa-solid fa-circle-check text-emerald-600 mr-2 text-sm"></i> Fase Oficial Finalizada & Importada
+                    </span>
+                    <a href="/certames/{{ certame.id_certame }}/acompanhamento" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center">
+                        <i class="fa-solid fa-user-check mr-1.5"></i> Ir para Acompanhamento
+                    </a>
+                    {% else %}
+                    <form action="/certames/{{ certame.id_certame }}/fase-oficial/finalizar-e-importar" method="post" class="inline" onsubmit="return confirm('Confirma a finalização da Fase Oficial e a importação automática dos dados para o Módulo de Acompanhamento (cruzando com o Lotacionograma do Município)?');">
+                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs px-5 py-3 rounded-2xl shadow-md flex items-center transition">
+                            <i class="fa-solid fa-stamp mr-2 text-yellow-300"></i> Finalizar Fase Oficial & Importar para Acompanhamento
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- ANEXAR E INGERIR DOCUMENTOS DA FASE OFICIAL COM IA (ESTILO FASE PRÉ-EDITAL) -->
+            <section class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 space-y-6">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div>
+                        <span class="bg-indigo-100 text-indigo-800 text-[10px] font-black px-3 py-1 rounded-full uppercase flex items-center w-fit">
+                            <i class="fa-solid fa-wand-magic-sparkles text-indigo-600 mr-1.5"></i> Ingestão & Leitura IA da Fase Oficial
+                        </span>
+                        <h2 class="text-xl font-black text-slate-900 mt-1.5">Inserir Documento Oficial do Certame</h2>
+                        <p class="text-xs text-slate-500">Selecione o tipo de documento, anexe o arquivo PDF ou cole o texto do Diário Oficial. A IA irá ler o arquivo, extrair as informações automaticamente e alimentar o Dashboard e o Repositório.</p>
+                    </div>
+                </div>
+
+                <form action="/certames/{{ certame.id_certame }}/fase-oficial/anexar" method="post" enctype="multipart/form-data" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+                        <div>
+                            <label class="block font-extrabold text-slate-800 mb-1.5">Tipo de Documento Oficial</label>
+                            <select name="tipo_documento" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-3 font-bold text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                <option value="EDITAL_ABERTURA_OFICIAL" {% if 'EDITAL_ABERTURA_OFICIAL' in anexos_cadastrados %}class="text-emerald-700 font-bold"{% endif %}>1. Edital de Abertura Oficial</option>
+                                <option value="PUBLICACAO_EDITAL" {% if 'PUBLICACAO_EDITAL' in anexos_cadastrados %}class="text-emerald-700 font-bold"{% endif %}>2. Publicação do Edital</option>
+                                <option value="RETIFICACAO_EDITAL" {% if 'RETIFICACAO_EDITAL' in anexos_cadastrados %}class="text-indigo-700 font-bold"{% endif %}>3. Retificações do Edital (Permite inserção de mais de uma)</option>
+                                <option value="PUBLICACAO_RETIFICACAO" {% if 'PUBLICACAO_RETIFICACAO' in anexos_cadastrados %}class="text-indigo-700 font-bold"{% endif %}>4. Publicação da Retificação (Permite inserção de mais de uma para acompanhar cada retificação)</option>
+                                <option value="HOMOLOGACAO_INSCRICOES" {% if 'HOMOLOGACAO_INSCRICOES' in anexos_cadastrados %}class="text-emerald-700 font-bold"{% endif %}>5. Homologação das Inscrições</option>
+                                <option value="PUBLICACAO_INSCRICOES_DEFERIDAS" {% if 'PUBLICACAO_INSCRICOES_DEFERIDAS' in anexos_cadastrados %}class="text-emerald-700 font-bold"{% endif %}>6. Publicação das Inscrições Deferidas</option>
+                                <option value="GABARITO_PRELIMINAR" {% if 'GABARITO_PRELIMINAR' in anexos_cadastrados %}class="text-emerald-700 font-bold"{% endif %}>7. Gabarito Preliminar</option>
+                                <option value="GABARITO_DEFINITIVO" {% if 'GABARITO_DEFINITIVO' in anexos_cadastrados %}class="text-emerald-700 font-bold"{% endif %}>8. Gabarito Definitivo</option>
+                                <option value="RESULTADO_PRELIMINAR" {% if 'RESULTADO_PRELIMINAR' in anexos_cadastrados %}class="text-emerald-700 font-bold"{% endif %}>9. Resultado Preliminar</option>
+                                <option value="PUBLICACAO_RESULTADO_PRELIMINAR" {% if 'PUBLICACAO_RESULTADO_PRELIMINAR' in anexos_cadastrados %}class="text-emerald-700 font-bold"{% endif %}>10. Publicação do Resultado Preliminar</option>
+                                <option value="RESULTADO_DEFINITIVO" {% if 'RESULTADO_DEFINITIVO' in anexos_cadastrados %}class="text-emerald-700 font-bold"{% endif %}>11. Resultado Definitivo</option>
+                                <option value="PUBLICACAO_RESULTADO_DEFINITIVO" {% if 'PUBLICACAO_RESULTADO_DEFINITIVO' in anexos_cadastrados %}class="text-emerald-700 font-bold"{% endif %}>12. Publicação do Resultado Definitivo</option>
+                                <option value="HOMOLOGACAO_RESULTADO_FINAL" {% if 'HOMOLOGACAO_RESULTADO_FINAL' in anexos_cadastrados %}class="text-emerald-700 font-bold"{% endif %}>13. Homologação do Resultado Final</option>
+                                <option value="PUBLICACAO_HOMOLOGACAO_RESULTADO_FINAL" {% if 'PUBLICACAO_HOMOLOGACAO_RESULTADO_FINAL' in anexos_cadastrados %}class="text-emerald-700 font-bold"{% endif %}>14. Publicação da Homologação do Resultado Final</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block font-extrabold text-slate-800 mb-1.5">
+                                Anexar Arquivo(s) Oficial(is) <span class="bg-indigo-100 text-indigo-800 text-[10px] font-black px-2 py-0.5 rounded-full border border-indigo-300 ml-1"><i class="fa-solid fa-sparkles text-amber-500 mr-1"></i>Multi-arquivos IA</span>
+                            </label>
+                            <input type="file" name="arquivos" multiple accept=".pdf,.txt" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-700 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1 text-xs">Ou Cole o Conteúdo em Texto / Transcrição do Diário Oficial</label>
+                        <textarea name="conteudo_texto" rows="3" placeholder="Cole aqui a transcrição do Diário Oficial ou texto do ato oficial para extração por IA..." class="w-full border border-slate-200 rounded-xl p-3 text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-6 py-3 rounded-2xl shadow-md text-xs flex items-center transition">
+                            <i class="fa-solid fa-wand-magic-sparkles mr-2 text-sm text-yellow-300"></i>
+                            <span>Anexar & Extrair Dados com IA</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+        </main>
+    </div>
+
+</body>
+</html>

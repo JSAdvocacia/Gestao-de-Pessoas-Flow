@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vigência do Certame — {{ certame.numero_certame }} | SIAP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar-bg { background-color: #050a18; }
+        .nav-item-active { background-color: #00965e; color: #ffffff; font-weight: 600; }
+        .nav-item-inactive { color: #94a3b8; }
+        .nav-item-inactive:hover { background-color: #0f172a; color: #f1f5f9; }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans min-h-screen flex text-slate-800 antialiased">
+
+    <!-- Sidebar Lateral Estática -->
+    <aside class="w-64 sidebar-bg shrink-0 flex flex-col justify-between border-r border-slate-800 h-screen sticky top-0 z-40">
+        <div class="p-4 space-y-6 overflow-y-auto flex-1">
+            <div class="flex items-center space-x-3 px-2 py-2">
+                <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md">
+                    <i class="fa-solid fa-shield-halved text-emerald-600 text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-white font-extrabold text-sm tracking-tight">AUDIT-FLOW</h2>
+                    <p class="text-[10px] text-emerald-400 font-bold uppercase">Auditoria de Pessoal</p>
+                </div>
+            </div>
+
+            <nav class="space-y-1 text-xs">
+                <a href="/" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-table-cells-large w-5 text-sm mr-2.5"></i>
+                    <span>Dashboard Geral</span>
+                </a>
+                <a href="/certames/novo" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-plus-circle w-5 text-sm mr-2.5 text-emerald-400"></i>
+                    <span>Novo Certame / Modalidade</span>
+                </a>
+                <a href="/certames" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-list-check w-5 text-sm mr-2.5 text-emerald-400"></i>
+                    <span>Certames</span>
+                </a>
+
+                {% set certames_menu = get_certames_menu() %}
+                {% if certames_menu %}
+                <div class="mt-1 mb-2 pl-2 space-y-2 border-l-2 border-emerald-800/60 ml-3">
+                    {% for c in certames_menu %}
+                    {% set nome_lbl = "Concurso " ~ c.numero_certame if 'CONCURSO' in c.modalidade.upper() else "Seletivo " ~ c.numero_certame %}
+                    <div class="space-y-1">
+                        <div class="text-[11px] font-extrabold text-slate-200 flex items-center px-2 py-1 bg-slate-900/90 rounded-lg border border-slate-800">
+                            <i class="fa-solid fa-file-signature text-emerald-400 mr-1.5 text-[10px]"></i>
+                            <span class="truncate">{{ nome_lbl }}</span>
+                        </div>
+                        <div class="pl-2 space-y-1 text-[11px]">
+                            <a href="/certames/{{ c.id_certame }}/wizard" class="flex items-center text-slate-300 hover:text-emerald-300 py-0.5 transition">
+                                <i class="fa-solid fa-folder-open text-emerald-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Pré-Edital</span>
+                            </a>
+                            <a href="/certames/{{ c.id_certame }}/fase-oficial" class="flex items-center text-slate-300 hover:text-indigo-300 py-0.5 transition">
+                                <i class="fa-solid fa-file-contract text-indigo-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Oficial</span>
+                            </a>
+                            <a href="/certames/{{ c.id_certame }}/acompanhamento" class="flex items-center text-slate-300 hover:text-emerald-300 py-0.5 transition">
+                                <i class="fa-solid fa-user-check text-emerald-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Acompanhamento do Certame</span>
+                            </a>
+                            <!-- Submenu Recuado (Subordinação Visual) -->
+                            <a href="/certames/{{ c.id_certame }}/vigencia" class="flex items-center pl-4 text-[10.5px] {% if c.id_certame == certame.id_certame %}text-amber-300 font-extrabold border-l-2 border-amber-400{% else %}text-slate-400 hover:text-amber-300 border-l-2 border-slate-700/60{% endif %} py-0.5 transition ml-2">
+                                <i class="fa-solid fa-clock-rotate-left text-amber-400 text-[9px] w-3 mr-1.5"></i>
+                                <span class="truncate">Vigência do Certame</span>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Módulos de Auditoria
+                </div>
+                <a href="/modulo/lotacionograma" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-sitemap w-5 text-sm mr-2.5"></i>
+                    <span>Lotacionograma Legal</span>
+                </a>
+                <a href="/modulo/concursos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-list-ol w-5 text-sm mr-2.5"></i>
+                    <span>Ordem de Classificação</span>
+                </a>
+                <a href="/modulo/temporarios" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-user-clock w-5 text-sm mr-2.5"></i>
+                    <span>Contratos Temporários</span>
+                </a>
+                <a href="/modulo/afastamentos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-notes-medical w-5 text-sm mr-2.5"></i>
+                    <span>Afastamentos & Licenças</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Controle & Rastreabilidade
+                </div>
+                <a href="/achados" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-clipboard-check w-5 text-sm mr-2.5"></i>
+                    <span>Matriz de Achados</span>
+                </a>
+                <a href="/normativos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-book-bookmark w-5 text-sm mr-2.5"></i>
+                    <span>Normativos & Jurisprudência</span>
+                </a>
+                <a href="/usuarios" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-user-shield w-5 text-sm mr-2.5"></i>
+                    <span>Gestão de Acesso</span>
+                </a>
+            </nav>
+        </div>
+
+        <div class="p-4 border-t border-slate-800 bg-[#070e20] shrink-0">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2.5 overflow-hidden">
+                    <div class="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center text-white font-bold text-xs shrink-0">PJ</div>
+                    <div class="truncate">
+                        <p class="text-xs font-bold text-white truncate">{{ usuario.email if usuario else 'prof.jan100@gmail.com' }}</p>
+                        <p class="text-[10px] text-emerald-400 font-semibold">Administrador Master</p>
+                    </div>
+                </div>
+                <a href="/logout" title="Sair do Sistema" class="text-slate-400 hover:text-rose-400 p-1.5 transition">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Conteúdo Central -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between">
+            <div>
+                <h1 class="text-xl font-black text-slate-900">Vigência do Certame — Controle de Validade Legal</h1>
+                <p class="text-xs text-slate-500">Monitoramento do prazo de validade • Processo {{ certame.numero_certame }} ({{ certame.municipio }})</p>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <a href="/certames/{{ certame.id_certame }}/acompanhamento" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center">
+                    <i class="fa-solid fa-user-check mr-1.5"></i> Acompanhamento do Certame
+                </a>
+            </div>
+        </header>
+
+        <main class="p-8 max-w-7xl mx-auto w-full space-y-8">
+
+            {% if mensagem %}
+            <div id="toast_mensagem_sucesso" class="bg-emerald-50 border border-emerald-300 text-emerald-800 px-4 py-3 rounded-2xl shadow-sm flex items-center justify-between transition-all duration-700 opacity-100 transform translate-y-0">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-circle-check text-emerald-600 text-xl animate-bounce"></i>
+                    <p class="font-bold text-xs">{{ mensagem }}</p>
+                </div>
+                <div class="flex items-center space-x-2 shrink-0">
+                    <span class="text-[10px] bg-emerald-200 text-emerald-900 font-bold px-2 py-0.5 rounded">Vigência Atualizada</span>
+                    <button type="button" onclick="fecharToastMensagem()" class="text-emerald-700 hover:text-emerald-950 font-bold text-sm px-1.5 py-0.5 rounded-lg hover:bg-emerald-200/50 transition focus:outline-none" title="Fechar agora">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+            <script>
+                setTimeout(function() { fecharToastMensagem(); }, 4000);
+                function fecharToastMensagem() {
+                    const toast = document.getElementById('toast_mensagem_sucesso');
+                    if (toast) {
+                        toast.classList.remove('opacity-100', 'translate-y-0');
+                        toast.classList.add('opacity-0', '-translate-y-3');
+                        setTimeout(function() { toast.style.display = 'none'; }, 700);
+                    }
+                }
+            </script>
+            {% endif %}
+
+            <!-- DASHBOARD DE VIGÊNCIA E VALIDADE DO CERTAME -->
+            <div class="bg-slate-900 text-white p-6 rounded-3xl shadow-xl border border-slate-800 space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-4">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="bg-amber-500/20 text-amber-300 border border-amber-400/40 text-[10px] font-black px-2.5 py-0.5 rounded uppercase flex items-center">
+                                <i class="fa-solid fa-clock text-amber-400 mr-1.5"></i> Controle Temporal de Validade
+                            </span>
+                            {% if status_vigencia == 'VIGENTE' or status_vigencia == 'PRORROGADO' %}
+                            <span class="bg-emerald-500/30 text-emerald-300 text-[10px] font-black px-2.5 py-0.5 rounded uppercase flex items-center">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping mr-1.5"></span> Concurso Vigente
+                            </span>
+                            {% else %}
+                            <span class="bg-rose-500/30 text-rose-300 text-[10px] font-black px-2.5 py-0.5 rounded uppercase">
+                                Expirado / Encerrado
+                            </span>
+                            {% endif %}
+                        </div>
+                        <h2 class="text-xl font-black text-white mt-1 flex items-center">
+                            <i class="fa-solid fa-calendar-check text-amber-400 mr-2"></i> Marco Temporal de Vigência — {{ certame.municipio }} ({{ certame.numero_certame }})
+                        </h2>
+                        <p class="text-slate-400 text-xs">Especificação do período oficial de validade e atos de prorrogação ou suspensão do certame.</p>
+                    </div>
+
+                    <div class="flex items-center space-x-2 shrink-0">
+                        {% if status_vigencia == 'VIGENTE' or status_vigencia == 'PRORROGADO' %}
+                        <div class="bg-emerald-950/80 border border-emerald-500/50 px-4 py-2 rounded-2xl text-center shadow-lg">
+                            <span class="text-[10px] text-emerald-400 uppercase font-bold tracking-wider block">Prazo Restante</span>
+                            <span class="text-xl font-black text-emerald-300">{{ dias_restantes }} dias</span>
+                        </div>
+                        {% else %}
+                        <div class="bg-rose-950/80 border border-rose-500/50 px-4 py-2 rounded-2xl text-center shadow-lg">
+                            <span class="text-[10px] text-rose-400 uppercase font-bold tracking-wider block">Status da Vigência</span>
+                            <span class="text-xl font-black text-rose-300">VIGÊNCIA EXPIRADA</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- CARDS DE KPIS DA VIGÊNCIA -->
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <!-- 1. Início da Vigência -->
+                    <div class="bg-slate-800/80 backdrop-blur border border-slate-700/60 p-4 rounded-2xl transition hover:border-slate-500">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Início da Vigência</span>
+                            <i class="fa-solid fa-calendar-day text-slate-400 text-sm"></i>
+                        </div>
+                        <p class="text-base font-black text-white mt-1.5 font-mono">{{ data_homologacao.strftime('%d/%m/%Y') }}</p>
+                        <p class="text-[10px] text-slate-400 font-medium mt-0.5">Data Homologação Final</p>
+                    </div>
+
+                    <!-- 2. Prazo Inicial -->
+                    <div class="bg-slate-800/80 backdrop-blur border border-slate-700/60 p-4 rounded-2xl transition hover:border-slate-500">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Prazo Inicial</span>
+                            <i class="fa-solid fa-hourglass-start text-indigo-400 text-sm"></i>
+                        </div>
+                        <p class="text-xl font-black text-indigo-300 mt-1.5">2 Anos</p>
+                        <p class="text-[10px] text-indigo-400/80 font-medium mt-0.5">24 Meses (Edital)</p>
+                    </div>
+
+                    <!-- 3. Término Original -->
+                    <div class="bg-slate-800/80 backdrop-blur border border-slate-700/60 p-4 rounded-2xl transition hover:border-slate-500">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-300">Término Original</span>
+                            <i class="fa-solid fa-calendar-xmark text-slate-400 text-sm"></i>
+                        </div>
+                        <p class="text-base font-black text-slate-200 mt-1.5 font-mono">{{ data_fim_original.strftime('%d/%m/%Y') }}</p>
+                        <p class="text-[10px] text-slate-400 font-medium mt-0.5">Sem Prorrogação</p>
+                    </div>
+
+                    <!-- 4. Prorrogações -->
+                    <div class="bg-amber-950/40 backdrop-blur border border-amber-500/30 p-4 rounded-2xl transition hover:border-amber-400">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">Prorrogações</span>
+                            <i class="fa-solid fa-arrows-rotate text-amber-400 text-sm"></i>
+                        </div>
+                        <p class="text-2xl font-black text-amber-300 mt-1.5">{{ total_prorrogacoes }} ato(s)</p>
+                        <p class="text-[10px] text-amber-400/80 font-medium mt-0.5">Decretos de Validade</p>
+                    </div>
+
+                    <!-- 5. Término Efetivo Atual -->
+                    <div class="bg-emerald-950/60 backdrop-blur border border-emerald-500/40 p-4 rounded-2xl transition hover:border-emerald-400 col-span-2 sm:col-span-1">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Término Efetivo</span>
+                            <i class="fa-solid fa-calendar-check text-emerald-400 text-sm"></i>
+                        </div>
+                        <p class="text-base font-black text-emerald-300 mt-1.5 font-mono">{{ data_fim_efetiva.strftime('%d/%m/%Y') }}</p>
+                        <p class="text-[10px] text-emerald-400/80 font-medium mt-0.5">Limite Máximo Atual</p>
+                    </div>
+
+                    <!-- 6. Status da Validade -->
+                    <div class="{% if status_vigencia == 'VIGENTE' or status_vigencia == 'PRORROGADO' %}bg-emerald-950/70 border-emerald-500/50 text-emerald-300{% else %}bg-rose-950/70 border-rose-500/50 text-rose-300{% endif %} backdrop-blur border p-4 rounded-2xl transition">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-bold uppercase tracking-wider opacity-80">Status Geral</span>
+                            <i class="fa-solid fa-shield-check text-sm"></i>
+                        </div>
+                        <p class="text-base font-black uppercase mt-1.5">{{ status_vigencia }}</p>
+                        <p class="text-[10px] opacity-80 font-medium mt-0.5">Auditoria de Validade</p>
+                    </div>
+                </div>
+
+                <!-- LINHA DO TEMPO VISUAL DA VIGÊNCIA -->
+                <div class="pt-4 border-t border-slate-800 space-y-3">
+                    <h3 class="text-xs font-extrabold text-slate-300 uppercase tracking-wider flex items-center">
+                        <i class="fa-solid fa-timeline text-amber-400 mr-2"></i> Linha do Tempo da Vigência do Certame
+                    </h3>
+
+                    <div class="relative flex flex-col md:flex-row items-stretch justify-between gap-4 p-4 bg-slate-950/60 border border-slate-800 rounded-2xl">
+                        <!-- Ponto 1: Homologação Final -->
+                        <div class="flex-1 flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-xs shrink-0 shadow-lg">1</div>
+                            <div>
+                                <p class="text-xs font-bold text-white">Homologação Final</p>
+                                <p class="text-[10px] text-slate-400 font-mono">{{ data_homologacao.strftime('%d/%m/%Y') }}</p>
+                                <p class="text-[10px] text-emerald-400 font-semibold">Início do Prazo de Validade</p>
+                            </div>
+                        </div>
+
+                        <div class="hidden md:block w-px bg-slate-800"></div>
+
+                        <!-- Ponto 2: Término Original (2 anos) -->
+                        <div class="flex-1 flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-lg">2</div>
+                            <div>
+                                <p class="text-xs font-bold text-white">Término Bienal Original</p>
+                                <p class="text-[10px] text-slate-400 font-mono">{{ data_fim_original.strftime('%d/%m/%Y') }}</p>
+                                <p class="text-[10px] text-indigo-300 font-semibold">24 Meses Conforme Edital</p>
+                            </div>
+                        </div>
+
+                        <div class="hidden md:block w-px bg-slate-800"></div>
+
+                        <!-- Ponto 3: Atos de Prorrogação -->
+                        <div class="flex-1 flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xs shrink-0 shadow-lg">3</div>
+                            <div>
+                                <p class="text-xs font-bold text-white">Decreto(s) de Prorrogação</p>
+                                <p class="text-[10px] text-slate-400 font-mono">{{ total_prorrogacoes }} ato(s) registrado(s)</p>
+                                <p class="text-[10px] text-amber-300 font-semibold">Prorrogação por Igual Período</p>
+                            </div>
+                        </div>
+
+                        <div class="hidden md:block w-px bg-slate-800"></div>
+
+                        <!-- Ponto 4: Término Efetivo Final -->
+                        <div class="flex-1 flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-full {% if status_vigencia == 'VIGENTE' or status_vigencia == 'PRORROGADO' %}bg-emerald-400 text-slate-950{% else %}bg-rose-500 text-white{% endif %} flex items-center justify-center font-black text-xs shrink-0 shadow-lg">4</div>
+                            <div>
+                                <p class="text-xs font-bold text-white">Data Limite Efetiva</p>
+                                <p class="text-[10px] text-slate-400 font-mono font-bold">{{ data_fim_efetiva.strftime('%d/%m/%Y') }}</p>
+                                <p class="text-[10px] {% if status_vigencia == 'VIGENTE' or status_vigencia == 'PRORROGADO' %}text-emerald-400{% else %}text-rose-400{% endif %} font-bold uppercase">
+                                    {{ status_vigencia }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ALERTA DE AUDITORIA DE NOMEAÇÃO / POSSE APÓS O VENCIMENTO DA VIGÊNCIA (RETRÁTIL / EXPANSÍVEL) -->
+            {% if posses_irregulares %}
+            <details class="bg-rose-950 text-white p-6 rounded-3xl shadow-xl border border-rose-600 group transition-all duration-300">
+                <summary class="flex items-center justify-between cursor-pointer list-none select-none [&::-webkit-details-marker]:hidden group-open:pb-4 group-open:border-b group-open:border-rose-800/80">
+                    <div class="flex items-center space-x-3">
+                        <span class="w-10 h-10 rounded-2xl bg-rose-600/30 border border-rose-500 flex items-center justify-center text-rose-300 text-xl shrink-0">
+                            <i class="fa-solid fa-triangle-exclamation animate-pulse"></i>
+                        </span>
+                        <div>
+                            <span class="bg-rose-500/30 text-rose-200 border border-rose-400/50 text-[10px] font-black px-2.5 py-0.5 rounded uppercase">
+                                ALERTA DE IRREGULARIDADE CRÍTICA PARA O AUDITOR
+                            </span>
+                            <h3 class="text-lg font-black text-rose-100 mt-0.5">
+                                Convocações / Posses Efetuadas Após a Data Final de Vigência
+                            </h3>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3 shrink-0">
+                        <span class="bg-rose-600 text-white text-xs font-black px-3.5 py-1.5 rounded-full shadow border border-rose-500 flex items-center">
+                            <span>{{ posses_irregulares|length }} Irregularidade(s) Detectada(s)</span>
+                        </span>
+                        <div class="w-8 h-8 rounded-full bg-rose-900/80 border border-rose-700 flex items-center justify-center text-rose-200 group-open:bg-rose-800 transition-colors">
+                            <i class="fa-solid fa-chevron-down text-xs transition-transform duration-300 group-open:rotate-180"></i>
+                        </div>
+                    </div>
+                </summary>
+
+                <div class="space-y-3 text-xs pt-4">
+                    {% for p in posses_irregulares %}
+                    <div class="bg-rose-900/60 border border-rose-700/60 p-4 rounded-2xl space-y-1.5">
+                        <p class="font-black text-rose-200 text-sm flex items-center">
+                            <i class="fa-solid fa-gavel text-amber-400 mr-2"></i> {{ p.titulo }}
+                        </p>
+                        <p class="text-rose-100 font-medium leading-relaxed">{{ p.descricao }}</p>
+                        <p class="text-[11px] text-amber-300 font-mono font-bold pt-1">
+                            ⚠️ Fundamentação Legal: Art. 37, III e IV da Constituição Federal (Nulidade dos atos de provimento praticados após a expiração da validade).
+                        </p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </details>
+            {% endif %}
+
+            <!-- SEÇÃO 1: INGESTÃO E LEITURA DE NOVO DOCUMENTO DE VIGÊNCIA POR IA -->
+            <section class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 space-y-6">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div>
+                        <span class="bg-amber-100 text-amber-800 text-[10px] font-black px-3 py-1 rounded-full uppercase flex items-center w-fit">
+                            <i class="fa-solid fa-wand-magic-sparkles text-amber-600 mr-1.5"></i> Leitura Inteligente de Decretos de Vigência
+                        </span>
+                        <h2 class="text-xl font-black text-slate-900 mt-1.5">Inserir Novo Documento de Alteração de Vigência</h2>
+                        <p class="text-xs text-slate-500">Envie um Decreto de Prorrogação, Edital de Validade ou Termo de Suspensão de Prazo para a IA extrair e atualizar o limite temporal do concurso.</p>
+                    </div>
+                </div>
+
+                <!-- CARD DESTACADO: LEITURA POR IA DO ATO DE VIGÊNCIA -->
+                <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 rounded-3xl shadow-lg border border-indigo-500/30">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <span class="bg-indigo-500/20 text-indigo-300 border border-indigo-400/40 text-[10px] font-black px-2.5 py-0.5 rounded uppercase">
+                            <i class="fa-solid fa-sparkles text-amber-300 mr-1"></i> Ingestão Automática por IA
+                        </span>
+                    </div>
+                    <h3 class="text-base font-black text-white">1. Selecionar Arquivo(s) e Atualizar Vigência Automaticamente</h3>
+                    <p class="text-xs text-slate-300 mt-1">Anexe o PDF ou TXT do Decreto de Prorrogação de Validade e clique no botão <strong>"Ler e Atualizar Vigência com IA"</strong>.</p>
+
+                    <form action="/certames/{{ certame.id_certame }}/vigencia/adicionar-ato" method="post" enctype="multipart/form-data" class="mt-4 space-y-3">
+                        <input type="hidden" name="numero_ato" value="LEITURA_IA_AUTOMATICA">
+                        <input type="hidden" name="tipo_ato" value="DECRETO_PRORROGACAO">
+                        <input type="hidden" name="prazo_validade_meses" value="24">
+                        
+                        <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4">
+                            <div class="flex-1 bg-slate-900/90 border border-slate-700 rounded-2xl p-3">
+                                <label class="block text-xs font-bold text-slate-200 mb-1.5">Anexar Documento de Vigência (Decreto PDF, TXT ou CSV):</label>
+                                <input type="file" name="arquivos" multiple accept=".pdf,.txt,.csv" required onchange="document.getElementById('badge_vig_files').innerText = '✓ ' + this.files.length + ' arquivo(s) selecionado(s) (' + Array.from(this.files).map(f=>f.name).join(', ') + '). Clique para processar!';" class="w-full text-xs text-slate-300 file:mr-3 file:py-1.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-emerald-500 file:text-slate-950 hover:file:bg-emerald-400 cursor-pointer">
+                            </div>
+
+                            <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-8 py-4 rounded-2xl shadow-xl transition flex items-center justify-center shrink-0 text-sm">
+                                <i class="fa-solid fa-wand-magic-sparkles mr-2 text-indigo-950 text-base"></i>
+                                <span>Ler e Atualizar Vigência com IA</span>
+                            </button>
+                        </div>
+                        <div class="text-[11px] px-1">
+                            <span id="badge_vig_files" class="text-emerald-400 font-bold">
+                                <i class="fa-solid fa-circle-info mr-1"></i> O sistema atualizará a data final e recalculará o prazo máximo do concurso.
+                            </span>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- FORMULÁRIO 2: REGISTRO MANUAL DE ATO DE VIGÊNCIA -->
+                <details class="group bg-slate-50 border border-slate-200 rounded-2xl p-4 transition">
+                    <summary class="font-extrabold text-xs text-slate-700 cursor-pointer flex items-center justify-between">
+                        <span class="flex items-center">
+                            <i class="fa-solid fa-sliders text-amber-600 mr-2"></i> Inserção Manual de Ato Oficial de Vigência / Prorrogação
+                        </span>
+                        <i class="fa-solid fa-chevron-down text-slate-400 group-open:rotate-180 transition-transform"></i>
+                    </summary>
+
+                    <form action="/certames/{{ certame.id_certame }}/vigencia/adicionar-ato" method="post" enctype="multipart/form-data" class="mt-4 space-y-6 border-t border-slate-200 pt-4 text-xs">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label class="block font-extrabold text-slate-800 mb-1.5">Número/Identificação do Ato Oficial</label>
+                                <input type="text" name="numero_ato" placeholder="Ex: Decreto Municipal nº 142/2026" required class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block font-extrabold text-slate-800 mb-1.5">Tipo do Ato de Vigência</label>
+                                <select name="tipo_ato" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                                    <option value="DECRETO_PRORROGACAO">Decreto de Prorrogação de Validade (Igual Período)</option>
+                                    <option value="TERMO_SUSPENSAO">Termo / Ato de Suspensão de Prazo (Calamidade/Pandemia)</option>
+                                    <option value="TERMO_RETOMADA">Ato de Retomada da Validade</option>
+                                    <option value="ADITIVO_VIGENCIA">Aditivo de Alteração de Vigência</option>
+                                    <option value="DECRETO_HOMOLOGACAO">Decreto Inicial de Homologação Final</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block font-extrabold text-slate-800 mb-1.5">Data de Publicação Oficial</label>
+                                <input type="date" name="data_publicacao" required class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label class="block font-extrabold text-slate-800 mb-1.5">Prazo Adicional de Validade (Meses)</label>
+                                <input type="number" name="prazo_validade_meses" value="24" placeholder="Ex: 24" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block font-extrabold text-slate-800 mb-1.5">Nova Data Limite de Término da Vigência</label>
+                                <input type="date" name="nova_data_fim_vigencia" class="w-full bg-amber-50 border border-amber-300 rounded-xl px-3 py-2.5 font-bold text-amber-950 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                                <span class="text-[10px] text-slate-400 block mt-1">Se deixar em branco, o sistema calcula +24 meses.</span>
+                            </div>
+
+                            <div>
+                                <label class="block font-extrabold text-slate-800 mb-1.5">Anexar PDF do Ato (Opcional)</label>
+                                <input type="file" name="arquivos" accept=".pdf,.txt" class="w-full text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-200 file:text-slate-800">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block font-extrabold text-slate-800 mb-1.5">Motivo / Justificativa / Fundamentação Legal</label>
+                            <textarea name="motivo_justificativa" rows="2" placeholder="Ex: Prorrogação da validade por igual período de 2 anos conforme permissivo do Art. 37, III da CF/88." class="w-full bg-white border border-slate-300 rounded-xl p-3 font-medium text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none"></textarea>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-3 rounded-2xl shadow-md text-xs flex items-center transition">
+                                <i class="fa-solid fa-check mr-2 text-sm text-emerald-400"></i>
+                                <span>Salvar Ato de Vigência Manualmente</span>
+                            </button>
+                        </div>
+                    </form>
+                </details>
+            </section>
+
+            <!-- SEÇÃO 2: HISTÓRICO DE ATOS DE VIGÊNCIA CADASTRADOS -->
+            <section class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div>
+                        <h2 class="text-lg font-black text-slate-900 flex items-center">
+                            <i class="fa-solid fa-clock-rotate-left text-amber-600 mr-2"></i> Histórico de Atos de Vigência Registrados
+                        </h2>
+                        <p class="text-xs text-slate-500">Registro cronológico de decretos, prorrogações e alterações da validade do certame.</p>
+                    </div>
+                    <span class="bg-slate-100 text-slate-700 text-xs font-bold px-3 py-1 rounded-full border border-slate-200">
+                        {{ atos_vigencia|length }} ato(s) no histórico
+                    </span>
+                </div>
+
+                {% if atos_vigencia %}
+                <div class="overflow-x-auto border border-slate-200 rounded-2xl shadow-sm">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-800 text-slate-200 uppercase font-extrabold text-[10px]">
+                            <tr>
+                                <th class="py-3.5 px-4">Ato Oficial</th>
+                                <th class="py-3.5 px-4 text-center">Tipo de Ato</th>
+                                <th class="py-3.5 px-4 text-center">Data Publicação</th>
+                                <th class="py-3.5 px-4 text-center">Novo Término Vigência</th>
+                                <th class="py-3.5 px-4">Motivo / Resumo</th>
+                                <th class="py-3.5 px-4 text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
+                            {% for ato in atos_vigencia %}
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="py-3.5 px-4 font-black text-slate-900">
+                                    {{ ato.numero_ato }}
+                                    {% if ato.nome_arquivo %}
+                                    <span class="text-[10px] text-slate-400 block font-mono"><i class="fa-solid fa-paperclip mr-1"></i> {{ ato.nome_arquivo }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3.5 px-4 text-center">
+                                    <span class="bg-amber-100 text-amber-900 text-[10px] font-bold px-2.5 py-1 rounded-full">
+                                        {{ ato.tipo_ato }}
+                                    </span>
+                                </td>
+                                <td class="py-3.5 px-4 text-center font-mono font-bold text-slate-800">
+                                    {{ ato.data_publicacao.strftime('%d/%m/%Y') if ato.data_publicacao else '—' }}
+                                </td>
+                                <td class="py-3.5 px-4 text-center font-mono font-black text-emerald-700 bg-emerald-50/50">
+                                    {{ ato.nova_data_fim_vigencia.strftime('%d/%m/%Y') if ato.nova_data_fim_vigencia else '—' }}
+                                </td>
+                                <td class="py-3.5 px-4 text-slate-600 max-w-xs truncate" title="{{ ato.motivo_justificativa }}">
+                                    {{ ato.motivo_justificativa or 'Registo de alteração de vigência.' }}
+                                </td>
+                                <td class="py-3.5 px-4 text-center">
+                                    <form action="/certames/{{ certame.id_certame }}/vigencia/excluir-ato/{{ ato.id_vigencia_ato }}" method="post" class="inline" onsubmit="return confirm('Deseja excluir este ato de vigência?');">
+                                        <button type="submit" class="text-rose-600 hover:text-rose-800 p-1 transition" title="Excluir Ato">
+                                            <i class="fa-solid fa-trash-can text-sm"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-300">
+                    <i class="fa-solid fa-clock-rotate-left text-slate-300 text-3xl mb-2"></i>
+                    <p class="text-xs font-bold text-slate-600">Nenhum ato adicional de vigência foi registrado manualmente ainda.</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">O prazo atual do concurso está calculado com base na homologação inicial de 2 anos.</p>
+                </div>
+                {% endif %}
+            </section>
+        </main>
+    </div>
+</body>
+</html>

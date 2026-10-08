@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acesso ao Sistema | SIAP Controle Interno</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .login-bg { background-color: #0c1222; }
+        .btn-green { background-color: #00965e; }
+        .btn-green:hover { background-color: #007a4d; }
+    </style>
+</head>
+<body class="login-bg min-h-screen flex flex-col items-center justify-center p-4 font-sans antialiased text-slate-800">
+
+    <!-- Logo / Identidade do Sistema -->
+    <div class="flex flex-col items-center mb-6 text-center">
+        <div class="w-24 h-24 bg-white rounded-2xl shadow-xl p-3 flex flex-col items-center justify-center border-2 border-slate-100 mb-2">
+            <i class="fa-solid fa-shield-halved text-4xl text-emerald-600 mb-1"></i>
+            <span class="text-[11px] font-extrabold uppercase text-slate-900 tracking-wider">AUDIT-FLOW</span>
+            <span class="text-[8px] font-bold text-emerald-600 uppercase">Pessoal & RH</span>
+        </div>
+        <p class="text-emerald-400 font-bold text-sm tracking-wide">Auditoria & Controle Interno Municipal</p>
+    </div>
+
+    <!-- Card de Acesso ao Sistema -->
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-8 border border-slate-100 space-y-4">
+        
+        <div class="text-center">
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Acesso ao Sistema</h1>
+            <p class="text-xs text-slate-500 mt-1 font-medium">Insira suas credenciais para continuar</p>
+        </div>
+
+        {% if erro %}
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-xl text-xs text-red-700 space-y-3">
+            <div class="flex items-center">
+                <i class="fa-solid fa-circle-exclamation mr-2 text-sm text-red-600"></i>
+                <span class="font-bold">{{ erro }}</span>
+            </div>
+
+            {% if permite_redefinir %}
+            <div class="pt-2 border-t border-red-200/60">
+                <p class="text-[11px] text-red-800 mb-2 font-medium">Esqueceu sua senha ou deseja atualizar para a senha digitada?</p>
+                <form action="/login" method="post">
+                    <input type="hidden" name="email" value="{{ email_digitado }}">
+                    <input type="hidden" name="senha" value="{{ senha_digitada }}">
+                    <input type="hidden" name="redefinir" value="true">
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-2.5 px-3 rounded-xl text-xs shadow transition flex items-center justify-center">
+                        <i class="fa-solid fa-key mr-2 text-yellow-300"></i> Redefinir Senha para a Nova Senha e Entrar
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if info %}
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-3 rounded-xl text-xs text-blue-700 flex items-center">
+            <i class="fa-solid fa-info-circle mr-2 text-sm"></i>
+            <span>{{ info }}</span>
+        </div>
+        {% endif %}
+
+        <form action="/login" method="post" class="space-y-4">
+            
+            <!-- Campo E-mail -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">E-mail</label>
+                <div class="relative">
+                    <input 
+                        type="email" 
+                        name="email" 
+                        value="{{ email_digitado if email_digitado else 'prof.jan100@gmail.com' }}" 
+                        required 
+                        placeholder="seu.email@orgao.gov.br"
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
+                    >
+                </div>
+            </div>
+
+            <!-- Campo Senha -->
+            <div>
+                <div class="flex justify-between items-center mb-1.5">
+                    <label class="block text-xs font-bold text-slate-700">Senha</label>
+                </div>
+                <div class="relative">
+                    <input 
+                        type="password" 
+                        name="senha" 
+                        id="senhaInput"
+                        required 
+                        placeholder="••••••••••••"
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition pr-10"
+                    >
+                    <button type="button" onclick="togglePassword()" class="absolute right-3 top-3 text-slate-400 hover:text-slate-600 focus:outline-none">
+                        <i class="fa-regular fa-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Opção Checkbox de Redefinição -->
+            <div class="flex items-center space-x-2 pt-1">
+                <input type="checkbox" id="chk_redefinir" name="redefinir" value="true" class="w-4 h-4 text-emerald-600 rounded border-slate-300">
+                <label for="chk_redefinir" class="text-[11px] font-bold text-slate-600 cursor-pointer">
+                    Desejo atualizar/redefinir minha senha com o texto digitado acima
+                </label>
+            </div>
+
+            <!-- Botão Entrar -->
+            <button 
+                type="submit" 
+                class="w-full btn-green text-white font-bold py-3 px-4 rounded-xl text-sm shadow-lg hover:shadow-emerald-500/20 active:scale-[0.99] transition duration-150 flex items-center justify-center mt-2"
+            >
+                <i class="fa-solid fa-arrow-right-to-bracket mr-2"></i> Entrar no Sistema
+            </button>
+        </form>
+
+    </div>
+
+    <!-- Script para alternar visibilidade de senha -->
+    <script>
+        function togglePassword() {
+            const input = document.getElementById('senhaInput');
+            const icon = document.getElementById('eyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dossiê Completo de Auditoria — {{ certame.numero_certame }} | SIAP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; font-size: 11pt !important; color: black !important; }
+            .page-break { page-break-before: always; }
+            .shadow-xl, .shadow-md, .shadow-sm { box-shadow: none !important; }
+            .border { border-color: #cbd5e1 !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-200 font-sans min-h-screen text-slate-800 antialiased p-4 md:p-8">
+
+    <!-- Barra Superior de Controle e Impressão (Não sai no PDF/Impressão) -->
+    <div class="max-w-5xl mx-auto mb-6 bg-slate-900 text-white p-4 rounded-2xl shadow-xl flex flex-wrap items-center justify-between gap-4 no-print border border-slate-700">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center font-black text-lg shadow">
+                <i class="fa-solid fa-folder-closed"></i>
+            </div>
+            <div>
+                <h2 class="font-black text-sm tracking-tight">DOSSIÊ CONSOLIDADO DE AUDITORIA DE PESSOAL</h2>
+                <p class="text-xs text-emerald-400 font-semibold">Processo {{ certame.numero_certame }} • {{ certame.municipio }}</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-3 text-xs">
+            <a href="/certames/{{ certame.id_certame }}/wizard" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-xl transition">
+                <i class="fa-solid fa-arrow-left mr-1"></i> Voltar ao Passo a Passo
+            </a>
+            <a href="/repositorio" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-xl transition">
+                <i class="fa-solid fa-folder-open mr-1"></i> Repositório de Documentos
+            </a>
+            <button onclick="window.print()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-5 py-2 rounded-xl shadow-lg transition flex items-center">
+                <i class="fa-solid fa-print mr-2"></i> Imprimir / Salvar PDF do Dossiê
+            </button>
+        </div>
+    </div>
+
+    <!-- DOCUMENTO DO DOSSIÊ COMPLETO -->
+    <div class="max-w-5xl mx-auto bg-white p-10 md:p-14 rounded-3xl shadow-2xl border border-slate-300 space-y-10 text-slate-900">
+
+        <!-- 1. CAPA OFICIAL DO DOSSIÊ -->
+        <div class="border-b-4 border-emerald-700 pb-8 text-center space-y-4">
+            <div class="flex items-center justify-center space-x-4 mb-2">
+                <div class="w-16 h-16 bg-slate-900 text-emerald-400 rounded-2xl flex items-center justify-center text-3xl shadow-md border border-slate-700">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+            </div>
+            <div>
+                <h1 class="text-xs font-black uppercase tracking-widest text-slate-500">ESTADO DE MATO GROSSO • CONTROLADORIA GERAL MUNICIPAL</h1>
+                <h2 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight uppercase mt-1">
+                    DOSSIÊ COMPLETO DE AUDITORIA DE PESSOAL
+                </h2>
+                <p class="text-sm font-bold text-emerald-700 uppercase tracking-wider mt-1">
+                    Instrução Probatória de Atos Prévios ao Certame (Resolução nº 003/2015 TCE-MT)
+                </p>
+            </div>
+
+            <div class="pt-4 flex flex-wrap justify-center gap-3 text-xs font-mono">
+                <span class="bg-slate-100 border border-slate-300 px-3 py-1.5 rounded-lg font-bold text-slate-800">
+                    PROCESSO: {{ certame.numero_certame }}
+                </span>
+                <span class="bg-slate-100 border border-slate-300 px-3 py-1.5 rounded-lg font-bold text-slate-800">
+                    MODALIDADE: {{ certame.modalidade.replace('_', ' ') }}
+                </span>
+                <span class="bg-slate-100 border border-slate-300 px-3 py-1.5 rounded-lg font-bold text-slate-800">
+                    DATA DO DOSSIÊ: {{ data_hoje.strftime('%d/%m/%Y') }}
+                </span>
+            </div>
+        </div>
+
+        <!-- 2. FICHA TÉCNICA E DADOS DO CERTAME -->
+        <section class="space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                <h3 class="text-sm font-black uppercase text-emerald-800 tracking-wider flex items-center">
+                    <i class="fa-solid fa-file-invoice mr-2 text-emerald-600"></i> I. Ficha Técnica do Processo
+                </h3>
+                <a href="/certames/{{ certame.id_certame }}/editar" class="no-print font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 px-3 py-1 rounded-xl border border-amber-200 transition text-xs normal-case flex items-center">
+                    <i class="fa-solid fa-pen-to-square mr-1"></i> Editar Dados do Certame
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                    <p><strong class="text-slate-700">Órgão Solicitante:</strong> {{ certame.orgao_solicitante }}</p>
+                    <p><strong class="text-slate-700">Município:</strong> {{ certame.municipio }}</p>
+                    <p><strong class="text-slate-700">Ordenador de Despesas / Prefeito:</strong> {{ certame.prefeito_ordenador }}</p>
+                    <p><strong class="text-slate-700">Secretário Solicitante:</strong> {{ certame.secretario_solicitante }}</p>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                    <p><strong class="text-slate-700">Contador Responsável (CRC):</strong> {{ certame.contador_responsavel }}</p>
+                    <p><strong class="text-slate-700">Banca Examinadora / Licitação:</strong> {{ certame.banca_examinadora }}</p>
+                    <p><strong class="text-slate-700">Lei Autorizadora:</strong> {{ certame.lei_autorizadora }}</p>
+                    <p><strong class="text-slate-700">Leis de Carreira:</strong> {{ certame.leis_carreira }}</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. ÍNDICE DE DOCUMENTOS CUSTODIADOS NO REPOSITÓRIO DO CERTAME -->
+        <section class="space-y-4">
+            <h3 class="text-sm font-black uppercase text-emerald-800 tracking-wider flex items-center border-b border-slate-200 pb-2">
+                <i class="fa-solid fa-folder-tree mr-2 text-emerald-600"></i> II. Acervo Documental Custodiado no Repositório do Certame
+            </h3>
+
+            {% if anexos %}
+            <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-800 text-white uppercase text-[10px] font-bold">
+                        <tr>
+                            <th class="p-3">#</th>
+                            <th class="p-3">Tipo do Documento</th>
+                            <th class="p-3">Nome do Arquivo</th>
+                            <th class="p-3">Data do Upload</th>
+                            <th class="p-3 text-center">Status Leitura IA</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        {% for a in anexos %}
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-3 font-mono font-bold text-slate-400">#{{ loop.index }}</td>
+                            <td class="p-3 font-extrabold text-slate-900">{{ a.tipo_documento.replace('_', ' ') }}</td>
+                            <td class="p-3 font-mono text-slate-600">{{ a.nome_arquivo }}</td>
+                            <td class="p-3 text-slate-500">{{ a.data_upload.strftime('%d/%m/%Y %H:%M') }}</td>
+                            <td class="p-3 text-center">
+                                <span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px]">
+                                    <i class="fa-solid fa-check-double mr-1"></i> Custodiado & Processado
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl text-xs text-amber-800">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Nenhum documento anexado ainda ao acervo probatório deste certame.
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- 4. MATRIZ DE CONFORMIDADE TCE-MT -->
+        <section class="space-y-4 page-break">
+            <h3 class="text-sm font-black uppercase text-emerald-800 tracking-wider flex items-center border-b border-slate-200 pb-2">
+                <i class="fa-solid fa-microchip mr-2 text-emerald-600"></i> III. Matriz Comparativa de Fiscalização (Resolução nº 003/2015 TCE-MT)
+            </h3>
+
+            {% if analises %}
+            <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-800 text-white uppercase text-[10px] font-bold">
+                        <tr>
+                            <th class="p-3">Item Auditado</th>
+                            <th class="p-3">Status TCE</th>
+                            <th class="p-3">Fundamentação Legal</th>
+                            <th class="p-3">Constatação da Auditoria</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        {% for an in analises %}
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-3 font-bold text-slate-900">{{ an.item_exigencia }}</td>
+                            <td class="p-3">
+                                {% if an.status_item == 'CONFORME' %}
+                                <span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px]">CONFORME</span>
+                                {% elif an.status_item == 'RESSALVA' %}
+                                <span class="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded text-[10px]">RESSALVA</span>
+                                {% else %}
+                                <span class="bg-rose-100 text-rose-800 font-bold px-2 py-0.5 rounded text-[10px]">NÃO CONFORME</span>
+                                {% endif %}
+                            </td>
+                            <td class="p-3 text-slate-600 font-mono text-[11px]">{{ an.fundamentacao_legal }}</td>
+                            <td class="p-3 text-slate-700 leading-relaxed">{{ an.detalhe_constatacao }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- 5. PARECER TÉCNICO COMPLETO DA AUDITORIA -->
+        {% if certame.parecer %}
+        <section class="space-y-4">
+            <h3 class="text-sm font-black uppercase text-emerald-800 tracking-wider flex items-center border-b border-slate-200 pb-2">
+                <i class="fa-solid fa-file-signature mr-2 text-emerald-600"></i> IV. Parecer Técnico de Auditoria
+            </h3>
+
+            <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4 text-xs leading-relaxed text-slate-800">
+                <div class="flex justify-between items-center border-b border-slate-200 pb-3">
+                    <span class="font-extrabold text-slate-900 text-sm">{{ certame.parecer.numero_parecer }}</span>
+                    <span class="font-bold uppercase px-3 py-1 rounded bg-amber-100 text-amber-900">
+                        Conclusão: {{ certame.parecer.tipo_conclusao.replace('_', ' ') }}
+                    </span>
+                </div>
+
+                <p><strong>Assunto:</strong> {{ certame.parecer.assunto }}</p>
+                <div class="whitespace-pre-line">{{ certame.parecer.fundamentacao_legal }}</div>
+                <div class="whitespace-pre-line">{{ certame.parecer.justificativa_texto }}</div>
+                <div class="whitespace-pre-line">{{ certame.parecer.autorizacao_texto }}</div>
+                <div class="whitespace-pre-line">{{ certame.parecer.impacto_orcamentario_texto }}</div>
+                <div class="whitespace-pre-line">{{ certame.parecer.discrepancias_ressalvas_texto }}</div>
+                
+                <div class="bg-white p-4 rounded-xl border border-slate-300 font-bold text-slate-900 whitespace-pre-line">
+                    {{ certame.parecer.conclusao_parecer_texto }}
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- 6. TERMO DE AUTENTICIDADE E ASSINATURAS -->
+        <section class="pt-8 border-t border-slate-300 space-y-8 page-break">
+            <div class="bg-slate-100 p-4 rounded-2xl border border-slate-300 text-[11px] text-slate-600 text-center font-mono">
+                <p><strong>DECLARAÇÃO DE AUTENTICIDADE E CUSTÓDIA PROBATÓRIA</strong></p>
+                <p>Este dossiê consolida os documentos e relatórios analíticos extraídos por Inteligência Artificial do acervo probatório do certame {{ certame.numero_certame }}.</p>
+                <p class="mt-1 font-bold text-slate-800">HASH PROBATÓRIO SHA-256: {{ certame.numero_certame | hash_sha256 if certame.numero_certame else 'SIAP-AUDIT-DOSSIE-2026' }}</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 pt-8 text-center text-xs">
+                <div class="space-y-2">
+                    <div class="border-b border-slate-900 w-3/4 mx-auto pb-1"></div>
+                    <p class="font-extrabold text-slate-900">{{ certame.parecer.auditor_responsavel if certame.parecer else 'Prof. Jansen Pinho' }}</p>
+                    <p class="text-slate-500">Auditor Responsável / Controladoria Municipal</p>
+                </div>
+
+                <div class="space-y-2">
+                    <div class="border-b border-slate-900 w-3/4 mx-auto pb-1"></div>
+                    <p class="font-extrabold text-slate-900">Controlador-Geral do Município</p>
+                    <p class="text-slate-500">Sistema Integrado de Auditoria de Pessoal (SIAP)</p>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulo Lotacionograma Legal | SIAP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar-bg { background-color: #050a18; }
+        .nav-item-active { background-color: #00965e; color: #ffffff; font-weight: 600; }
+        .nav-item-inactive { color: #94a3b8; }
+        .nav-item-inactive:hover { background-color: #0f172a; color: #f1f5f9; }
+        @media print {
+            aside, header, form, .no-print { display: none !important; }
+            main { padding: 0 !important; margin: 0 !important; width: 100% !important; max-width: 100% !important; }
+            body { background: white !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans min-h-screen flex text-slate-800 antialiased">
+
+    <!-- Sidebar Lateral Estática -->
+    <aside class="w-64 sidebar-bg shrink-0 flex flex-col justify-between border-r border-slate-800 h-screen sticky top-0 z-40">
+        <div class="p-4 space-y-6 overflow-y-auto flex-1">
+            <!-- Logo no Topo do Menu -->
+            <div class="flex items-center space-x-3 px-2 py-2">
+                <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md">
+                    <i class="fa-solid fa-shield-halved text-emerald-600 text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-white font-extrabold text-sm tracking-tight">AUDIT-FLOW</h2>
+                    <p class="text-[10px] text-emerald-400 font-bold uppercase">Auditoria de Pessoal</p>
+                </div>
+            </div>
+
+            <!-- Navegação / Itens do Menu -->
+            <nav class="space-y-1 text-xs">
+                
+                <a href="/" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-table-cells-large w-5 text-sm mr-2.5"></i>
+                    <span>Dashboard Geral</span>
+                </a>
+
+                <a href="/certames/novo" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-plus-circle w-5 text-sm mr-2.5 text-emerald-400"></i>
+                    <span>Novo Certame / Modalidade</span>
+                </a>
+
+                <a href="/certames" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-list-check w-5 text-sm mr-2.5 text-emerald-400"></i>
+                    <span>Certames</span>
+                </a>
+
+                {% set certames_menu = get_certames_menu() %}
+                {% if certames_menu %}
+                <div class="mt-1 mb-2 pl-2 space-y-2 border-l-2 border-emerald-800/60 ml-3">
+                    {% for c in certames_menu %}
+                    {% set nome_lbl = "Concurso " ~ c.numero_certame if 'CONCURSO' in c.modalidade.upper() else "Seletivo " ~ c.numero_certame %}
+                    <div class="space-y-1">
+                        <div class="text-[11px] font-extrabold text-slate-200 flex items-center px-2 py-1 bg-slate-900/90 rounded-lg border border-slate-800">
+                            <i class="fa-solid fa-file-signature text-emerald-400 mr-1.5 text-[10px]"></i>
+                            <span class="truncate">{{ nome_lbl }}</span>
+                        </div>
+                        <div class="pl-2 space-y-1 text-[11px]">
+                            <a href="/certames/{{ c.id_certame }}/wizard" class="flex items-center text-slate-300 hover:text-emerald-300 py-0.5 transition">
+                                <i class="fa-solid fa-folder-open text-emerald-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Pré-Edital</span>
+                            </a>
+                            {% if c.status_auditoria == 'PARECER_DEFINITIVO_EMITIDO' %}
+                            <a href="/certames/{{ c.id_certame }}/fase-oficial" class="flex items-center text-indigo-300 hover:text-indigo-200 font-bold py-0.5 transition">
+                                <i class="fa-solid fa-unlock text-indigo-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Oficial (Ativa)</span>
+                            </a>
+                            {% else %}
+                            <a href="/certames/{{ c.id_certame }}/fase-oficial" class="flex items-center text-slate-500 hover:text-slate-400 py-0.5 transition" title="Fase Oficial aguardando Parecer Definitivo">
+                                <i class="fa-solid fa-lock text-slate-600 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Oficial</span>
+                            </a>
+                            {% endif %}
+                            <a href="/certames/{{ c.id_certame }}/acompanhamento" class="flex items-center text-slate-300 hover:text-amber-300 py-0.5 transition">
+                                <i class="fa-solid fa-user-check text-amber-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Acompanhamento do Certame</span>
+                            </a>
+                            <!-- Submenu Recuado (Subordinação Visual) -->
+                            <a href="/certames/{{ c.id_certame }}/vigencia" class="flex items-center pl-4 text-[10.5px] text-slate-400 hover:text-amber-300 py-0.5 transition border-l-2 border-slate-700/60 ml-2">
+                                <i class="fa-solid fa-clock-rotate-left text-amber-400 text-[9px] w-3 mr-1.5"></i>
+                                <span class="truncate">Vigência do Certame</span>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Módulos de Auditoria
+                </div>
+
+                <a href="/modulo/lotacionograma" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-active">
+                    <i class="fa-solid fa-sitemap w-5 text-sm mr-2.5"></i>
+                    <span>Lotacionograma Legal</span>
+                </a>
+
+                <a href="/modulo/concursos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-list-ol w-5 text-sm mr-2.5"></i>
+                    <span>Ordem de Classificação</span>
+                </a>
+
+                <a href="/modulo/temporarios" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-user-clock w-5 text-sm mr-2.5"></i>
+                    <span>Contratos Temporários</span>
+                </a>
+
+                <a href="/modulo/afastamentos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-notes-medical w-5 text-sm mr-2.5"></i>
+                    <span>Afastamentos & Licenças</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Controle & Rastreabilidade
+                </div>
+
+                <a href="/achados" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-clipboard-check w-5 text-sm mr-2.5"></i>
+                    <span>Matriz de Achados</span>
+                </a>
+
+                <a href="/normativos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-book-bookmark w-5 text-sm mr-2.5"></i>
+                    <span>Normativos & Jurisprudência</span>
+                </a>
+
+                <a href="/usuarios" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-user-shield w-5 text-sm mr-2.5"></i>
+                    <span>Gestão de Acesso</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Repositório & IA
+                </div>
+
+                <a href="/repositorio" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-folder-open w-5 text-sm mr-2.5"></i>
+                    <span>Repositório Documental</span>
+                </a>
+
+                <a href="/importar" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-wand-magic-sparkles w-5 text-sm mr-2.5 text-indigo-400"></i>
+                    <span>Ingestão & Leitura IA</span>
+                </a>
+
+            </nav>
+        </div>
+
+        <!-- Perfil do Usuário Master / Rodapé da Sidebar -->
+        <div class="p-4 border-t border-slate-800 bg-[#070e20] shrink-0">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2.5 overflow-hidden">
+                    <div class="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center text-white font-bold text-xs shrink-0">
+                        PJ
+                    </div>
+                    <div class="truncate">
+                        <p class="text-xs font-bold text-white truncate">{{ usuario.email if usuario else 'prof.jan100@gmail.com' }}</p>
+                        <p class="text-[10px] text-emerald-400 font-semibold">Administrador Master</p>
+                    </div>
+                </div>
+                <a href="/logout" title="Sair do Sistema" class="text-slate-400 hover:text-rose-400 p-1.5 transition">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+                </a>
+            </div>
+        </div>
+
+    </aside>
+
+    <!-- Conteúdo Central -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between ">
+            <div>
+                <h1 class="text-xl font-black text-slate-900">Lotacionograma Legal (Quadro de Pessoal Completo)</h1>
+                <p class="text-xs text-slate-500">Gestão e Fiscalização: Nome do Cargo, Vagas Existentes (por Lei), Vagas Ocupadas e Vagas Disponíveis</p>
+            </div>
+            <div class="flex items-center space-x-3 no-print">
+                <button onclick="window.print()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2 rounded-xl border border-slate-300 transition flex items-center">
+                    <i class="fa-solid fa-print mr-1.5"></i> Imprimir Quadro Completo
+                </button>
+                <a href="#secao-upload-pdf" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl shadow transition flex items-center">
+                    <i class="fa-solid fa-file-pdf mr-1.5"></i> Importar PDF Oficial (IA)
+                </a>
+            </div>
+        </header>
+
+        <main class="p-8 max-w-6xl mx-auto w-full space-y-8">
+
+            {% if mensagem %}
+            <div class="bg-emerald-50 border border-emerald-300 text-emerald-800 px-4 py-3 rounded-2xl shadow-sm flex items-center no-print">
+                <i class="fa-solid fa-circle-check text-emerald-600 text-xl mr-3"></i>
+                <p class="font-bold text-xs">{{ mensagem }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Painel Informativo KPI de Resumo do Quadro -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">Cargos Mapeados</p>
+                        <p class="text-2xl font-black text-slate-900 mt-1">{{ totais.total_cargos if totais else lotacoes|length }}</p>
+                        <p class="text-[10px] text-slate-500 font-semibold mt-0.5">Cadastrados no Sistema</p>
+                    </div>
+                    <div class="w-11 h-11 bg-slate-100 text-slate-600 rounded-2xl flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-briefcase"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">Vagas Existentes (Lei)</p>
+                        <p class="text-2xl font-black text-slate-800 mt-1">{{ totais.vagas_existentes if totais else '-' }}</p>
+                        <p class="text-[10px] text-slate-500 font-semibold mt-0.5">Criadas por Legislação</p>
+                    </div>
+                    <div class="w-11 h-11 bg-slate-100 text-slate-700 rounded-2xl flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-scale-balanced"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-extrabold uppercase text-indigo-500 tracking-wider">Vagas Ocupadas</p>
+                        <p class="text-2xl font-black text-indigo-600 mt-1">{{ totais.vagas_ocupadas if totais else '-' }}</p>
+                        <p class="text-[10px] text-indigo-600 font-semibold mt-0.5">Efetivos + Convocações</p>
+                    </div>
+                    <div class="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-user-check"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-extrabold uppercase text-emerald-600 tracking-wider">Vagas Disponíveis</p>
+                        <p class="text-2xl font-black text-emerald-600 mt-1">{{ totais.vagas_disponiveis if totais else '-' }}</p>
+                        <p class="text-[10px] text-emerald-600 font-semibold mt-0.5">Saldo Livre para Provimento</p>
+                    </div>
+                    <div class="w-11 h-11 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-door-open"></i>
+                    </div>
+                </div>
+            </div>
+
+            
+            <!-- Seção de Importação do PDF do Lotacionograma Completo e Oficial do Município -->
+            <div id="secao-upload-pdf" class="bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 text-white p-6 rounded-3xl shadow-lg border border-emerald-500/30 space-y-4 no-print">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-emerald-800/60 pb-4">
+                    <div>
+                        <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                            <i class="fa-solid fa-building-flag mr-1"></i> Quadro Geral do Município
+                        </span>
+                        <h3 class="text-base font-black text-white mt-1 flex items-center">
+                            <i class="fa-solid fa-file-pdf text-emerald-400 mr-2 text-lg"></i>
+                            Lotacionograma Completo e Oficial do Município (Servidores Efetivos)
+                        </h3>
+                        <p class="text-xs text-slate-300 mt-0.5">
+                            Este é o documento oficial do quadro de pessoal permanente. O envio do PDF atualiza o quantitativo geral e <strong>sincroniza automaticamente com o Passo 1 (Lotacionograma) de todos os certames</strong>.
+                        </p>
+                    </div>
+
+                    {% if documento_oficial %}
+                    <div class="bg-emerald-900/60 border border-emerald-500/40 px-3.5 py-2 rounded-2xl flex items-center space-x-3 shrink-0">
+                        <div class="w-8 h-8 bg-emerald-500 text-slate-950 rounded-xl flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-circle-check text-sm"></i>
+                        </div>
+                        <div class="text-[11px]">
+                            <p class="font-extrabold text-white truncate max-w-[200px]">{{ documento_oficial.nome_arquivo_original }}</p>
+                            <p class="text-emerald-300 text-[10px]">Ativo & Sincronizado</p>
+                        </div>
+                        {% if documento_oficial.id_documento %}
+                        <a href="/repositorio/visualizar/{{ documento_oficial.id_documento }}" target="_blank" class="bg-white/10 hover:bg-white/20 text-white p-1.5 rounded-lg transition" title="Visualizar PDF Oficial">
+                            <i class="fa-solid fa-eye text-xs"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <form action="/modulo/lotacionograma/importar-pdf" method="post" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end text-xs">
+                    <div class="md:col-span-8">
+                        <label class="block font-extrabold text-emerald-200 mb-1">
+                            Anexar Arquivo PDF Oficial do Lotacionograma Completo:
+                        </label>
+                        <input type="file" name="arquivo" accept=".pdf,.txt,.csv" required class="w-full bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-500 file:text-slate-950 hover:file:bg-emerald-400 cursor-pointer">
+                    </div>
+                    <div class="md:col-span-4">
+                        <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-2.5 rounded-xl shadow-lg transition flex items-center justify-center">
+                            <i class="fa-solid fa-microchip mr-2 text-sm"></i> Processar por IA & Sincronizar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+
+            <!-- Form de Cadastro / Inserção Rápida de Cargo no Lotacionograma -->
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-4 no-print">
+                <h3 class="font-black text-slate-900 text-sm flex items-center">
+                    <i class="fa-solid fa-plus-circle text-emerald-600 mr-2"></i>
+                    Inserir / Atualizar Cargo no Lotacionograma
+                </h3>
+
+                <form action="/modulo/lotacionograma/salvar" method="post" class="grid grid-cols-1 md:grid-cols-5 gap-4 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Código do Cargo</label>
+                        <input type="text" name="codigo_cargo" placeholder="Ex: ENF-01" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-mono text-slate-900">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Nome do Cargo</label>
+                        <input type="text" name="nome_cargo" placeholder="Ex: Enfermeiro Padrão" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Vagas Criadas por Lei</label>
+                        <input type="number" name="vagas_criadas_lei" placeholder="Ex: 15" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Lei de Criação / Quadro</label>
+                        <input type="text" name="lei_criacao" placeholder="Ex: Lei 1.200/2020" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl shadow transition">
+                            Salvar Cargo
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tabela Analítica Completa do Quadro de Pessoal -->
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h3 class="font-black text-slate-900 text-sm flex items-center">
+                            <i class="fa-solid fa-table-list text-emerald-600 mr-2 text-base"></i>
+                            Quadro Completo do Lotacionograma Legal
+                        </h3>
+                        <p class="text-[11px] text-slate-500 font-medium">Demonstrativo completo de Nome do Cargo, Vagas Criadas, Ocupações e Saldo Livre</p>
+                    </div>
+
+                    <div class="flex items-center space-x-3 w-full sm:w-auto no-print">
+                        <div class="relative w-full sm:w-64">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                            <input type="text" id="filtroCargo" onkeyup="filtrarTabela()" placeholder="Buscar nome do cargo..." class="w-full bg-white border border-slate-300 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        </div>
+                        <span class="bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold whitespace-nowrap">
+                            {{ lotacoes|length }} Cargo(s)
+                        </span>
+                    </div>
+                </div>
+
+                {% if lotacoes %}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600" id="tabelaLotacionograma">
+                        <thead class="bg-slate-900 text-white font-bold uppercase tracking-wider text-[11px]">
+                            <tr>
+                                <th class="p-3.5">Código / Lei</th>
+                                <th class="p-3.5">Nome do Cargo</th>
+                                <th class="p-3.5 text-center bg-slate-800/80">Vagas Existentes (Lei)</th>
+                                <th class="p-3.5 text-center bg-indigo-900/80 text-indigo-200">Vagas Ocupadas</th>
+                                <th class="p-3.5 text-center bg-emerald-900/80 text-emerald-200">Vagas Disponíveis</th>
+                                <th class="p-3.5 text-center">Detalhamento</th>
+                                <th class="p-3.5 text-center">Situação</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-medium">
+                            {% for lot in lotacoes %}
+                            <tr class="hover:bg-slate-50 transition linha-cargo">
+                                <td class="p-3.5">
+                                    <div class="font-mono font-bold text-slate-700 text-xs">{{ lot.cargo.codigo_cargo }}</div>
+                                    <div class="text-[10px] text-slate-400 font-sans">{{ lot.lei_criacao }}</div>
+                                </td>
+                                <td class="p-3.5">
+                                    <span class="font-extrabold text-slate-900 text-sm cargo-nome">{{ lot.cargo.nome_cargo }}</span>
+                                </td>
+                                <td class="p-3.5 text-center font-black text-sm text-slate-800 bg-slate-50/50">
+                                    {{ lot.vagas_existentes }}
+                                </td>
+                                <td class="p-3.5 text-center font-black text-sm text-indigo-700 bg-indigo-50/30">
+                                    {{ lot.vagas_ocupadas }}
+                                </td>
+                                <td class="p-3.5 text-center font-black text-sm {% if lot.vagas_disponiveis < 0 %}text-red-600 bg-red-50{% else %}text-emerald-700 bg-emerald-50/40{% endif %}">
+                                    {{ lot.vagas_disponiveis }}
+                                </td>
+                                <td class="p-3.5 text-center">
+                                    <div class="flex items-center justify-center space-x-2 text-[10px]">
+                                        <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md font-bold" title="Servidores Efetivos Ativos">
+                                            <i class="fa-solid fa-user text-[9px] mr-1"></i>{{ lot.efetivos_ativos }} Efetivo(s)
+                                        </span>
+                                        <span class="bg-amber-50 text-amber-700 px-2 py-0.5 rounded-md font-bold" title="Convocações em andamento">
+                                            <i class="fa-solid fa-clock text-[9px] mr-1"></i>{{ lot.convocacoes_pendentes }} Convocado(s)
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="p-3.5 text-center">
+                                    {% if lot.vagas_disponiveis > 0 %}
+                                    <span class="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2.5 py-1 rounded-full inline-flex items-center">
+                                        <i class="fa-solid fa-circle-check text-emerald-600 mr-1 text-[9px]"></i> DISPONÍVEL
+                                    </span>
+                                    {% elif lot.vagas_disponiveis == 0 %}
+                                    <span class="bg-slate-200 text-slate-700 text-[10px] font-black px-2.5 py-1 rounded-full inline-flex items-center">
+                                        <i class="fa-solid fa-circle-minus text-slate-500 mr-1 text-[9px]"></i> PREENCHIDO
+                                    </span>
+                                    {% else %}
+                                    <span class="bg-red-100 text-red-800 text-[10px] font-black px-2.5 py-1 rounded-full inline-flex items-center">
+                                        <i class="fa-solid fa-triangle-exclamation text-red-600 mr-1 text-[9px]"></i> EXCESSO DE OCUPAÇÃO
+                                    </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-16 text-center text-slate-400 space-y-2">
+                    <i class="fa-solid fa-sitemap text-slate-300 text-4xl mb-2"></i>
+                    <p class="font-bold text-slate-700 text-base">Nenhum cargo cadastrado no Lotacionograma</p>
+                    <p class="text-xs">Utilize o formulário acima ou a Ingestão com IA para cadastrar o quadro de pessoal.</p>
+                </div>
+                {% endif %}
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        function filtrarTabela() {
+            var input = document.getElementById("filtroCargo");
+            var filter = input.value.toLowerCase();
+            var table = document.getElementById("tabelaLotacionograma");
+            var tr = table.getElementsByClassName("linha-cargo");
+
+            for (var i = 0; i < tr.length; i++) {
+                var tdNome = tr[i].getElementsByClassName("cargo-nome")[0];
+                if (tdNome) {
+                    var txtValue = tdNome.textContent || tdNome.innerText;
+                    if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

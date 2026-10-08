@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dossiê Pré-Edital — {{ certame.numero_certame }} | SIAP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; font-size: 10pt !important; color: black !important; padding: 0 !important; }
+            .page-break { page-break-before: always; }
+            .shadow-xl, .shadow-2xl, .shadow-md, .shadow-sm { box-shadow: none !important; }
+            .border { border-color: #cbd5e1 !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-200 font-sans min-h-screen text-slate-800 antialiased p-4 md:p-8">
+
+    <!-- Barra de Controle Superior (Não sai na impressão) -->
+    <div class="max-w-5xl mx-auto mb-6 bg-slate-900 text-white p-4 rounded-2xl shadow-xl flex flex-wrap items-center justify-between gap-4 no-print border border-slate-700">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center font-black text-lg shadow">
+                <i class="fa-solid fa-folder-closed"></i>
+            </div>
+            <div>
+                <h2 class="font-black text-sm tracking-tight">DOSSIÊ E PARECER TÉCNICO DA FASE PRÉ-EDITAL</h2>
+                <p class="text-xs text-emerald-400 font-semibold">Análise de Requisitos LRF, Vagas, Banca e Minuta • Processo {{ certame.numero_certame }}</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-3 text-xs">
+            <a href="/certames/{{ certame.id_certame }}/wizard" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-xl transition">
+                <i class="fa-solid fa-arrow-left mr-1"></i> Voltar ao Passo a Passo
+            </a>
+            <button onclick="window.print()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-5 py-2 rounded-xl shadow-lg transition flex items-center">
+                <i class="fa-solid fa-print mr-2"></i> Imprimir Dossiê Pré-Edital
+            </button>
+        </div>
+    </div>
+
+    <!-- DOCUMENTO DO DOSSIÊ PRÉ-EDITAL -->
+    <div class="max-w-5xl mx-auto bg-white p-10 md:p-14 rounded-3xl shadow-2xl border border-slate-300 space-y-10 text-slate-900">
+
+        <!-- 1. CAPA OFICIAL DO DOSSIÊ PRÉ-EDITAL -->
+        <div class="border-b-4 border-emerald-700 pb-8 text-center space-y-4">
+            <div class="flex items-center justify-center space-x-4 mb-2">
+                <div class="w-16 h-16 bg-slate-900 text-emerald-400 rounded-2xl flex items-center justify-center text-3xl shadow-md border border-slate-700">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+            </div>
+            <div>
+                <h1 class="text-xs font-black uppercase tracking-widest text-slate-500">ESTADO DE MATO GROSSO • CONTROLADORIA GERAL MUNICIPAL</h1>
+                <h2 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight uppercase mt-1">
+                    DOSSIÊ E PARECER TÉCNICO PRÉ-EDITAL
+                </h2>
+                <p class="text-sm font-bold text-emerald-700 uppercase tracking-wider mt-1">
+                    Instrução Probatória dos Atos Prévios ao Certame (Resolução nº 003/2015 TCE-MT & LRF)
+                </p>
+            </div>
+
+            <div class="pt-4 flex flex-wrap justify-center gap-3 text-xs font-mono">
+                <span class="bg-slate-100 border border-slate-300 px-3 py-1.5 rounded-lg font-bold text-slate-800">
+                    PROCESSO: {{ certame.numero_certame }}
+                </span>
+                <span class="bg-slate-100 border border-slate-300 px-3 py-1.5 rounded-lg font-bold text-slate-800">
+                    MODALIDADE: {{ certame.modalidade.replace('_', ' ') }}
+                </span>
+                <span class="bg-slate-100 border border-slate-300 px-3 py-1.5 rounded-lg font-bold text-slate-800">
+                    DATA DO DOSSIÊ: {{ data_hoje.strftime('%d/%m/%Y') }}
+                </span>
+            </div>
+        </div>
+
+        <!-- 2. FICHA TÉCNICA DO CERTAME -->
+        <section class="space-y-4">
+            <h3 class="text-sm font-black uppercase text-emerald-800 tracking-wider flex items-center border-b border-slate-200 pb-2">
+                <i class="fa-solid fa-file-invoice mr-2 text-emerald-600"></i> I. Ficha Técnica do Certame
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                    <p><strong class="text-slate-700">Órgão Solicitante:</strong> {{ certame.orgao_solicitante }}</p>
+                    <p><strong class="text-slate-700">Município:</strong> {{ certame.municipio }}</p>
+                    <p><strong class="text-slate-700">Ordenador de Despesas / Prefeito:</strong> {{ certame.prefeito_ordenador }}</p>
+                    <p><strong class="text-slate-700">Secretário Solicitante:</strong> {{ certame.secretario_solicitante }}</p>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                    <p><strong class="text-slate-700">Contador Responsável (CRC):</strong> {{ certame.contador_responsavel }}</p>
+                    <p><strong class="text-slate-700">Banca Examinadora / Licitação:</strong> {{ certame.banca_examinadora }}</p>
+                    <p><strong class="text-slate-700">Lei Autorizadora:</strong> {{ certame.lei_autorizadora }}</p>
+                    <p><strong class="text-slate-700">Leis de Carreira:</strong> {{ certame.leis_carreira }}</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. DEMONSTRAÇÕES DE CONFORMIDADE EXIGIDAS (LRF, VAGAS, BANCA, PUBLICIDADE, ISENÇÕES) -->
+        <section class="space-y-4">
+            <h3 class="text-sm font-black uppercase text-emerald-800 tracking-wider flex items-center border-b border-slate-200 pb-2">
+                <i class="fa-solid fa-scale-balanced mr-2 text-emerald-600"></i> II. Demonstração de Conformidade com a LRF e Diretrizes TCE-MT
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div class="bg-emerald-50/60 border border-emerald-200 p-4 rounded-2xl space-y-1.5">
+                    <p class="font-extrabold text-emerald-900 flex items-center">
+                        <i class="fa-solid fa-calculator text-emerald-600 mr-1.5"></i> 1. Impacto Orçamentário e LRF
+                    </p>
+                    <p class="text-slate-700 leading-relaxed">
+                        Comprovação de estimativa do impacto orçamentário-financeiro nos 3 exercícios subsequentes (Art. 16 e 17 da LRF), respeitando o limite prudencial de despesa com pessoal.
+                    </p>
+                </div>
+
+                <div class="bg-emerald-50/60 border border-emerald-200 p-4 rounded-2xl space-y-1.5">
+                    <p class="font-extrabold text-emerald-900 flex items-center">
+                        <i class="fa-solid fa-sitemap text-emerald-600 mr-1.5"></i> 2. Existência e Vacância de Vagas
+                    </p>
+                    <p class="text-slate-700 leading-relaxed">
+                        Demonstrativo de que os cargos foram criados por lei municipal/estadual e encontram-se formalmente vagos no lotacionograma legal.
+                    </p>
+                </div>
+
+                <div class="bg-emerald-50/60 border border-emerald-200 p-4 rounded-2xl space-y-1.5">
+                    <p class="font-extrabold text-emerald-900 flex items-center">
+                        <i class="fa-solid fa-gavel text-emerald-600 mr-1.5"></i> 3. Licitação da Banca Examinadora
+                    </p>
+                    <p class="text-slate-700 leading-relaxed">
+                        Processo licitatório, dispensa ou inexigibilidade de contratação da empresa organizadora devidamente instruído e publicado.
+                    </p>
+                </div>
+
+                <div class="bg-emerald-50/60 border border-emerald-200 p-4 rounded-2xl space-y-1.5">
+                    <p class="font-extrabold text-emerald-900 flex items-center">
+                        <i class="fa-solid fa-bullhorn text-emerald-600 mr-1.5"></i> 4. Publicação Ampla do Edital
+                    </p>
+                    <p class="text-slate-700 leading-relaxed">
+                        Garantia de publicação integral do edital no Diário Oficial de Contas (DOC/TCE-MT) e imprensa oficial.
+                    </p>
+                </div>
+
+                <div class="bg-emerald-50/60 border border-emerald-200 p-4 rounded-2xl space-y-1.5">
+                    <p class="font-extrabold text-emerald-900 flex items-center">
+                        <i class="fa-solid fa-wheelchair text-emerald-600 mr-1.5"></i> 5. Reserva Obrigatória de Vagas (PcD/Cotas)
+                    </p>
+                    <p class="text-slate-700 leading-relaxed">
+                        Previsão expressa de reserva de vagas para Pessoas com Deficiência e cotas previstas na legislação municipal.
+                    </p>
+                </div>
+
+                <div class="bg-emerald-50/60 border border-emerald-200 p-4 rounded-2xl space-y-1.5">
+                    <p class="font-extrabold text-emerald-900 flex items-center">
+                        <i class="fa-solid fa-hand-holding-dollar text-emerald-600 mr-1.5"></i> 6. Isenção de Taxa de Inscrição
+                    </p>
+                    <p class="text-slate-700 leading-relaxed">
+                        Fixação clara de critérios objetivamente comprováveis para isenção da taxa de inscrição conforme leis vigentes.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. ACERVO DOCUMENTAL DA FASE PRÉ-EDITAL -->
+        <section class="space-y-4">
+            <h3 class="text-sm font-black uppercase text-emerald-800 tracking-wider flex items-center border-b border-slate-200 pb-2">
+                <i class="fa-solid fa-folder-tree mr-2 text-emerald-600"></i> III. Acervo Probatório da Fase Pré-Edital Custodiado
+            </h3>
+
+            {% if anexos %}
+            <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-800 text-white uppercase text-[10px] font-bold">
+                        <tr>
+                            <th class="p-3">#</th>
+                            <th class="p-3">Tipo do Documento</th>
+                            <th class="p-3">Nome do Arquivo</th>
+                            <th class="p-3">Data Upload</th>
+                            <th class="p-3 text-center">Status IA</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        {% for a in anexos %}
+                        {% if 'OFICIAL' not in a.tipo_documento and 'ACOMPANHAMENTO' not in a.tipo_documento %}
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-3 font-mono font-bold text-slate-400">#{{ loop.index }}</td>
+                            <td class="p-3 font-extrabold text-slate-900">{{ a.tipo_documento.replace('_', ' ') }}</td>
+                            <td class="p-3 font-mono text-slate-600">{{ a.nome_arquivo }}</td>
+                            <td class="p-3 text-slate-500">{{ a.data_upload.strftime('%d/%m/%Y %H:%M') }}</td>
+                            <td class="p-3 text-center">
+                                <span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px]">
+                                    <i class="fa-solid fa-check-double mr-1"></i> Validado
+                                </span>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl text-xs text-amber-800">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Nenhum documento da fase pré-edital anexado ao acervo.
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- 5. PARECER TÉCNICO PRÉVIO / DEFINITIVO DO CONTROLE INTERNO -->
+        {% if certame.parecer %}
+        <section class="space-y-4 page-break">
+            <h3 class="text-sm font-black uppercase text-emerald-800 tracking-wider flex items-center border-b border-slate-200 pb-2">
+                <i class="fa-solid fa-file-signature mr-2 text-emerald-600"></i> IV. Parecer Técnico Prévio do Controle Interno
+            </h3>
+
+            <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4 text-xs leading-relaxed text-slate-800">
+                <div class="flex justify-between items-center border-b border-slate-200 pb-3">
+                    <span class="font-extrabold text-slate-900 text-sm">{{ certame.parecer.numero_parecer }}</span>
+                    <span class="font-bold uppercase px-3 py-1 rounded bg-emerald-100 text-emerald-900">
+                        Conclusão: {{ certame.parecer.tipo_conclusao.replace('_', ' ') }}
+                    </span>
+                </div>
+                <p><strong>Objeto:</strong> {{ certame.parecer.assunto }}</p>
+                <div class="prose max-w-none text-xs text-slate-700">
+                    <p class="font-bold text-slate-900 mb-1">Fundamentação e Análise:</p>
+                    <p class="whitespace-pre-line bg-white p-4 rounded-xl border border-slate-200 font-mono text-[11px] leading-relaxed">{{ certame.parecer.conclusao_parecer_texto or certame.parecer.fundamentacao }}</p>
+                </div>
+                <div class="pt-2 flex justify-between text-[11px] text-slate-500 border-t border-slate-200">
+                    <span>Auditor Responsável: <strong>{{ certame.parecer.auditor_responsavel }}</strong></span>
+                    <span>Status: <strong>{{ certame.parecer.status }}</strong></span>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- 6. ASSINATURAS DO DOSSIÊ PRÉ-EDITAL -->
+        <section class="pt-8 border-t-2 border-slate-200 space-y-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 text-center text-xs">
+                <div class="space-y-1">
+                    <div class="border-b border-slate-400 w-3/4 mx-auto mb-2"></div>
+                    <p class="font-black text-slate-900">AUDITOR DE CONTROLE INTERNO</p>
+                    <p class="text-slate-500 text-[11px]">Controladoria Geral Municipal</p>
+                </div>
+                <div class="space-y-1">
+                    <div class="border-b border-slate-400 w-3/4 mx-auto mb-2"></div>
+                    <p class="font-black text-slate-900">ORDENADOR DE DESPESAS</p>
+                    <p class="text-slate-500 text-[11px]">Prefeitura Municipal</p>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>

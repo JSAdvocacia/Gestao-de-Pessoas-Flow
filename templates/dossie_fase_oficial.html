@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dossiê Fase Oficial — {{ certame.numero_certame }} | SIAP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; font-size: 10pt !important; color: black !important; padding: 0 !important; }
+            .page-break { page-break-before: always; }
+            .shadow-xl, .shadow-2xl, .shadow-md, .shadow-sm { box-shadow: none !important; }
+            .border { border-color: #cbd5e1 !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-200 font-sans min-h-screen text-slate-800 antialiased p-4 md:p-8">
+
+    <!-- Barra de Controle Superior (Oculta na Impressão) -->
+    <div class="max-w-5xl mx-auto mb-6 bg-slate-900 text-white p-4 rounded-2xl shadow-xl flex flex-wrap items-center justify-between gap-4 no-print border border-slate-700">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-black text-lg shadow">
+                <i class="fa-solid fa-file-signature text-white"></i>
+            </div>
+            <div>
+                <h2 class="font-black text-sm tracking-tight">DOSSIÊ E PARECER TÉCNICO DA FASE OFICIAL (PÓS-EDITAL)</h2>
+                <p class="text-xs text-indigo-300 font-semibold">Execução do Certame, Retificações e Homologação Final • Processo {{ certame.numero_certame }}</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-3 text-xs">
+            <a href="/certames/{{ certame.id_certame }}/fase-oficial" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-xl transition">
+                <i class="fa-solid fa-arrow-left mr-1"></i> Voltar à Fase Oficial
+            </a>
+            <button onclick="window.print()" class="bg-indigo-500 hover:bg-indigo-400 text-white font-black px-5 py-2 rounded-xl shadow-lg transition flex items-center">
+                <i class="fa-solid fa-print mr-2"></i> Imprimir Dossiê Fase Oficial
+            </button>
+        </div>
+    </div>
+
+    <!-- DOCUMENTO DO DOSSIÊ FASE OFICIAL -->
+    <div class="max-w-5xl mx-auto bg-white p-10 md:p-14 rounded-3xl shadow-2xl border border-slate-300 space-y-10 text-slate-900">
+
+        <!-- 1. CAPA OFICIAL DO DOSSIÊ FASE OFICIAL -->
+        <div class="border-b-4 border-indigo-700 pb-8 text-center space-y-4">
+            <div class="flex items-center justify-center space-x-4 mb-2">
+                <div class="w-16 h-16 bg-slate-900 text-indigo-400 rounded-2xl flex items-center justify-center text-3xl shadow-md border border-slate-700">
+                    <i class="fa-solid fa-award"></i>
+                </div>
+            </div>
+            <div>
+                <h1 class="text-xs font-black uppercase tracking-widest text-slate-500">ESTADO DE MATO GROSSO • CONTROLADORIA GERAL MUNICIPAL</h1>
+                <h2 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight uppercase mt-1">
+                    DOSSIÊ E PARECER TÉCNICO DA FASE OFICIAL
+                </h2>
+                <p class="text-sm font-bold text-indigo-700 uppercase tracking-wider mt-1">
+                    Fiscalização dos Atos de Execução, Retificações e Homologação Final do Certame
+                </p>
+            </div>
+
+            <div class="pt-4 flex flex-wrap justify-center gap-3 text-xs font-mono">
+                <span class="bg-slate-100 border border-slate-300 px-3 py-1.5 rounded-lg font-bold text-slate-800">
+                    PROCESSO: {{ certame.numero_certame }}
+                </span>
+                <span class="bg-slate-100 border border-slate-300 px-3 py-1.5 rounded-lg font-bold text-slate-800">
+                    STATUS FASE OFICIAL: {{ certame.fase_oficial.status_fase_oficial if certame.fase_oficial else 'EM_EXECUCAO' }}
+                </span>
+                <span class="bg-slate-100 border border-slate-300 px-3 py-1.5 rounded-lg font-bold text-slate-800">
+                    DATA DO DOSSIÊ: {{ data_hoje.strftime('%d/%m/%Y') }}
+                </span>
+            </div>
+        </div>
+
+        <!-- 2. CHECKLIST DOS DOCUMENTOS OFICIAIS EXIGIDOS -->
+        <section class="space-y-4">
+            <h3 class="text-sm font-black uppercase text-indigo-800 tracking-wider flex items-center border-b border-slate-200 pb-2">
+                <i class="fa-solid fa-list-check mr-2 text-indigo-600"></i> I. Checklist de Atos Oficiais Publicados
+            </h3>
+
+            {% set anexos_tipos = certame.anexos|map(attribute='tipo_documento')|list if certame.anexos else [] %}
+            {% set count_ret = certame.anexos|selectattr('tipo_documento', 'equalto', 'RETIFICACAO_EDITAL')|list|length %}
+            {% set count_pub_ret = certame.anexos|selectattr('tipo_documento', 'equalto', 'PUBLICACAO_RETIFICACAO')|list|length %}
+
+            {% set tipos_exigidos = [
+                ("EDITAL_ABERTURA_OFICIAL", "1. Edital de Abertura Oficial", 1),
+                ("PUBLICACAO_EDITAL", "2. Publicação do Edital (DOC/TCE-MT)", 1),
+                ("RETIFICACAO_EDITAL", "3. Retificações do Edital (" ~ count_ret ~ " inserida(s))", count_ret),
+                ("PUBLICACAO_RETIFICACAO", "4. Publicação das Retificações (" ~ count_pub_ret ~ " inserida(s))", count_pub_ret),
+                ("HOMOLOGACAO_INSCRICOES", "5. Homologação das Inscrições", 1),
+                ("PUBLICACAO_INSCRICOES_DEFERIDAS", "6. Publicação das Inscrições Deferidas", 1),
+                ("GABARITO_PRELIMINAR", "7. Gabarito Preliminar", 1),
+                ("GABARITO_DEFINITIVO", "8. Gabarito Definitivo", 1),
+                ("RESULTADO_PRELIMINAR", "9. Resultado Preliminar", 1),
+                ("PUBLICACAO_RESULTADO_PRELIMINAR", "10. Publicação do Resultado Preliminar", 1),
+                ("RESULTADO_DEFINITIVO", "11. Resultado Definitivo", 1),
+                ("PUBLICACAO_RESULTADO_DEFINITIVO", "12. Publicação do Resultado Definitivo", 1),
+                ("HOMOLOGACAO_RESULTADO_FINAL", "13. Homologação do Resultado Final", 1),
+                ("PUBLICACAO_HOMOLOGACAO_FINAL", "14. Publicação da Homologação do Resultado Final", 1)
+            ] %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                {% for code, label, qtd in tipos_exigidos %}
+                <div class="p-3 rounded-2xl border flex items-center justify-between {% if code in anexos_tipos %} bg-emerald-50 border-emerald-200 text-emerald-900 {% else %} bg-slate-50 border-slate-200 text-slate-500 {% endif %}">
+                    <span class="font-bold">{{ label }}</span>
+                    {% if code in anexos_tipos %}
+                    <span class="bg-emerald-600 text-white font-extrabold px-2 py-0.5 rounded text-[10px] flex items-center">
+                        <i class="fa-solid fa-check mr-1"></i> Anexado {% if 'RETIFICACAO' in code %}({{ qtd }}){% endif %}
+                    </span>
+                    {% else %}
+                    <span class="bg-slate-200 text-slate-600 font-bold px-2 py-0.5 rounded text-[10px]">Pendente</span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- 3. DETALHAMENTO DAS RETIFICAÇÕES E RESPECTIVAS PUBLICAÇÕES -->
+        <section class="space-y-4">
+            <h3 class="text-sm font-black uppercase text-indigo-800 tracking-wider flex items-center border-b border-slate-200 pb-2">
+                <i class="fa-solid fa-arrows-rotate mr-2 text-indigo-600"></i> II. Histórico de Retificações do Edital e Suas Publicações
+            </h3>
+
+            {% if certame.anexos %}
+            <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-800 text-white uppercase text-[10px] font-bold">
+                        <tr>
+                            <th class="p-3">Data Upload</th>
+                            <th class="p-3">Fase / Tipo do Ato</th>
+                            <th class="p-3">Nome do Arquivo</th>
+                            <th class="p-3">Resumo da Alteração / Publicação</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        {% for ret in certame.anexos %}
+                        {% if 'RETIFICACAO' in ret.tipo_documento %}
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-3 font-mono text-slate-600">{{ ret.data_upload.strftime('%d/%m/%Y %H:%M') }}</td>
+                            <td class="p-3">
+                                {% if ret.tipo_documento == 'RETIFICACAO_EDITAL' or ret.tipo_documento == 'RETIFICACAO' %}
+                                <span class="bg-indigo-100 text-indigo-900 border border-indigo-200 font-black px-2 py-0.5 rounded text-[10px]">
+                                    <i class="fa-solid fa-pen-to-square mr-1"></i> RETIFICAÇÃO DO EDITAL
+                                </span>
+                                {% else %}
+                                <span class="bg-emerald-100 text-emerald-900 border border-emerald-200 font-black px-2 py-0.5 rounded text-[10px]">
+                                    <i class="fa-solid fa-newspaper mr-1"></i> PUBLICAÇÃO DA RETIFICAÇÃO (DOC)
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="p-3 font-mono font-bold text-slate-900">{{ ret.nome_arquivo }}</td>
+                            <td class="p-3 text-slate-700 leading-relaxed">{{ ret.conteudo_texto[:160] if ret.conteudo_texto else 'Documento oficial de retificação registrado.' }}...</td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="bg-slate-50 border border-slate-200 p-4 rounded-2xl text-xs text-slate-600 italic">
+                Nenhuma retificação de edital ou publicação registrada até a presente data.
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- 4. PARECER TÉCNICO OFICIAL DA FASE OFICIAL -->
+        {% if certame.parecer_oficial %}
+        <section class="space-y-4 page-break">
+            <h3 class="text-sm font-black uppercase text-indigo-800 tracking-wider flex items-center border-b border-slate-200 pb-2">
+                <i class="fa-solid fa-file-signature mr-2 text-indigo-600"></i> III. Parecer Técnico da Fase Oficial
+            </h3>
+
+            <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4 text-xs leading-relaxed text-slate-800">
+                <div class="flex justify-between items-center border-b border-slate-200 pb-3">
+                    <span class="font-extrabold text-slate-900 text-sm">{{ certame.parecer_oficial.numero_parecer }}</span>
+                    <span class="font-bold uppercase px-3 py-1 rounded bg-indigo-100 text-indigo-900">
+                        Conclusão: {{ certame.parecer_oficial.conclusao_tipo.replace('_', ' ') }}
+                    </span>
+                </div>
+                <p><strong>Objeto:</strong> {{ certame.parecer_oficial.objeto_analise }}</p>
+                <p><strong>Fundamentação Legal:</strong> {{ certame.parecer_oficial.fundamentacao_legal }}</p>
+                <div class="prose max-w-none text-xs text-slate-700">
+                    <p class="font-bold text-slate-900 mb-1">Análise Técnica & Jurídica:</p>
+                    <p class="whitespace-pre-line bg-white p-4 rounded-xl border border-slate-200 font-mono text-[11px] leading-relaxed">{{ certame.parecer_oficial.analise_tecnica_juridica or certame.parecer_oficial.justificativa_conclusao }}</p>
+                </div>
+                <div class="pt-2 flex justify-between text-[11px] text-slate-500 border-t border-slate-200">
+                    <span>Auditor Responsável: <strong>{{ certame.parecer_oficial.auditor_responsavel }}</strong></span>
+                    <span>Status: <strong>{{ certame.parecer_oficial.status }}</strong></span>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- 5. ASSINATURAS DO DOSSIÊ FASE OFICIAL -->
+        <section class="pt-8 border-t-2 border-slate-200 space-y-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 text-center text-xs">
+                <div class="space-y-1">
+                    <div class="border-b border-slate-400 w-3/4 mx-auto mb-2"></div>
+                    <p class="font-black text-slate-900">AUDITOR DE CONTROLE INTERNO</p>
+                    <p class="text-slate-500 text-[11px]">Controladoria Geral Municipal</p>
+                </div>
+                <div class="space-y-1">
+                    <div class="border-b border-slate-400 w-3/4 mx-auto mb-2"></div>
+                    <p class="font-black text-slate-900">PRESIDENTE DA COMISSÃO DO CONCURSO</p>
+                    <p class="text-slate-500 text-[11px]">Comissão Organizadora</p>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>

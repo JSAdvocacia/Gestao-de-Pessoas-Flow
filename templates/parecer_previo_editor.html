@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passo 4: Edição do Parecer Prévio da Controladoria | SIAP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar-bg { background-color: #050a18; }
+        .nav-item-active { background-color: #00965e; color: #ffffff; font-weight: 600; }
+        .nav-item-inactive { color: #94a3b8; }
+        .nav-item-inactive:hover { background-color: #0f172a; color: #f1f5f9; }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans min-h-screen flex text-slate-800 antialiased">
+
+    <!-- Sidebar Lateral Estática -->
+    <aside class="w-64 sidebar-bg shrink-0 flex flex-col justify-between border-r border-slate-800 h-screen sticky top-0 z-40">
+        <div class="p-4 space-y-6 overflow-y-auto flex-1">
+            <!-- Logo no Topo do Menu -->
+            <div class="flex items-center space-x-3 px-2 py-2">
+                <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md">
+                    <i class="fa-solid fa-shield-halved text-emerald-600 text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-white font-extrabold text-sm tracking-tight">AUDIT-FLOW</h2>
+                    <p class="text-[10px] text-emerald-400 font-bold uppercase">Auditoria de Pessoal</p>
+                </div>
+            </div>
+
+            <!-- Navegação / Itens do Menu -->
+            <nav class="space-y-1 text-xs">
+                
+                <a href="/" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-active">
+                    <i class="fa-solid fa-table-cells-large w-5 text-sm mr-2.5"></i>
+                    <span>Dashboard Geral</span>
+                </a>
+
+                <a href="/certames/novo" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-plus-circle w-5 text-sm mr-2.5 text-emerald-400"></i>
+                    <span>Novo Certame / Modalidade</span>
+                </a>
+
+                
+
+                <a href="/certames" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-list-check w-5 text-sm mr-2.5 text-emerald-400"></i>
+                    <span>Certames</span>
+                </a>
+
+                                {% set certames_menu = get_certames_menu() %}
+                {% if certames_menu %}
+                <div class="mt-1 mb-2 pl-2 space-y-2 border-l-2 border-emerald-800/60 ml-3">
+                    {% for c in certames_menu %}
+                    {% set nome_lbl = "Concurso " ~ c.numero_certame if 'CONCURSO' in c.modalidade.upper() else "Seletivo " ~ c.numero_certame %}
+                    <div class="space-y-1">
+                        <div class="text-[11px] font-extrabold text-slate-200 flex items-center px-2 py-1 bg-slate-900/90 rounded-lg border border-slate-800">
+                            <i class="fa-solid fa-file-signature text-emerald-400 mr-1.5 text-[10px]"></i>
+                            <span class="truncate">{{ nome_lbl }}</span>
+                        </div>
+                        <div class="pl-2 space-y-1 text-[11px]">
+                            <a href="/certames/{{ c.id_certame }}/wizard" class="flex items-center text-slate-300 hover:text-emerald-300 py-0.5 transition">
+                                <i class="fa-solid fa-folder-open text-emerald-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Pré-Edital</span>
+                            </a>
+                            {% if c.status_auditoria == 'PARECER_DEFINITIVO_EMITIDO' %}
+                            <a href="/certames/{{ c.id_certame }}/fase-oficial" class="flex items-center text-indigo-300 hover:text-indigo-200 font-bold py-0.5 transition">
+                                <i class="fa-solid fa-unlock text-indigo-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Oficial (Ativa)</span>
+                            </a>
+                            {% else %}
+                            <a href="/certames/{{ c.id_certame }}/fase-oficial" class="flex items-center text-slate-500 hover:text-slate-400 py-0.5 transition" title="Fase Oficial aguardando Parecer Definitivo">
+                                <i class="fa-solid fa-lock text-slate-600 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Oficial</span>
+                            </a>
+                            {% endif %}
+                            <a href="/certames/{{ c.id_certame }}/acompanhamento" class="flex items-center text-slate-300 hover:text-amber-300 py-0.5 transition">
+                                <i class="fa-solid fa-user-check text-amber-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Acompanhamento do Certame</span>
+                            </a>
+                            <!-- Submenu Recuado (Subordinação Visual) -->
+                            <a href="/certames/{{ c.id_certame }}/vigencia" class="flex items-center pl-4 text-[10.5px] text-slate-400 hover:text-amber-300 py-0.5 transition border-l-2 border-slate-700/60 ml-2">
+                                <i class="fa-solid fa-clock-rotate-left text-amber-400 text-[9px] w-3 mr-1.5"></i>
+                                <span class="truncate">Vigência do Certame</span>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                
+<div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Módulos de Auditoria
+                </div>
+
+                <a href="/modulo/lotacionograma" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-sitemap w-5 text-sm mr-2.5"></i>
+                    <span>Lotacionograma Legal</span>
+                </a>
+
+                <a href="/modulo/concursos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-list-ol w-5 text-sm mr-2.5"></i>
+                    <span>Ordem de Classificação</span>
+                </a>
+
+                <a href="/modulo/temporarios" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-user-clock w-5 text-sm mr-2.5"></i>
+                    <span>Contratos Temporários</span>
+                </a>
+
+                <a href="/modulo/afastamentos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-notes-medical w-5 text-sm mr-2.5"></i>
+                    <span>Afastamentos & Licenças</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Controle & Rastreabilidade
+                </div>
+
+                <a href="/achados" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-clipboard-check w-5 text-sm mr-2.5"></i>
+                    <span>Matriz de Achados</span>
+                </a>
+
+                <a href="/normativos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-book-bookmark w-5 text-sm mr-2.5"></i>
+                    <span>Normativos & Jurisprudência</span>
+                </a>
+
+                <a href="/usuarios" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-user-shield w-5 text-sm mr-2.5"></i>
+                    <span>Gestão de Acesso</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Repositório & IA
+                </div>
+
+                <a href="/repositorio" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-folder-open w-5 text-sm mr-2.5"></i>
+                    <span>Repositório Documental</span>
+                </a>
+
+                <a href="/importar" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-wand-magic-sparkles w-5 text-sm mr-2.5 text-indigo-400"></i>
+                    <span>Ingestão & Leitura IA</span>
+                </a>
+
+            </nav>
+        </div>
+
+        <!-- Perfil do Usuário Master / Rodapé da Sidebar -->
+        <div class="p-4 border-t border-slate-800 bg-[#070e20] shrink-0">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2.5 overflow-hidden">
+                    <div class="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center text-white font-bold text-xs shrink-0">
+                        PJ
+                    </div>
+                    <div class="truncate">
+                        <p class="text-xs font-bold text-white truncate">{{ usuario.email if usuario else 'prof.jan100@gmail.com' }}</p>
+                        <p class="text-[10px] text-emerald-400 font-semibold">Administrador Master</p>
+                    </div>
+                </div>
+                <a href="/logout" title="Sair do Sistema" class="text-slate-400 hover:text-rose-400 p-1.5 transition">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+                </a>
+            </div>
+        </div>
+
+    </aside>
+
+    <!-- Conteúdo Central -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between ">
+            <div>
+                <h1 class="text-xl font-black text-slate-900">Passo 4: Edição do Parecer Prévio da Controladoria</h1>
+                <p class="text-xs text-slate-500">Minuta Editável • {{ certame.numero_certame }} ({{ certame.municipio }})</p>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <a href="/certames/{{ certame.id_certame }}/analise-tce" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs px-3 py-2 rounded-xl transition">
+                    <i class="fa-solid fa-arrow-left mr-1"></i> Voltar ao Comparativo TCE
+                </a>
+            </div>
+        </header>
+
+        <main class="p-8 max-w-5xl mx-auto w-full space-y-8">
+
+            {% if mensagem %}
+            <div class="bg-emerald-50 border border-emerald-300 text-emerald-800 px-4 py-3 rounded-2xl shadow-sm flex items-center">
+                <i class="fa-solid fa-circle-check text-emerald-600 text-xl mr-3"></i>
+                <p class="font-bold text-xs">{{ mensagem }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Formulário Editável do Parecer Técnico -->
+            <form action="/certames/{{ certame.id_certame }}/salvar-parecer" method="post" class="space-y-8">
+                
+                <!-- Cabeçalho Oficial da Controladoria -->
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 space-y-6 text-center">
+                    <div class="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-2xl mx-auto flex items-center justify-center text-3xl">
+                        <i class="fa-solid fa-scale-balanced"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Estado de Mato Grosso</p>
+                        <h2 class="text-lg font-black text-slate-900">{{ certame.orgao_solicitante }}</h2>
+                        <p class="text-xs text-emerald-600 font-bold uppercase">Controladoria e Auditoria Municipal - CAM</p>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4 text-left text-xs">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Número do Parecer Técnico</label>
+                            <input type="text" name="numero_parecer" value="{{ parecer.numero_parecer }}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-mono font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Conclusão do Parecer Prévio</label>
+                            <select name="tipo_conclusao" required class="w-full bg-emerald-50 border border-emerald-300 rounded-xl px-3 py-2 font-bold text-emerald-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                <option value="FAVORAVEL" {% if parecer.tipo_conclusao == 'FAVORAVEL' %}selected{% endif %}>PARECER FAVORÁVEL</option>
+                                <option value="FAVORAVEL_COM_RESSALVA" {% if parecer.tipo_conclusao == 'FAVORAVEL_COM_RESSALVA' %}selected{% endif %}>PARECER FAVORÁVEL COM RESSALVA</option>
+                                <option value="DESFAVORAVEL" {% if parecer.tipo_conclusao == 'DESFAVORAVEL' %}selected{% endif %}>PARECER DESFAVORÁVEL</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção 1: Assunto e Fundamentação Legal -->
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 space-y-4 text-xs">
+                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center">
+                        <i class="fa-solid fa-gavel text-emerald-600 mr-2"></i> 1. Assunto e Fundamentação Legal
+                    </h3>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Assunto do Parecer</label>
+                        <textarea name="assunto" rows="2" class="w-full border border-slate-200 rounded-xl p-3 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">{{ parecer.assunto }}</textarea>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Fundamentação Legal (TCE-MT & Legislação Local)</label>
+                        <textarea name="fundamentacao_legal" rows="3" class="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none">{{ parecer.fundamentacao_legal }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Seção 2: Documentos Exigidos & Justificativa -->
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 space-y-4 text-xs">
+                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center">
+                        <i class="fa-solid fa-folder-open text-indigo-600 mr-2"></i> 2. Documentos Exigidos & Da Justificativa
+                    </h3>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Análise de Documentos Exigidos (Manual TCE-MT)</label>
+                        <textarea name="documentos_exigidos_texto" rows="3" class="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none">{{ parecer.documentos_exigidos_texto }}</textarea>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Da Justificativa da Necessidade Temporária/Efetiva</label>
+                        <textarea name="justificativa_texto" rows="4" class="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none">{{ parecer.justificativa_texto }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Seção 3: Autorização do Ordenador & Entidade Executora -->
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 space-y-4 text-xs">
+                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center">
+                        <i class="fa-solid fa-user-check text-blue-600 mr-2"></i> 3. Autorização do Gestor & Entidade Executora
+                    </h3>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Da Autorização do Ordenador de Despesas</label>
+                        <textarea name="autorizacao_texto" rows="3" class="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none">{{ parecer.autorizacao_texto }}</textarea>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Da Entidade Executora (Licitação / Pregão da Banca)</label>
+                        <textarea name="banca_executora_texto" rows="3" class="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none">{{ parecer.banca_executora_texto }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Seção 4: Regulamento & Impacto Orçamentário (Art. 16 LRF) -->
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 space-y-4 text-xs">
+                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center">
+                        <i class="fa-solid fa-coins text-amber-600 mr-2"></i> 4. Regulamento & Impacto Orçamentário (LRF)
+                    </h3>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Do Regulamento e Autorização Legislativa</label>
+                        <textarea name="regulamento_autorizacao_texto" rows="3" class="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none">{{ parecer.regulamento_autorizacao_texto }}</textarea>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Do Impacto Orçamentário e Financeiro (Art. 16, I LRF - Contador CRC)</label>
+                        <textarea name="impacto_orcamentario_texto" rows="3" class="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none">{{ parecer.impacto_orcamentario_texto }}</textarea>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Da Declaração de Compatibilidade (LRF/LOA/PPA/LDO)</label>
+                        <textarea name="declaracao_compatibilidade_texto" rows="3" class="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none">{{ parecer.declaracao_compatibilidade_texto }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Seção 5: Comissão, Lotacionograma, Edital e Discrepâncias -->
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 space-y-4 text-xs">
+                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center">
+                        <i class="fa-solid fa-sitemap text-purple-600 mr-2"></i> 5. Lotacionograma, Edital & Discrepâncias
+                    </h3>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Da Comissão Organizadora</label>
+                        <textarea name="comissao_organizadora_texto" rows="2" class="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none">{{ parecer.comissao_organizadora_texto }}</textarea>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Do Lotacionograma Analítico</label>
+                        <textarea name="lotacionograma_texto" rows="3" class="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none">{{ parecer.lotacionograma_texto }}</textarea>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Do Edital Normativo</label>
+                        <textarea name="edital_normativo_texto" rows="3" class="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none">{{ parecer.edital_normativo_texto }}</textarea>
+                    </div>
+
+                    <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200">
+                        <label class="block font-extrabold text-amber-900 mb-1">Das Discrepâncias e Ressalvas Identificadas (Apontamentos do Auditor)</label>
+                        <textarea name="discrepancias_ressalvas_texto" rows="4" class="w-full border border-amber-300 rounded-xl p-3 font-medium text-amber-950 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white">{{ parecer.discrepancias_ressalvas_texto }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Seção 6: Prazos, Isenções e Conclusão -->
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 space-y-4 text-xs">
+                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center">
+                        <i class="fa-solid fa-flag-checkered text-emerald-600 mr-2"></i> 6. Do Prazo, Isenções & Parecer Final
+                    </h3>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Do Prazo e Isenções de Inscrição</label>
+                        <textarea name="prazos_isencoes_texto" rows="2" class="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none">{{ parecer.prazos_isencoes_texto }}</textarea>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Da Publicação Ampla do Edital (Diário Oficial de Contas - DOC/TCE-MT)</label>
+                        <textarea name="publicacao_ampla_doc_tce_texto" rows="3" class="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none">{{ parecer.publicacao_ampla_doc_tce_texto }}</textarea>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Da Reserva Obrigatória de Vagas (Cotas PcD & Legislação Local)</label>
+                        <textarea name="reserva_vagas_pcd_texto" rows="3" class="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none">{{ parecer.reserva_vagas_pcd_texto }}</textarea>
+                    </div>
+
+                    <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-200">
+                        <label class="block font-extrabold text-emerald-900 mb-1">Conclusão do Parecer Final</label>
+                        <textarea name="conclusao_parecer_texto" rows="4" class="w-full border border-emerald-300 rounded-xl p-3 font-extrabold text-emerald-950 focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white">{{ parecer.conclusao_parecer_texto }}</textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Auditor / Controlador Responsável</label>
+                            <input type="text" name="auditor_responsavel" value="{{ parecer.auditor_responsavel }}" required class="w-full border border-slate-200 rounded-xl px-3 py-2 font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botões de Ação do Form -->
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4 ">
+                    <button type="submit" name="acao" value="salvar" class="w-full md:w-auto bg-slate-800 hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-2xl text-xs transition flex items-center justify-center">
+                        <i class="fa-solid fa-floppy-disk mr-2"></i> Salvar Rascunho
+                    </button>
+
+                    <button type="submit" name="acao" value="emitir_definitivo" onclick="return confirm('Deseja homologar e EMITIR O PARECER DEFINITIVO da abertura do certame?');" class="w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-black px-8 py-3.5 rounded-2xl shadow-xl text-sm transition flex items-center justify-center">
+                        <i class="fa-solid fa-stamp mr-2 text-base"></i>
+                        <span>Gerar Parecer Definitivo da Abertura do Certame</span>
+                    </button>
+                </div>
+
+            </form>
+
+        </main>
+    </div>
+
+</body>
+</html>

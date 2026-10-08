@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Database & SQLite
+*.db
+*.sqlite3
+
+# Uploads & Temp files
+uploads/certames/*
+!uploads/certames/.gitkeep
+
+# IDEs
+.vscode/
+.idea/
+*.swp
