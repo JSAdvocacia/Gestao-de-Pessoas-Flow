@@ -758,10 +758,10 @@
                         <tbody class="divide-y divide-slate-100 font-medium text-slate-700" id="tbl_candidatos_body">
                             {% for cand in candidatos %}
                             <tr class="cand-row hover:bg-indigo-50/40 transition" 
-                                data-nome="{{ cand.nome_completo.lower() }}" 
-                                data-cpf="{{ cand.cpf.lower() }}" 
-                                data-cargo="{{ cand.cargo.nome_cargo.lower() if cand.cargo else '' }}" 
-                                data-status="{{ cand.status_atual.lower() }}" 
+                                data-nome="{{ cand.nome_completo }}" 
+                                data-cpf="{{ cand.cpf }}" 
+                                data-cargo="{{ cand.cargo.nome_cargo if cand.cargo else '' }}" 
+                                data-status="{{ cand.status_atual }}" 
                                 data-sub-judice="{{ 'sim' if cand.is_sub_judice else 'não' }}">
                                 
                                 <!-- 1. Classificação Geral / Efetiva -->
@@ -1087,11 +1087,31 @@
                     filtrarTabelaCandidatos();
                 }
 
+                function normalizeText(str) {
+                    if (!str) return '';
+                    return str
+                        .toString()
+                        .normalize('NFD')
+                        .replace(/[\u0300-\u036f]/g, '')
+                        .toLowerCase()
+                        .replace(/[^a-z0-9]/g, ' ')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+                }
+
                 function filtrarTabelaCandidatos() {
-                    const busca = (document.getElementById('filter_busca').value || '').toLowerCase().trim();
-                    const cargo = (document.getElementById('filter_cargo').value || '').toLowerCase().trim();
-                    const status = (document.getElementById('filter_status').value || '').toLowerCase().trim();
-                    const subJudice = (document.getElementById('filter_sub_judice').value || '').toLowerCase().trim();
+                    const rawBusca = document.getElementById('filter_busca') ? document.getElementById('filter_busca').value : '';
+                    const rawCargo = document.getElementById('filter_cargo') ? document.getElementById('filter_cargo').value : '';
+                    const rawStatus = document.getElementById('filter_status') ? document.getElementById('filter_status').value : '';
+                    const rawSubJudice = document.getElementById('filter_sub_judice') ? document.getElementById('filter_sub_judice').value : '';
+
+                    const normBusca = normalizeText(rawBusca);
+                    const searchCpf = rawBusca.replace(/\D/g, '');
+                    const normCargo = normalizeText(rawCargo);
+                    const normStatus = normalizeText(rawStatus);
+                    const normSubJudice = normalizeText(rawSubJudice);
+
+                    const temFiltroAtivo = !!(normBusca || normCargo || normStatus || normSubJudice);
 
                     const rows = document.querySelectorAll('#tbl_candidatos_body tr.cand-row');
                     let totalCorrespondentes = 0;
@@ -1099,30 +1119,81 @@
 
                     rows.forEach(row => {
                         const rowNome = row.getAttribute('data-nome') || '';
-                        const rowCpf = row.getAttribute('data-cpf') || '';
+                        const rowCpf = (row.getAttribute('data-cpf') || '').replace(/\D/g, '');
                         const rowCargo = row.getAttribute('data-cargo') || '';
                         const rowStatus = row.getAttribute('data-status') || '';
                         const rowSubJudice = row.getAttribute('data-sub-judice') || '';
 
-                        const matchBusca = !busca || rowNome.includes(busca) || rowCpf.includes(busca);
-                        const matchCargo = !cargo || rowCargo.includes(cargo);
-                        const matchStatus = !status || rowStatus.includes(status);
-                        const matchSubJudice = !subJudice || rowSubJudice.includes(subJudice);
+                        const normRowNome = normalizeText(rowNome);
+                        const normRowCargo = normalizeText(rowCargo);
+                        const normRowStatus = normalizeText(rowStatus);
+                        const normRowSubJudice = normalizeText(rowSubJudice);
+
+                        // 1. Matching Busca (Nome / CPF)
+                        let matchBusca = true;
+                        if (normBusca) {
+                            const matchNome = normRowNome.includes(normBusca);
+                            const matchCpf = searchCpf.length > 0 && rowCpf.includes(searchCpf);
+                            matchBusca = matchNome || matchCpf;
+                        }
+
+                        // 2. Matching Cargo
+                        let matchCargo = true;
+                        if (normCargo) {
+                            matchCargo = normRowCargo.includes(normCargo) || normCargo.includes(normRowCargo);
+                        }
+
+                        // 3. Matching Status
+                        let matchStatus = true;
+                        if (normStatus) {
+                            if (normStatus.includes('aprovado')) {
+                                matchStatus = normRowStatus.includes('aprovado') || normRowStatus.includes('aguardando');
+                            } else if (normStatus.includes('cadastro') || normStatus.includes('reserva')) {
+                                matchStatus = normRowStatus.includes('cadastro') || normRowStatus.includes('reserva');
+                            } else if (normStatus.includes('convocado')) {
+                                matchStatus = normRowStatus.includes('convocado');
+                            } else if (normStatus.includes('empossado')) {
+                                matchStatus = normRowStatus.includes('empossado');
+                            } else if (normStatus.includes('desistente') || normStatus.includes('renuncia')) {
+                                matchStatus = normRowStatus.includes('desistente') || normRowStatus.includes('renuncia');
+                            } else if (normStatus.includes('final') || normStatus.includes('fila')) {
+                                matchStatus = normRowStatus.includes('final') || normRowStatus.includes('fila') || normRowStatus.includes('reclassificado');
+                            } else if (normStatus.includes('excluido') || normStatus.includes('exonerado')) {
+                                matchStatus = normRowStatus.includes('excluido') || normRowStatus.includes('exonerado') || normRowStatus.includes('nao compareceu');
+                            } else if (normStatus.includes('judice')) {
+                                matchStatus = normRowStatus.includes('judice') || normRowSubJudice === 'sim';
+                            } else {
+                                matchStatus = normRowStatus.includes(normStatus) || normStatus.includes(normRowStatus);
+                            }
+                        }
+
+                        // 4. Matching Posse Sub Júdice
+                        let matchSubJudice = true;
+                        if (normSubJudice) {
+                            if (normSubJudice === 'sim') {
+                                matchSubJudice = (normRowSubJudice === 'sim');
+                            } else if (normSubJudice === 'nao') {
+                                matchSubJudice = (normRowSubJudice === 'nao');
+                            }
+                        }
 
                         if (matchBusca && matchCargo && matchStatus && matchSubJudice) {
                             totalCorrespondentes++;
-                            if (!tabelaExpandida && totalCorrespondentes > 5) {
-                                row.style.display = 'none';
-                            } else {
+                            if (temFiltroAtivo || tabelaExpandida || totalCorrespondentes <= 5) {
                                 row.style.display = '';
                                 visivelCount++;
+                            } else {
+                                row.style.display = 'none';
                             }
                         } else {
                             row.style.display = 'none';
                         }
                     });
 
-                    document.getElementById('cnt_visivel').innerText = visivelCount;
+                    const elCnt = document.getElementById('cnt_visivel');
+                    if (elCnt) {
+                        elCnt.innerText = visivelCount;
+                    }
 
                     // Atualizar visualização do botão de expansão
                     const containerBtn = document.getElementById('btn_expandir_container');
@@ -1130,15 +1201,15 @@
                     const iconBtn = document.getElementById('icon_expandir_tabela');
 
                     if (containerBtn) {
-                        if (totalCorrespondentes > 5) {
+                        if (!temFiltroAtivo && totalCorrespondentes > 5) {
                             containerBtn.classList.remove('hidden');
                             if (tabelaExpandida) {
-                                txtBtn.innerText = `Recolher tabela (Exibir apenas os 5 primeiros candidatos)`;
-                                iconBtn.className = `fa-solid fa-chevron-up text-indigo-600 mr-2 transition-transform duration-300`;
+                                if (txtBtn) txtBtn.innerText = `Recolher tabela (Exibir apenas os 5 primeiros candidatos)`;
+                                if (iconBtn) iconBtn.className = `fa-solid fa-chevron-up text-indigo-600 mr-2 transition-transform duration-300`;
                             } else {
                                 const ocultos = totalCorrespondentes - 5;
-                                txtBtn.innerText = `Exibir todos os ${totalCorrespondentes} candidatos (+${ocultos} ocultos)`;
-                                iconBtn.className = `fa-solid fa-chevron-down text-indigo-600 mr-2 transition-transform duration-300`;
+                                if (txtBtn) txtBtn.innerText = `Exibir todos os ${totalCorrespondentes} candidatos (+${ocultos} ocultos)`;
+                                if (iconBtn) iconBtn.className = `fa-solid fa-chevron-down text-indigo-600 mr-2 transition-transform duration-300`;
                             }
                         } else {
                             containerBtn.classList.add('hidden');
@@ -1147,10 +1218,10 @@
                 }
 
                 function limparFiltrosTabela() {
-                    document.getElementById('filter_busca').value = '';
-                    document.getElementById('filter_cargo').value = '';
-                    document.getElementById('filter_status').value = '';
-                    document.getElementById('filter_sub_judice').value = '';
+                    if (document.getElementById('filter_busca')) document.getElementById('filter_busca').value = '';
+                    if (document.getElementById('filter_cargo')) document.getElementById('filter_cargo').value = '';
+                    if (document.getElementById('filter_status')) document.getElementById('filter_status').value = '';
+                    if (document.getElementById('filter_sub_judice')) document.getElementById('filter_sub_judice').value = '';
                     filtrarTabelaCandidatos();
                 }
 
