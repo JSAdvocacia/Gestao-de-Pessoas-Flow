@@ -98,6 +98,11 @@ class Candidato(Base):
     tipo_cota = Column(String(30), default="AMPLA") # AMPLA, PCD, NEGROS
     status_atual = Column(String(40), default=StatusCandidatoEnum.AGUARDANDO_CONVOCACAO.value)
     classificacao_efetiva = Column(Integer, nullable=False)
+    edital_convocacao = Column(String(100), nullable=True)
+    data_posse = Column(Date, nullable=True)
+    data_exoneracao = Column(Date, nullable=True)
+    edital_desistencia = Column(String(100), nullable=True)
+    sub_judice = Column(String(20), nullable=True)
 
     concurso = relationship("Concurso", back_populates="candidatos")
     cargo = relationship("Cargo")
@@ -437,5 +442,11 @@ def init_db():
             conn.commit()
         except Exception:
             pass
+        for col in ["edital_convocacao TEXT", "data_posse DATE", "data_exoneracao DATE", "edital_desistencia TEXT", "sub_judice TEXT"]:
+            try:
+                conn.execute(text(f"ALTER TABLE candidatos ADD COLUMN {col}"))
+                conn.commit()
+            except Exception:
+                pass
 
 

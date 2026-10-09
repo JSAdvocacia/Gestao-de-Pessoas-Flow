@@ -198,8 +198,8 @@
                         <i class="fa-solid fa-rotate mr-1.5"></i> Executar Auditoria Completa
                     </button>
                 </form>
-                <a href="/zerar-banco" onclick="return confirm('Deseja realmente ZERAR todo o banco de dados?');" class="bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-bold px-3 py-2 rounded-xl transition flex items-center">
-                    <i class="fa-solid fa-trash-can mr-1"></i> Zerar Base
+                <a href="/zerar-banco" onclick="return confirmarZerarBanco(event, 'BANCO_GERAL');" class="bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-bold px-3 py-2 rounded-xl transition flex items-center">
+                    <i class="fa-solid fa-shield-cat mr-1 text-rose-600"></i> Zerar Base
                 </a>
             </div>
         </header>
@@ -361,5 +361,38 @@
         </main>
     </div>
 
+    <script>
+        function confirmarZerarBanco(event, tipo) {
+            let titulo = "BANCO DE DADOS GERAL";
+            let palavraChave = "ZERAR";
+            
+            if (tipo === 'ACOMPANHAMENTO') {
+                titulo = "ACOMPANHAMENTO DO CERTAME";
+                palavraChave = "ZERAR ACOMPANHAMENTO";
+            }
+
+            const resposta = prompt(
+                `🚨 PERGUNTA DE SEGURANÇA DO CONTROLE INTERNO 🚨\n\n` +
+                `Você solicitou o apagamento irreversível do ${titulo}.\n` +
+                `Para confirmar esta operação de alto risco e evitar exclusões acidentais, digite exatamente a palavra abaixo:\n\n` +
+                `👉  ${palavraChave}\n`
+            );
+
+            if (resposta === null) {
+                return false;
+            }
+
+            if (resposta.trim().toUpperCase() !== palavraChave) {
+                alert(`❌ AÇÃO CANCELADA!\n\nA palavra de segurança digitada ("${resposta}") está incorreta.\nO banco de dados permaneceu 100% protegido e intacto.`);
+                return false;
+            }
+
+            return confirm(
+                `⚠️ CONFIRMAÇÃO FINAL DE SEGURANÇA ⚠️\n\n` +
+                `Você digitou a palavra de segurança correta.\n` +
+                `Tem certeza ABSOLUTA de que deseja apagar todos os registros do ${titulo}?`
+            );
+        }
+    </script>
 </body>
 </html>

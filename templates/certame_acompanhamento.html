@@ -153,7 +153,7 @@
             </div>
             
             <div class="flex items-center space-x-2">
-                <form action="/certames/{{ certame.id_certame }}/acompanhamento/zerar" method="post" class="inline" onsubmit="return confirm('⚠️ ATENÇÃO: Deseja realmente ZERAR o Acompanhamento deste Certame?\n\nEsta ação irá apagar todas as convocações, termos de posse, desistências e atos pós-homologação registrados, retornando todos os candidatos ao estado inicial pós-homologação.\n\nConfirma a reinicialização?');">
+                <form action="/certames/{{ certame.id_certame }}/acompanhamento/zerar" method="post" class="inline" onsubmit="return confirmarZerarBanco(event, 'ACOMPANHAMENTO');">
                     <button type="submit" class="bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold text-xs px-3.5 py-2.5 rounded-xl border border-rose-200 transition flex items-center shadow-sm">
                         <i class="fa-solid fa-rotate-left mr-1.5 text-rose-600"></i> Zerar Acompanhamento
                     </button>
@@ -1271,7 +1271,38 @@
                             }
                         });
                     }
-                });
+                function confirmarZerarBanco(event, tipo) {
+                    let titulo = "BANCO DE DADOS GERAL";
+                    let palavraChave = "ZERAR";
+                    
+                    if (tipo === 'ACOMPANHAMENTO') {
+                        titulo = "ACOMPANHAMENTO DO CERTAME";
+                        palavraChave = "ZERAR ACOMPANHAMENTO";
+                    }
+
+                    const resposta = prompt(
+                        `🚨 PERGUNTA DE SEGURANÇA DO CONTROLE INTERNO 🚨\n\n` +
+                        `Você solicitou o apagamento irreversível do ${titulo}.\n` +
+                        `Para confirmar esta operação de alto risco e evitar exclusões acidentais, digite exatamente a palavra abaixo:\n\n` +
+                        `👉  ${palavraChave}\n`
+                    );
+
+                    if (resposta === null) {
+                        return false;
+                    }
+
+                    if (resposta.trim().toUpperCase() !== palavraChave) {
+                        alert(`❌ AÇÃO CANCELADA!\n\nA palavra de segurança digitada ("${resposta}") está incorreta.\nO banco de dados permaneceu 100% protegido e intacto.`);
+                        return false;
+                    }
+
+                    return confirm(
+                        `⚠️ CONFIRMAÇÃO FINAL DE SEGURANÇA ⚠️\n\n` +
+                        `Você digitou a palavra de segurança correta.\n` +
+                        `Tem certeza ABSOLUTA de que deseja apagar todos os registros do ${titulo}?`
+                    );
+                }
+
                 // Fallback de execução imediata
                 filtrarTabelaCandidatos();
             </script>

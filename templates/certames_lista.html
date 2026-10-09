@@ -179,8 +179,8 @@
                 <p class="text-xs text-slate-500">Atos Prévios de Abertura de Concursos e Seletivos (TCE-MT)</p>
             </div>
             <div class="flex items-center space-x-3">
-                <a href="/zerar-banco" onclick="return confirm('ATENÇÃO: Deseja realmente zerar todo o banco de dados do sistema (certames, anexos, pareceres e achados)?');" class="bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow transition flex items-center">
-                    <i class="fa-solid fa-trash-arrow-up mr-1.5"></i> Zerar Banco Geral
+                <a href="/zerar-banco" onclick="return confirmarZerarBanco(event, 'BANCO_GERAL');" class="bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow transition flex items-center">
+                    <i class="fa-solid fa-shield-cat mr-1.5 text-amber-300"></i> Zerar Banco Geral
                 </a>
                 <a href="/certames/novo" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl shadow transition flex items-center">
                     <i class="fa-solid fa-plus-circle mr-1.5"></i> Iniciar Novo Certame
@@ -273,8 +273,41 @@
                     </a>
                 </div>
                 {% endif %}
-            </div>
         </main>
     </div>
+
+    <script>
+        function confirmarZerarBanco(event, tipo) {
+            let titulo = "BANCO DE DADOS GERAL";
+            let palavraChave = "ZERAR";
+            
+            if (tipo === 'ACOMPANHAMENTO') {
+                titulo = "ACOMPANHAMENTO DO CERTAME";
+                palavraChave = "ZERAR ACOMPANHAMENTO";
+            }
+
+            const resposta = prompt(
+                `🚨 PERGUNTA DE SEGURANÇA DO CONTROLE INTERNO 🚨\n\n` +
+                `Você solicitou o apagamento irreversível do ${titulo}.\n` +
+                `Para confirmar esta operação de alto risco e evitar exclusões acidentais, digite exatamente a palavra abaixo:\n\n` +
+                `👉  ${palavraChave}\n`
+            );
+
+            if (resposta === null) {
+                return false;
+            }
+
+            if (resposta.trim().toUpperCase() !== palavraChave) {
+                alert(`❌ AÇÃO CANCELADA!\n\nA palavra de segurança digitada ("${resposta}") está incorreta.\nO banco de dados permaneceu 100% protegido e intacto.`);
+                return false;
+            }
+
+            return confirm(
+                `⚠️ CONFIRMAÇÃO FINAL DE SEGURANÇA ⚠️\n\n` +
+                `Você digitou a palavra de segurança correta.\n` +
+                `Tem certeza ABSOLUTA de que deseja apagar todos os registros do ${titulo}?`
+            );
+        }
+    </script>
 </body>
 </html>
