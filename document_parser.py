@@ -658,10 +658,30 @@ class DocumentParserAI:
 
             cargo_obj = None
             if cargo_raw:
-                cargo_clean = re.sub(r'^(Nível\s+(Médio|Superior|Técnico)\s*[\-\–\—]\s*|TAE\s*[\-\–\—]\s*)', '', cargo_raw, flags=re.IGNORECASE).strip()
-                cargo_obj = db.query(Cargo).filter(Cargo.nome_cargo.ilike(cargo_clean)).first()
+                cargo_raw_clean = cargo_raw.strip()
+                # 1. Tenta correspondência exata ou ilike no nome completo do cargo
+                cargo_obj = db.query(Cargo).filter(Cargo.nome_cargo.ilike(cargo_raw_clean)).first()
                 if not cargo_obj:
-                    cargo_obj = db.query(Cargo).filter(Cargo.nome_cargo.ilike(f"%{cargo_clean[:12]}%")).first()
+                    cargo_obj = db.query(Cargo).filter(Cargo.nome_cargo.ilike(f"%{cargo_raw_clean}%")).first()
+                
+                # 2. Tenta correspondência sem o prefixo Nível Médio/Superior/TAE
+                if not cargo_obj:
+                    cargo_clean = re.sub(r'^(Nível\s+(Médio|Superior|Técnico)\s*[\-\–\—]\s*|TAE\s*[\-\–\—]\s*)', '', cargo_raw_clean, flags=re.IGNORECASE).strip()
+                    cargo_obj = db.query(Cargo).filter(Cargo.nome_cargo.ilike(f"%{cargo_clean}%")).first()
+                
+                # 3. Se ainda não existir no banco, cria o Cargo para este certame
+                if not cargo_obj:
+                    cod_novo = f"CARGO-{uuid.uuid4().hex[:4].upper()}"
+                    niv = "Superior" if "Superior" in cargo_raw_clean else ("Técnico" if "Técnico" in cargo_raw_clean else "Médio")
+                    cargo_obj = Cargo(
+                        codigo_cargo=cod_novo,
+                        nome_cargo=cargo_raw_clean,
+                        nivel_escolaridade=niv,
+                        regime_juridico="Estatutário"
+                    )
+                    db.add(cargo_obj)
+                    db.commit()
+                    db.refresh(cargo_obj)
 
             if not cargo_obj:
                 cargo_obj = db.query(Cargo).first()
@@ -719,13 +739,25 @@ class DocumentParserAI:
                     nome_completo=nome_raw,
                     classificacao_original=class_orig,
                     classificacao_efetiva=class_orig,
-                    status_atual=status_calc
+                    status_atual=status_calc,
+                    edital_convocacao=conv_raw,
+                    data_posse=posse_dt,
+                    data_exoneracao=exon_dt,
+                    edital_desistencia=desist_raw,
+                    sub_judice=judice_raw
                 )
                 db.add(cand)
                 db.commit()
                 db.refresh(cand)
             else:
                 cand.status_atual = status_calc
+                cand.id_cargo = cargo_obj.id_cargo
+                if conv_raw: cand.edital_convocacao = conv_raw
+                if posse_dt: cand.data_posse = posse_dt
+                if exon_dt: cand.data_exoneracao = exon_dt
+                if desist_raw: cand.edital_desistencia = desist_raw
+                if judice_raw: cand.sub_judice = judice_raw
+                db.commit()
 
             if conv_raw or posse_dt or status_calc in ["CONVOCADO", "EMPOSSADO"]:
                 conv = db.query(Convocacao).filter_by(id_candidato=cand.id_candidato).first()

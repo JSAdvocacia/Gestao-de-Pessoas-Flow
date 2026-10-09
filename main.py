@@ -1519,14 +1519,16 @@ async def processar_ato_acompanhamento(
             text_ext += "\n" + conteudo_texto
 
         if text_ext:
-            # Se for Homologação do Resultado Final
-            if "HOMOLOGA" in text_ext.upper() and ("APROVADO" in text_ext.upper() or "RESULTADO FINAL" in text_ext.upper()):
+            # Auto-detecção de planilha/CSV de provimento tabular
+            if ("inscric" in text_ext.lower() or "cargo" in text_ext.lower()) and any(k in text_ext.lower() for k in ["posse", "convoc", "situac", "status", "exoner"]):
+                res_csv = DocumentParserAI.process_csv_provimento_tabular(text_ext, db, id_certame)
+                total_afetados_ia += res_csv.get("afetados", 0)
+            elif "HOMOLOGA" in text_ext.upper() and ("APROVADO" in text_ext.upper() or "RESULTADO FINAL" in text_ext.upper()):
                 res_homol = DocumentParserAI.process_homologacao_resultado_final(text_ext, db, id_certame)
                 total_afetados_ia += res_homol.get("candidatos_injetados", 0)
-
-            # Processa provimento/nomeação/posse/desistência por IA
-            res_prov = DocumentParserAI.process_ato_provimento_texto(text_ext, db, id_certame, tipo_ato_default=tipo_ato)
-            total_afetados_ia += res_prov.get("afetados", 0)
+            else:
+                res_prov = DocumentParserAI.process_ato_provimento_texto(text_ext, db, id_certame, tipo_ato_default=tipo_ato)
+                total_afetados_ia += res_prov.get("afetados", 0)
 
         # Manter acervo unificado: Adicionar anexo e documento no repositório do certame
         tipo_anx = f"ACOMPANHAMENTO_{tipo_ato}"
@@ -2470,7 +2472,16 @@ async def importar_ia_pdf(
         if tipo_documento == "OUTROS_DOCUMENTOS_COMPLEMENTARES" and outro_tipo_nome:
             tipo_classificado = outro_tipo_nome.strip().upper()
 
-        if tipo_documento == "LOTACIONOGRAMA" or ("lei" in texto.lower() and "vagas" in texto.lower() and tipo_documento == "AUTO"):
+        cert_target = db.query(CertameAbertura).first()
+        id_cert_target = cert_target.id_certame if cert_target else 1
+
+        if ("inscric" in texto.lower() or "cargo" in texto.lower()) and any(k in texto.lower() for k in ["posse", "convoc", "situac", "status", "exoner"]):
+            tipo_classificado = "PLANILHA_PROVIMENTO_CSV"
+            res = DocumentParserAI.process_csv_provimento_tabular(texto, db, id_cert_target)
+            msg_item = f"Planilha de Provimento ({item_arq.filename}): {res.get('afetados', 0)} candidato(s)/provimento(s) atualizados no Acompanhamento."
+            engine_item = AuditEngine(db)
+            engine_item.importar_dados_fase_oficial_para_acompanhamento(id_cert_target)
+        elif tipo_documento == "LOTACIONOGRAMA" or ("lei" in texto.lower() and "vagas" in texto.lower() and tipo_documento == "AUTO"):
             tipo_classificado = "LOTACIONOGRAMA"
             res = DocumentParserAI.process_lotacionograma_text(texto, db)
             msg_item = f"Lotacionograma ({item_arq.filename}): {res.get('registros_processados', 0)} cargo(s)/vagas atualizados."
@@ -2512,8 +2523,14 @@ def importar_texto_direto(
     if not conteudo_texto or not conteudo_texto.strip():
         return RedirectResponse(url="/importar?msg=Aviso: Insira o texto ou código para efetuar a importação.", status_code=303)
 
+    cert_target = db.query(CertameAbertura).first()
+    id_cert_target = cert_target.id_certame if cert_target else 1
+
     msg = ""
-    if tipo_documento == "LOTACIONOGRAMA":
+    if ("inscric" in conteudo_texto.lower() or "cargo" in conteudo_texto.lower()) and any(k in conteudo_texto.lower() for k in ["posse", "convoc", "situac", "status", "exoner"]):
+        res = DocumentParserAI.process_csv_provimento_tabular(conteudo_texto, db, id_cert_target)
+        msg = f"Matriz de Provimentos CSV importada: {res.get('afetados', 0)} candidato(s)/atos atualizados no Acompanhamento."
+    elif tipo_documento == "LOTACIONOGRAMA":
         res = DocumentParserAI.process_lotacionograma_text(conteudo_texto, db)
         msg = f"Lotacionograma importado: {res.get('registros_processados', 0)} cargo(s) processados."
     elif tipo_documento == "EDITAL":
@@ -2522,8 +2539,12 @@ def importar_texto_direto(
     elif tipo_documento == "CONVOCACAO":
         res = DocumentParserAI.process_convocacao_portaria_text(conteudo_texto, db)
         msg = f"Portaria importada: {res.get('convocacoes_adicionadas', 0)} convocação(ões) registrada(s)."
+    else:
+        res = DocumentParserAI.process_csv_provimento_tabular(conteudo_texto, db, id_cert_target)
+        msg = f"Matriz de Provimentos importada: {res.get('afetados', 0)} candidato(s) atualizados."
 
     engine = AuditEngine(db)
+    engine.importar_dados_fase_oficial_para_acompanhamento(id_cert_target)
     engine.executar_auditoria_completa()
 
     return RedirectResponse(url=f"/importar?msg={msg}", status_code=303)
