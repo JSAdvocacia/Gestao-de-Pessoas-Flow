@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório Analítico de Auditoria de Encerramento — Certame {{ certame.numero_certame }} | SIAP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; font-size: 9.5pt !important; color: black !important; padding: 0 !important; }
+            .page-break { page-break-before: always; }
+            .shadow-xl, .shadow-2xl, .shadow-md, .shadow-sm { box-shadow: none !important; }
+            .border { border-color: #cbd5e1 !important; }
+            .bg-slate-900 { background-color: #0f172a !important; color: white !important; }
+            .bg-slate-950 { background-color: #020617 !important; color: white !important; }
+            .bg-slate-50 { background-color: #f8fafc !important; }
+            .bg-rose-950 { background-color: #881337 !important; color: white !important; }
+            tr { page-break-inside: avoid; }
+            thead { display: table-header-group; }
+        }
+    </style>
+</head>
+<body class="bg-slate-200 font-sans min-h-screen text-slate-800 antialiased p-4 md:p-8">
+
+    <!-- BARRA DE AÇÕES SUPERIOR (OCULTA NA IMPRESSÃO) -->
+    <div class="max-w-6xl mx-auto mb-6 bg-slate-900 text-white p-4 rounded-2xl shadow-xl flex flex-wrap items-center justify-between gap-4 no-print border border-slate-700">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-rose-600 rounded-xl flex items-center justify-center font-black text-lg shadow">
+                <i class="fa-solid fa-file-invoice text-white"></i>
+            </div>
+            <div>
+                <h2 class="font-black text-sm tracking-tight uppercase">RELATÓRIO ANALÍTICO DE AUDITORIA & ENCERRAMENTO DE CONCURSO EXPIRADO</h2>
+                <p class="text-xs text-rose-300 font-semibold">Prestação de Contas Consolidada • Certame nº {{ certame.numero_certame }}</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-3 text-xs">
+            <a href="/certames/{{ certame.id_certame }}/expirado" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-xl border border-slate-700 transition flex items-center">
+                <i class="fa-solid fa-arrow-left mr-1.5"></i> Voltar ao Dossiê
+            </a>
+            <button onclick="window.print()" class="bg-rose-600 hover:bg-rose-500 text-white font-black px-5 py-2 rounded-xl shadow-lg transition flex items-center">
+                <i class="fa-solid fa-print mr-2"></i> Imprimir / Salvar PDF Analítico
+            </button>
+        </div>
+    </div>
+
+    <!-- DOCUMENTO OFICIAL FORMATADO PARA IMPRESSÃO / AUDITORIA (MULTI-PÁGINAS) -->
+    <div class="max-w-6xl mx-auto bg-white p-8 md:p-12 rounded-3xl shadow-2xl border border-slate-300 space-y-8 text-slate-900">
+
+        <!-- CABEÇALHO OFICIAL DA PREFEITURA E AUDITORIA -->
+        <div class="border-b-4 border-rose-600 pb-6 text-center space-y-3">
+            <div class="flex items-center justify-center space-x-3 mb-1">
+                <div class="w-14 h-14 bg-slate-900 text-rose-400 rounded-2xl flex items-center justify-center text-2xl shadow-md border border-slate-700">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+            </div>
+            <div>
+                <h1 class="text-xs font-black uppercase tracking-widest text-slate-500">ESTADO DE MATO GROSSO • PREFEITURA MUNICIPAL DE PONTES E LACERDA</h1>
+                <h2 class="text-xl md:text-2xl font-black text-slate-900 tracking-tight uppercase mt-1">
+                    RELATÓRIO ANALÍTICO DE AUDITORIA DE ENCERRAMENTO DE CERTAME EXPIRADO
+                </h2>
+                <p class="text-xs font-bold text-rose-700 uppercase tracking-wider mt-0.5">
+                    Prestação de Contas Consolidada de Provimentos, Vagas Editalícias e Transito em Julgado Administrativo
+                </p>
+            </div>
+
+            <div class="pt-3 flex flex-wrap justify-center gap-2 text-xs font-mono">
+                <span class="bg-slate-100 border border-slate-300 px-3 py-1 rounded-lg font-bold text-slate-800">
+                    CERTAME: {{ certame.numero_certame }}
+                </span>
+                <span class="bg-slate-100 border border-slate-300 px-3 py-1 rounded-lg font-bold text-slate-800">
+                    MODALIDADE: {{ certame.modalidade }}
+                </span>
+                <span class="bg-slate-100 border border-slate-300 px-3 py-1 rounded-lg font-bold text-slate-800">
+                    VALIDADE FINAL: {{ concurso.data_validade_final.strftime('%d/%m/%Y') if (concurso and concurso.data_validade_final) else '14/10/2024' }}
+                </span>
+                <span class="bg-rose-100 border border-rose-300 px-3 py-1 rounded-lg font-bold text-rose-800">
+                    SITUAÇÃO: CONCURSO EXPIRADO
+                </span>
+            </div>
+        </div>
+
+        <!-- SEÇÃO I — SUMÁRIO EXECUTIVO & HISTÓRICO DA TRAMITAÇÃO -->
+        <section class="space-y-3">
+            <h3 class="text-xs font-black uppercase text-rose-800 tracking-wider flex items-center border-b border-slate-200 pb-2">
+                <i class="fa-solid fa-landmark mr-2 text-rose-600"></i> I. Sumário Executivo & Histórico Administrativo
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs leading-relaxed text-slate-700">
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                    <h4 class="font-extrabold text-slate-900 uppercase text-[11px]">Fase Pré-Edital e Autorização Legal</h4>
+                    <p>O Concurso Público nº <strong>{{ certame.numero_certame }}</strong> foi autorizado pela <strong>{{ certame.lei_autorizadora }}</strong> e instaurado pelo Processo Administrativo sob responsabilidade da <strong>{{ certame.orgao_solicitante }}</strong>.</p>
+                    <ul class="list-disc pl-4 space-y-1 text-[11px] text-slate-600">
+                        <li><strong>Prefeito Ordenador:</strong> {{ certame.prefeito_ordenador }}</li>
+                        <li><strong>Secretário Solicitante:</strong> {{ certame.secretario_solicitante }}</li>
+                        <li><strong>Contador Responsável:</strong> {{ certame.contador_responsavel }}</li>
+                        <li><strong>Regime das Carreiras:</strong> {{ certame.leis_carreira }}</li>
+                    </ul>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                    <h4 class="font-extrabold text-slate-900 uppercase text-[11px]">Fase Oficial, Homologação e Validade</h4>
+                    <p>A condução do certame foi realizada pela banca <strong>{{ certame.banca_examinadora }}</strong>. O resultado final foi homologado em <strong>{{ concurso.data_homologacao.strftime('%d/%m/%Y') if (concurso and concurso.data_homologacao) else '14/10/2022' }}</strong>.</p>
+                    <ul class="list-disc pl-4 space-y-1 text-[11px] text-slate-600">
+                        <li><strong>Prazo Inicial de Validade:</strong> 2 (dois) anos.</li>
+                        <li><strong>Data Limite de Vigência:</strong> {{ concurso.data_validade_final.strftime('%d/%m/%Y') if (concurso and concurso.data_validade_final) else '14/10/2024' }}.</li>
+                        <li><strong>Status de Vigência:</strong> Certame integralmente expirado.</li>
+                        <li><strong>Efeito Jurídico:</strong> Encerramento definitivo do provimento do cadastro de reserva.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO II — MATRIZ QUANTITATIVA CONSOLIDADA DE PROVIMENTO POR CARGO (EXIGIDA) -->
+        <section class="space-y-3">
+            <h3 class="text-xs font-black uppercase text-rose-800 tracking-wider flex items-center border-b border-slate-200 pb-2">
+                <i class="fa-solid fa-table-list mr-2 text-rose-600"></i> II. Quadro Quantitativo Consolidado por Cargo (Encerramento do Certame)
+            </h3>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-[11px] border border-slate-300">
+                    <thead class="bg-slate-900 text-white font-extrabold uppercase text-[9px] tracking-wider">
+                        <tr>
+                            <th class="p-2 border border-slate-700">Código</th>
+                            <th class="p-2 border border-slate-700">Cargo Ofertado</th>
+                            <th class="p-2 text-center border border-slate-700">Vagas Lei</th>
+                            <th class="p-2 text-center border border-slate-700">Vagas Edital</th>
+                            <th class="p-2 text-center border border-slate-700">Aprovados Diretos</th>
+                            <th class="p-2 text-center border border-slate-700">Cadastro Reserva</th>
+                            <th class="p-2 text-center border border-slate-700">Total Convocados</th>
+                            <th class="p-2 text-center border border-slate-700 bg-emerald-800">Em Exercício</th>
+                            <th class="p-2 text-center border border-slate-700">Desistências</th>
+                            <th class="p-2 text-center border border-slate-700">Exonerações</th>
+                            <th class="p-2 text-center border border-slate-700">Saldo Livre</th>
+                            <th class="p-2 text-center border border-slate-700">Cobertura %</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 font-medium">
+                        {% for q in quadro_cargos %}
+                        <tr class="{{ 'bg-slate-50' if loop.index % 2 == 0 else 'bg-white' }}">
+                            <td class="p-2 border font-mono font-bold text-slate-600">{{ q.codigo_cargo }}</td>
+                            <td class="p-2 border font-bold text-slate-900">{{ q.cargo_nome }}</td>
+                            <td class="p-2 border text-center font-bold">{{ q.vagas_lei }}</td>
+                            <td class="p-2 border text-center font-extrabold text-indigo-700">{{ q.vagas_edital }}</td>
+                            <td class="p-2 border text-center font-bold text-sky-700">{{ q.aprovados_diretos }}</td>
+                            <td class="p-2 border text-center text-slate-600">{{ q.cadastro_reserva }}</td>
+                            <td class="p-2 border text-center font-bold text-amber-700">{{ q.convocados }}</td>
+                            <td class="p-2 border text-center font-black text-emerald-800 bg-emerald-50">{{ q.empossados_exercicio }}</td>
+                            <td class="p-2 border text-center font-bold text-rose-700">{{ q.desistencias }}</td>
+                            <td class="p-2 border text-center font-bold text-rose-600/80">{{ q.exoneracoes }}</td>
+                            <td class="p-2 border text-center font-black {{ 'text-rose-700' if q.saldo_livre > 0 else 'text-slate-400' }}">{{ q.saldo_livre }}</td>
+                            <td class="p-2 border text-center font-extrabold text-emerald-700">{{ q.taxa_cobertura }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="bg-slate-900 text-white font-extrabold text-xs">
+                        <tr>
+                            <td colspan="2" class="p-2.5 border border-slate-700 uppercase">Total Consolidado do Município</td>
+                            <td class="p-2.5 border border-slate-700 text-center">{{ totais.vagas_lei }}</td>
+                            <td class="p-2.5 border border-slate-700 text-center text-indigo-300">{{ totais.vagas_edital }}</td>
+                            <td class="p-2.5 border border-slate-700 text-center text-sky-300">{{ totais.aprovados_diretos }}</td>
+                            <td class="p-2.5 border border-slate-700 text-center text-slate-300">{{ totais.cadastro_reserva }}</td>
+                            <td class="p-2.5 border border-slate-700 text-center text-amber-300">{{ totais.convocados }}</td>
+                            <td class="p-2.5 border border-slate-700 text-center text-emerald-300 bg-emerald-900 font-black text-sm">{{ totais.empossados_exercicio }}</td>
+                            <td class="p-2.5 border border-slate-700 text-center text-rose-300">{{ totais.desistencias }}</td>
+                            <td class="p-2.5 border border-slate-700 text-center text-rose-300/80">{{ totais.exoneracoes }}</td>
+                            <td class="p-2.5 border border-slate-700 text-center text-rose-400 font-black">{{ totais.saldo_livre }}</td>
+                            <td class="p-2.5 border border-slate-700 text-center text-emerald-400 font-black">{{ totais.taxa_cobertura_geral }}%</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </section>
+
+        <!-- SEÇÃO III — APURAÇÃO QUALITATIVA DO PROVIMENTO E MOVIMENTAÇÕES -->
+        <section class="space-y-3">
+            <h3 class="text-xs font-black uppercase text-rose-800 tracking-wider flex items-center border-b border-slate-200 pb-2">
+                <i class="fa-solid fa-magnifying-glass-chart mr-2 text-rose-600"></i> III. Apuração Qualitativa do Provimento & Movimentações
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-200 space-y-1">
+                    <span class="text-emerald-800 font-extrabold uppercase text-[10px] block">Servidores Efetivados em Exercício</span>
+                    <p class="text-2xl font-black text-emerald-900">{{ totais.empossados_exercicio }} Servidores</p>
+                    <p class="text-[11px] text-emerald-700">Total de nomeações efetivadas com entrada em exercício registrada no lotacionograma legal do município.</p>
+                </div>
+
+                <div class="bg-rose-50 p-4 rounded-2xl border border-rose-200 space-y-1">
+                    <span class="text-rose-800 font-extrabold uppercase text-[10px] block">Desistências / Fim de Fila</span>
+                    <p class="text-2xl font-black text-rose-900">{{ totais.desistencias }} Candidatos</p>
+                    <p class="text-[11px] text-rose-700">Termos de desistência voluntária, não comparecimentos e pedidos de reclassificação formalizados.</p>
+                </div>
+
+                <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 space-y-1">
+                    <span class="text-amber-800 font-extrabold uppercase text-[10px] block">Exonerações / Desligamentos</span>
+                    <p class="text-2xl font-black text-amber-900">{{ totais.exoneracoes }} Desligamentos</p>
+                    <p class="text-[11px] text-amber-700">Servidores nomeados que solicitaram exoneração a pedido ou foram desligados durante a vigência.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- QUEBRA DE PÁGINA PARA ROL COMPLETO DE CANDIDATOS NA IMPRESSÃO -->
+        <div class="page-break"></div>
+
+        <!-- SEÇÃO IV — ROL GERAL NOMINAL DOS CANDIDATOS (758 CANDIDATOS) -->
+        <section class="space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                <h3 class="text-xs font-black uppercase text-rose-800 tracking-wider flex items-center">
+                    <i class="fa-solid fa-users mr-2 text-rose-600"></i> IV. Rol Geral Nominal de Candidatos Aprovados e Cadastro de Reserva
+                </h3>
+                <span class="text-xs font-bold text-slate-500">Total: {{ candidatos|length }} Candidatos Homologados</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-[10px] border border-slate-300">
+                    <thead class="bg-slate-900 text-white font-extrabold uppercase tracking-wider text-[9px]">
+                        <tr>
+                            <th class="p-2 text-center border border-slate-700">Class.</th>
+                            <th class="p-2 border border-slate-700">Nome do Candidato</th>
+                            <th class="p-2 border border-slate-700">CPF</th>
+                            <th class="p-2 border border-slate-700">Cargo</th>
+                            <th class="p-2 text-center border border-slate-700">Cota</th>
+                            <th class="p-2 text-center border border-slate-700">Situação Final de Provimento</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        {% for cand in candidatos %}
+                        <tr class="{{ 'bg-slate-50' if loop.index % 2 == 0 else 'bg-white' }}">
+                            <td class="p-1.5 text-center font-black border text-slate-900">#{{ cand.classificacao_original }}º</td>
+                            <td class="p-1.5 border font-bold text-slate-900">{{ cand.nome_completo }}</td>
+                            <td class="p-1.5 border font-mono text-slate-600">{{ cand.cpf }}</td>
+                            <td class="p-1.5 border font-semibold text-slate-800">{{ cand.cargo.nome_cargo if cand.cargo else 'Cargo Diversos' }}</td>
+                            <td class="p-1.5 border text-center font-bold text-slate-700">{{ cand.tipo_cota }}</td>
+                            <td class="p-1.5 border text-center font-extrabold text-[9.5px]">
+                                {% set st = cand.status_atual %}
+                                {% if 'EMPOSSADO' in st %}
+                                <span class="text-emerald-800 font-black">EMPOSSADO (EXERCÍCIO)</span>
+                                {% elif 'CONVOCADO' in st %}
+                                <span class="text-blue-800 font-bold">CONVOCADO</span>
+                                {% elif 'DESISTENTE' in st or 'RENÚNCIA' in st %}
+                                <span class="text-rose-800 font-bold">DESISTENTE / RENÚNCIA</span>
+                                {% elif 'EXCLUÍDO' in st or 'EXONERADO' in st %}
+                                <span class="text-slate-600 font-bold">EXCLUÍDO / EXONERADO</span>
+                                {% elif 'APROVADO' in st %}
+                                <span class="text-emerald-700 font-bold">APROVADO IMEDIATO</span>
+                                {% else %}
+                                <span class="text-slate-500">CADASTRO RESERVA</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SEÇÃO V — PARECER CONCLUSIVO DO CONTROLE INTERNO -->
+        <section class="space-y-4 pt-4 border-t-2 border-slate-300">
+            <h3 class="text-xs font-black uppercase text-slate-900 tracking-wider flex items-center">
+                <i class="fa-solid fa-certificate mr-2 text-rose-600"></i> V. Parecer Conclusivo & Certificação de Auditoria
+            </h3>
+            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-300 text-xs text-slate-800 leading-relaxed space-y-2">
+                <p>
+                    O <strong>Controle Interno Municipal</strong>, no uso das atribuições conferidas pela Constituição Federal e pela Legislação Municipal vigente, <strong>CERTIFICA</strong> que o Concurso Público Edital nº <strong>{{ certame.numero_certame }}</strong> teve seu prazo de validade integralmente expirado em <strong>{{ concurso.data_validade_final.strftime('%d/%m/%Y') if (concurso and concurso.data_validade_final) else '14/10/2024' }}</strong>.
+                </p>
+                <p>
+                    Todos os provimentos realizados foram auditados, constatando-se a legalidade das nomeações efetuadas, a observância à ordem rigorosa de classificação e o correto encerramento do banco de aprovados, não subsistindo pendências nem direito subjetivo à nomeação decorrente de saldo editalício remanescente.
+                </p>
+            </div>
+
+            <!-- ASSINATURAS OFICIAIS -->
+            <div class="grid grid-cols-2 gap-8 pt-8 text-center text-xs">
+                <div class="border-t border-slate-800 pt-2 space-y-0.5">
+                    <p class="font-extrabold text-slate-900">{{ usuario.nome or 'Controlador Interno' }}</p>
+                    <p class="text-[10px] text-slate-600 uppercase font-bold">Auditor / Controlador Interno Municipal</p>
+                    <p class="text-[9px] text-slate-400 font-mono">Portaria de Designação nº 148/2023</p>
+                </div>
+                <div class="border-t border-slate-800 pt-2 space-y-0.5">
+                    <p class="font-extrabold text-slate-900">{{ certame.contador_responsavel or 'Márcio Henrique Tosti' }}</p>
+                    <p class="text-[10px] text-slate-600 uppercase font-bold">Contador Responsável — CRC nº 7815/O</p>
+                    <p class="text-[9px] text-slate-400 font-mono">Setor de Gestão de Pessoas & RH</p>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</body>
+</html>

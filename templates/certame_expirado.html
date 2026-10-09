@@ -13,15 +13,20 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
         @media print {
             .no-print { display: none !important; }
-            body { background: white !important; color: black !important; }
-            .print-card { border: 1px solid #ccc !important; box-shadow: none !important; background: white !important; }
+            html, body { height: auto !important; overflow: visible !important; background: white !important; color: black !important; font-size: 10pt !important; }
+            .h-screen, .overflow-hidden, .overflow-y-auto { height: auto !important; overflow: visible !important; position: static !important; }
+            .tab-content { display: block !important; visibility: visible !important; opacity: 1 !important; }
+            .print-card { border: 1px solid #ccc !important; box-shadow: none !important; background: white !important; color: black !important; page-break-inside: avoid; }
+            tr { page-break-inside: avoid; }
+            thead { display: table-header-group; }
+            table { min-width: 100% !important; }
         }
     </style>
 </head>
 <body class="h-full bg-slate-950 text-slate-100 font-sans antialiased flex flex-col custom-scrollbar overflow-x-hidden">
 
     <!-- LAYOUT PRINCIPAL (SIDEBAR + CONTEÚDO) -->
-    <div class="flex h-screen overflow-hidden">
+    <div class="flex h-screen overflow-hidden main-container">
 
         <!-- SIDEBAR DE NAVEGAÇÃO -->
         <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col z-20 flex-shrink-0 no-print">
@@ -143,9 +148,12 @@
                 </div>
 
                 <!-- AÇÕES DE EXPORTAÇÃO -->
-                <div class="flex items-center space-x-3 no-print">
+                <div class="flex flex-wrap items-center gap-2.5 no-print">
+                    <a href="/certames/{{ certame.id_certame }}/expirado/relatorio-analitico" class="bg-rose-600 hover:bg-rose-500 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-md transition flex items-center">
+                        <i class="fa-solid fa-file-invoice mr-2 text-sm"></i> Relatório Analítico Completo (PDF)
+                    </a>
                     <button type="button" onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-4 py-2 rounded-xl text-xs border border-slate-700 transition flex items-center">
-                        <i class="fa-solid fa-print mr-2 text-rose-400"></i> Imprimir Dossiê (PDF)
+                        <i class="fa-solid fa-print mr-2 text-rose-400"></i> Imprimir Dossiê
                     </button>
                     <a href="/certames/{{ certame.id_certame }}/acompanhamento" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md transition flex items-center">
                         <i class="fa-solid fa-users-viewfinder mr-2"></i> Ir para Acompanhamento Live

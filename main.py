@@ -1961,6 +1961,31 @@ def certames_concurso_expirado(
         "active_page": "expirado"
     })
 
+@app.get("/certames/{id_certame}/expirado/relatorio-analitico", response_class=HTMLResponse)
+def certames_relatorio_analitico_expirado(
+    id_certame: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    usuario = Depends(get_current_user)
+):
+    if not usuario: return RedirectResponse(url="/login", status_code=303)
+    certame = db.query(CertameAbertura).filter_by(id_certame=id_certame).first()
+    if not certame: return RedirectResponse(url="/certames", status_code=303)
+
+    engine = AuditEngine(db)
+    dossie_expirado = engine.gerar_dossie_concurso_expirado(id_certame)
+    
+    return templates.TemplateResponse("relatorio_analitico_expirado.html", {
+        "request": request,
+        "usuario": usuario,
+        "certame": certame,
+        "concurso": dossie_expirado["concurso"],
+        "quadro_cargos": dossie_expirado["quadro_cargos"],
+        "totais": dossie_expirado["totais"],
+        "candidatos": dossie_expirado["candidatos"],
+        "data_hoje": date.today()
+    })
+
 # --- ROTA DE VIGÊNCIA DO CERTAME ---
 @app.get("/certames/{id_certame}/vigencia", response_class=HTMLResponse)
 def tela_vigencia_certame(
