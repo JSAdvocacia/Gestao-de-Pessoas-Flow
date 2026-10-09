@@ -95,6 +95,12 @@
                                 <i class="fa-solid fa-clock-rotate-left text-amber-400 text-[9px] w-3 mr-1.5"></i>
                                 <span class="truncate">Vigência do Certame</span>
                             </a>
+                            {% if c.is_expirado %}
+                            <a href="/certames/{{ c.id_certame }}/expirado" class="flex items-center pl-4 text-[10.5px] text-rose-300 font-extrabold hover:text-rose-200 py-0.5 transition border-l-2 border-rose-500/60 ml-2">
+                                <i class="fa-solid fa-box-archive text-rose-400 text-[9px] w-3 mr-1.5"></i>
+                                <span class="truncate">Concurso Expirado</span>
+                            </a>
+                            {% endif %}
                         </div>
                     </div>
                     {% endfor %}

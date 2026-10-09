@@ -15,6 +15,7 @@ routes_to_test = [
     ("/certames/1/fase-oficial/gerar-relatorio-ia", "Gerar Relatório com IA"),
     ("/certames/1/acompanhamento", "Acompanhamento do Certame (Dashboard)"),
     ("/certames/1/vigencia", "Vigência do Certame"),
+    ("/certames/1/expirado", "Concurso Expirado (Dossiê Consolidado)"),
     ("/certames/1/dossie", "Dossiê Pré-Edital"),
     ("/certames/1/dossie-fase-oficial", "Dossiê Fase Oficial"),
     ("/certames/1/dossie-geral", "Dossiê Geral do Certame"),

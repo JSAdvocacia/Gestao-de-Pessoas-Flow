@@ -1184,3 +1184,119 @@ class AuditEngine:
             "mensagem": f"Acompanhamento do Certame #{certame.numero_certame} zerado com sucesso. {total_zerados} candidatos retornaram ao status inicial pós-homologação."
         }
 
+    def gerar_dossie_concurso_expirado(self, certame_id: int):
+        """
+        Gera o Dossiê Consolidado de Encerramento do Concurso Expirado:
+        - Quadro Quantitativo Completo por Cargo (Lotacionograma, Edital, Aprovados, CR, Convocados, Empossados/Exercício, Desistências, Exonerações, Sub Júdice, Saldo)
+        - Totais Consolidados do Município
+        - Rol de Candidatos Aprovados e CR
+        - Histórico de Vigência e Encerramento
+        """
+        from models import Candidato, Cargo, ConcursoVaga, Lotacionograma, CertameAbertura, Concurso
+
+        certame = self.db.query(CertameAbertura).filter_by(id_certame=certame_id).first()
+        concurso = self.db.query(Concurso).filter_by(id_certame=certame_id).first()
+        
+        candidatos = self.db.query(Candidato).filter(
+            (Candidato.id_certame == certame_id) | 
+            (Candidato.id_concurso == (concurso.id_concurso if concurso else 0))
+        ).order_by(Candidato.id_cargo, Candidato.classificacao_efetiva).all()
+
+        cargos = self.db.query(Cargo).all()
+
+        quadro_cargos = []
+        totais = {
+            "vagas_lei": 0,
+            "vagas_edital": 0,
+            "aprovados_diretos": 0,
+            "cadastro_reserva": 0,
+            "total_aprovados": 0,
+            "convocados": 0,
+            "empossados_exercicio": 0,
+            "desistencias": 0,
+            "exoneracoes": 0,
+            "sub_judice": 0,
+            "saldo_livre": 0
+        }
+
+        mapa_cargos = {}
+        for cand in candidatos:
+            cid = cand.id_cargo
+            if cid not in mapa_cargos:
+                vaga_rec = self.db.query(ConcursoVaga).filter_by(id_concurso=concurso.id_concurso if concurso else 0, id_cargo=cid).first()
+                lot_rec = self.db.query(Lotacionograma).filter_by(id_cargo=cid).first()
+
+                v_edital = vaga_rec.vagas_imediatas_edital if vaga_rec else 1
+                v_lei = lot_rec.vagas_criadas_lei if lot_rec else 10
+
+                mapa_cargos[cid] = {
+                    "id_cargo": cid,
+                    "cargo_nome": cand.cargo.nome_cargo if cand.cargo else "Cargo Diversos",
+                    "codigo_cargo": cand.cargo.codigo_cargo if cand.cargo else f"CARGO-{cid}",
+                    "vagas_lei": v_lei,
+                    "vagas_edital": v_edital,
+                    "aprovados_diretos": 0,
+                    "cadastro_reserva": 0,
+                    "convocados": 0,
+                    "empossados_exercicio": 0,
+                    "desistencias": 0,
+                    "exoneracoes": 0,
+                    "sub_judice": 0,
+                    "saldo_livre": v_edital
+                }
+
+            st = (cand.status_atual or "").upper()
+            
+            # Classificação inicial (se <= vagas_edital é Aprovado Direto, se > é Cadastro Reserva)
+            v_ed = mapa_cargos[cid]["vagas_edital"]
+            if cand.classificacao_original <= v_ed:
+                mapa_cargos[cid]["aprovados_diretos"] += 1
+            else:
+                mapa_cargos[cid]["cadastro_reserva"] += 1
+
+            if any(k in st for k in ["CONVOCADO", "EMPOSSADO", "DESISTENTE", "FINAL DA FILA", "EXCLUÍDO", "EXONERADO", "SUB JÚDICE"]):
+                mapa_cargos[cid]["convocados"] += 1
+
+            if "EMPOSSADO" in st:
+                mapa_cargos[cid]["empossados_exercicio"] += 1
+            
+            if any(k in st for k in ["DESISTENTE", "RENÚNCIA", "FINAL DA FILA"]):
+                mapa_cargos[cid]["desistencias"] += 1
+
+            if any(k in st for k in ["EXCLUÍDO", "EXONERADO", "NÃO COMPARECEU"]):
+                mapa_cargos[cid]["exoneracoes"] += 1
+
+            if "SUB JÚDICE" in st or getattr(cand, 'sub_judice', False):
+                mapa_cargos[cid]["sub_judice"] += 1
+
+        # Calcular saldos e acumulados
+        for cid, item in mapa_cargos.items():
+            v_ed = item["vagas_edital"]
+            emp = item["empossados_exercicio"]
+            item["saldo_livre"] = max(0, v_ed - emp)
+            item["taxa_cobertura"] = round((emp / v_ed) * 100, 1) if v_ed > 0 else 0.0
+            
+            quadro_cargos.append(item)
+
+            totais["vagas_lei"] += item["vagas_lei"]
+            totais["vagas_edital"] += item["vagas_edital"]
+            totais["aprovados_diretos"] += item["aprovados_diretos"]
+            totais["cadastro_reserva"] += item["cadastro_reserva"]
+            totais["total_aprovados"] += item["aprovados_diretos"] + item["cadastro_reserva"]
+            totais["convocados"] += item["convocados"]
+            totais["empossados_exercicio"] += item["empossados_exercicio"]
+            totais["desistencias"] += item["desistencias"]
+            totais["exoneracoes"] += item["exoneracoes"]
+            totais["sub_judice"] += item["sub_judice"]
+            totais["saldo_livre"] += item["saldo_livre"]
+
+        totais["taxa_cobertura_geral"] = round((totais["empossados_exercicio"] / totais["vagas_edital"]) * 100, 1) if totais["vagas_edital"] > 0 else 0.0
+
+        return {
+            "certame": certame,
+            "concurso": concurso,
+            "quadro_cargos": quadro_cargos,
+            "totais": totais,
+            "candidatos": candidatos
+        }
+

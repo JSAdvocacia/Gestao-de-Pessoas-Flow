@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-slate-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dossiê Concurso Expirado | SIAP Controle Interno</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; color: black !important; }
+            .print-card { border: 1px solid #ccc !important; box-shadow: none !important; background: white !important; }
+        }
+    </style>
+</head>
+<body class="h-full bg-slate-950 text-slate-100 font-sans antialiased flex flex-col custom-scrollbar overflow-x-hidden">
+
+    <!-- LAYOUT PRINCIPAL (SIDEBAR + CONTEÚDO) -->
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- SIDEBAR DE NAVEGAÇÃO -->
+        <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col z-20 flex-shrink-0 no-print">
+            <!-- HEADER DA SIDEBAR -->
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 bg-rose-600/20 border border-rose-500/40 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-box-archive text-rose-400 text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-extrabold text-sm text-slate-100 tracking-tight leading-none">AUDIT-FLOW</h1>
+                        <span class="text-[9px] font-bold text-rose-400 uppercase tracking-wider block mt-0.5">Dossiê de Encerramento</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NAVEGAÇÃO DE MENUS -->
+            <nav class="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar text-xs font-semibold">
+                <a href="/" class="flex items-center px-3 py-2.5 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                    <i class="fa-solid fa-chart-pie w-5 text-sm mr-2.5 text-slate-400"></i>
+                    <span>Dashboard Geral</span>
+                </a>
+                <a href="/certames" class="flex items-center px-3 py-2.5 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                    <i class="fa-solid fa-list-check w-5 text-sm mr-2.5 text-emerald-400"></i>
+                    <span>Certames</span>
+                </a>
+
+                {% set certames_menu = get_certames_menu() %}
+                {% if certames_menu %}
+                <div class="mt-1 mb-2 pl-2 space-y-2 border-l-2 border-slate-800 ml-3">
+                    {% for c in certames_menu %}
+                    {% set nome_lbl = "Concurso " ~ c.numero_certame if 'CONCURSO' in c.modalidade.upper() else "Seletivo " ~ c.numero_certame %}
+                    <div class="space-y-1">
+                        <div class="text-[11px] font-extrabold text-slate-200 flex items-center px-2 py-1 bg-slate-900/90 rounded-lg border border-slate-800">
+                            <i class="fa-solid fa-file-signature text-emerald-400 mr-1.5 text-[10px]"></i>
+                            <span class="truncate">{{ nome_lbl }}</span>
+                        </div>
+                        <div class="pl-2 space-y-1 text-[11px]">
+                            <a href="/certames/{{ c.id_certame }}/wizard" class="flex items-center text-slate-400 hover:text-emerald-300 py-0.5 transition">
+                                <i class="fa-solid fa-folder-open text-emerald-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Pré-Edital</span>
+                            </a>
+                            <a href="/certames/{{ c.id_certame }}/fase-oficial" class="flex items-center text-slate-400 hover:text-indigo-300 py-0.5 transition">
+                                <i class="fa-solid fa-file-contract text-indigo-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Oficial</span>
+                            </a>
+                            <a href="/certames/{{ c.id_certame }}/acompanhamento" class="flex items-center text-slate-400 hover:text-emerald-300 py-0.5 transition">
+                                <i class="fa-solid fa-user-check text-emerald-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Acompanhamento do Certame</span>
+                            </a>
+                            <a href="/certames/{{ c.id_certame }}/vigencia" class="flex items-center pl-4 text-[10.5px] text-slate-400 hover:text-amber-300 py-0.5 transition border-l-2 border-slate-800 ml-2">
+                                <i class="fa-solid fa-clock-rotate-left text-amber-400 text-[9px] w-3 mr-1.5"></i>
+                                <span class="truncate">Vigência do Certame</span>
+                            </a>
+                            
+                            <!-- MENU DE CONCURSO EXPIRADO -->
+                            {% if c.is_expirado %}
+                            <a href="/certames/{{ c.id_certame }}/expirado" class="flex items-center pl-4 text-[10.5px] text-rose-400 font-black py-0.5 transition border-l-2 border-rose-500 ml-2 bg-rose-950/40 rounded-r">
+                                <i class="fa-solid fa-box-archive text-rose-400 text-[9px] w-3 mr-1.5"></i>
+                                <span class="truncate">Concurso Expirado</span>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Módulos de Auditoria
+                </div>
+                <a href="/modulo/lotacionograma" class="flex items-center px-3 py-2.5 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                    <i class="fa-solid fa-sitemap w-5 text-sm mr-2.5 text-slate-400"></i>
+                    <span>Lotacionograma Legal</span>
+                </a>
+                <a href="/modulo/concursos" class="flex items-center px-3 py-2.5 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                    <i class="fa-solid fa-list-ol w-5 text-sm mr-2.5 text-slate-400"></i>
+                    <span>Ordem de Classificação</span>
+                </a>
+            </nav>
+
+            <!-- FOOTER DA SIDEBAR -->
+            <div class="p-3 border-t border-slate-800 bg-slate-900/60">
+                <div class="flex items-center justify-between text-xs">
+                    <div class="flex items-center space-x-2 truncate">
+                        <div class="w-7 h-7 rounded-full bg-rose-600 flex items-center justify-center font-bold text-white text-[10px]">
+                            {{ usuario.nome[:2].upper() if usuario.nome else 'US' }}
+                        </div>
+                        <div class="truncate">
+                            <p class="font-bold text-slate-200 truncate">{{ usuario.nome or 'Auditor' }}</p>
+                            <p class="text-[10px] text-slate-500 truncate">{{ usuario.email or '' }}</p>
+                        </div>
+                    </div>
+                    <a href="/logout" title="Sair" class="text-slate-400 hover:text-rose-400 p-1.5">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ÁREA PRINCIPAL DE CONTEÚDO -->
+        <main class="flex-1 overflow-y-auto custom-scrollbar bg-slate-950 p-6 space-y-6">
+
+            <!-- CABEÇALHO DO CERTAME EXPIRADO -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+                <div>
+                    <div class="flex items-center space-x-3 mb-1">
+                        <span class="bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider flex items-center">
+                            <i class="fa-solid fa-box-archive mr-1.5"></i> Concurso Público Expirado & Encerrado
+                        </span>
+                        <span class="text-xs text-slate-400 font-mono">Certame #{{ certame.numero_certame }} (Ano {{ certame.ano }})</span>
+                    </div>
+                    <h2 class="text-2xl font-black text-white tracking-tight">
+                        Dossiê Consolidado do Certame — {{ certame.orgao_solicitante }}
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">
+                        Quadro quantitativo final auditado contendo o histórico de vagas, aprovados, convocados, empossados em exercício, desistências e exonerações.
+                    </p>
+                </div>
+
+                <!-- AÇÕES DE EXPORTAÇÃO -->
+                <div class="flex items-center space-x-3 no-print">
+                    <button type="button" onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-4 py-2 rounded-xl text-xs border border-slate-700 transition flex items-center">
+                        <i class="fa-solid fa-print mr-2 text-rose-400"></i> Imprimir Dossiê (PDF)
+                    </button>
+                    <a href="/certames/{{ certame.id_certame }}/acompanhamento" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md transition flex items-center">
+                        <i class="fa-solid fa-users-viewfinder mr-2"></i> Ir para Acompanhamento Live
+                    </a>
+                </div>
+            </div>
+
+            <!-- BANNER DE ALERTA DE ENCERRAMENTO POR PRAZO DE VALIDADE -->
+            <div class="bg-gradient-to-r from-slate-900 via-rose-950/40 to-slate-900 border border-rose-500/40 rounded-2xl p-5 shadow-xl relative overflow-hidden">
+                <div class="flex items-start space-x-4 relative z-10">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 text-xl flex-shrink-0">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="text-sm font-extrabold text-white flex items-center">
+                            VALIDADE FINAL EXPIRADA EM {{ concurso.data_validade_final.strftime('%d/%m/%Y') if (concurso and concurso.data_validade_final) else '14/10/2024' }} — TRÂNSITO EM JULGADO ADMINISTRATIVO
+                        </h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            O presente concurso público teve sua vigência encerrada e seu saldo de vagas editalícias consolidado pelo Controle Interno Municipal. Não são mais permitidas novas convocações com base neste edital, permanecendo arquivado para fins de fiscalização do Tribunal de Contas (TCE) e auditoria permanente.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARDS KPIS QUANTITATIVOS DE ENCERRAMENTO -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+                <!-- 1. Vagas no Lotacionograma -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-1 shadow-sm">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Vagas Lotacionograma</span>
+                    <span class="text-xl font-black text-white block">{{ totais.vagas_lei }}</span>
+                    <span class="text-[10px] text-slate-500">Vagas criadas por Lei</span>
+                </div>
+
+                <!-- 2. Vagas no Edital -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-1 shadow-sm">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Vagas Edital</span>
+                    <span class="text-xl font-black text-indigo-400 block">{{ totais.vagas_edital }}</span>
+                    <span class="text-[10px] text-slate-500">Ofertadas no certame</span>
+                </div>
+
+                <!-- 3. Total de Aprovados (Imediatos + CR) -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-1 shadow-sm">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Aprovados + CR</span>
+                    <span class="text-xl font-black text-sky-400 block">{{ totais.total_aprovados }}</span>
+                    <span class="text-[10px] text-sky-500/80">{{ totais.aprovados_diretos }} imediatos / {{ totais.cadastro_reserva }} CR</span>
+                </div>
+
+                <!-- 4. Total de Convocados -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-1 shadow-sm">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Convocados</span>
+                    <span class="text-xl font-black text-amber-400 block">{{ totais.convocados }}</span>
+                    <span class="text-[10px] text-slate-500">Editais de convocação</span>
+                </div>
+
+                <!-- 5. Servidores em Exercício (Empossados) -->
+                <div class="bg-slate-900 border border-emerald-900/50 rounded-2xl p-3.5 space-y-1 shadow-sm bg-emerald-950/10">
+                    <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">Em Exercício</span>
+                    <span class="text-xl font-black text-emerald-400 block">{{ totais.empossados_exercicio }}</span>
+                    <span class="text-[10px] text-emerald-500/80">Servidores efetivados</span>
+                </div>
+
+                <!-- 6. Desistências + Exonerações -->
+                <div class="bg-slate-900 border border-rose-900/50 rounded-2xl p-3.5 space-y-1 shadow-sm bg-rose-950/10">
+                    <span class="text-[10px] font-bold text-rose-400 uppercase tracking-wider block">Desist. / Exonerações</span>
+                    <span class="text-xl font-black text-rose-400 block">{{ totais.desistencias + totais.exoneracoes }}</span>
+                    <span class="text-[10px] text-rose-400/70">{{ totais.desistencias }} desist. / {{ totais.exoneracoes }} exon.</span>
+                </div>
+            </div>
+
+            <!-- NAVEGAÇÃO POR ABAS INTERNAS DO DOSSIÊ -->
+            <div class="border-b border-slate-800 flex space-x-6 text-xs font-bold no-print" id="tab_navigation">
+                <button type="button" onclick="switchTab('quadro')" id="tab_btn_quadro" class="pb-3 border-b-2 border-rose-500 text-rose-400 flex items-center transition">
+                    <i class="fa-solid fa-table-list mr-2"></i> Quadro Quantitativo Consolidado por Cargo
+                </button>
+                <button type="button" onclick="switchTab('candidatos')" id="tab_btn_candidatos" class="pb-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center transition">
+                    <i class="fa-solid fa-users mr-2"></i> Rol Geral de Candidatos Aprovados & CR ({{ candidatos|length }})
+                </button>
+                <button type="button" onclick="switchTab('pre_edital')" id="tab_btn_pre_edital" class="pb-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center transition">
+                    <i class="fa-solid fa-folder-open mr-2"></i> Dossiê Fase Pré-Edital
+                </button>
+                <button type="button" onclick="switchTab('fase_oficial')" id="tab_btn_fase_oficial" class="pb-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center transition">
+                    <i class="fa-solid fa-award mr-2"></i> Fase Oficial & Homologação
+                </button>
+            </div>
+
+            <!-- SEÇÃO 1: QUADRO QUANTITATIVO CONSOLIDADO POR CARGO (EXIGIDO NO PROMPT) -->
+            <div id="tab_quadro" class="space-y-4 tab-content">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl print-card">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div>
+                            <h3 class="font-extrabold text-sm text-white flex items-center">
+                                <i class="fa-solid fa-chart-column text-rose-400 mr-2"></i> Quadro Consolidado de Encerramento do Concurso Público por Cargo
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Cruzamento final de Vagas do Lotacionograma, Vagas do Edital, Aprovados, Convocados, Exercício, Desistências e Exonerações.</p>
+                        </div>
+                        <span class="bg-slate-800 text-slate-300 text-[11px] font-bold px-3 py-1 rounded-full border border-slate-700">
+                            {{ quadro_cargos|length }} Cargos Auditados
+                        </span>
+                    </div>
+
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs min-w-[1100px]">
+                            <thead class="bg-slate-950 text-slate-300 uppercase font-black text-[10px] tracking-wider border-b border-slate-800">
+                                <tr>
+                                    <th class="py-3 px-3">Código</th>
+                                    <th class="py-3 px-3">Descrição do Cargo</th>
+                                    <th class="py-3 px-2 text-center">Vagas Lei (Lotacionograma)</th>
+                                    <th class="py-3 px-2 text-center">Vagas Edital</th>
+                                    <th class="py-3 px-2 text-center">Aprovados Imediatos</th>
+                                    <th class="py-3 px-2 text-center">Cadastro Reserva</th>
+                                    <th class="py-3 px-2 text-center">Total Convocados</th>
+                                    <th class="py-3 px-2 text-center bg-emerald-950/40 text-emerald-300">Em Exercício (Empossados)</th>
+                                    <th class="py-3 px-2 text-center">Desistências / Renúncias</th>
+                                    <th class="py-3 px-2 text-center">Exonerações</th>
+                                    <th class="py-3 px-2 text-center">Sub Júdice</th>
+                                    <th class="py-3 px-2 text-center">Saldo Livre Remanescente</th>
+                                    <th class="py-3 px-2 text-center">Cobertura (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800/60 text-slate-300 font-medium">
+                                {% for q in quadro_cargos %}
+                                <tr class="hover:bg-slate-800/40 transition">
+                                    <td class="py-2.5 px-3 font-mono text-[11px] font-bold text-slate-400">{{ q.codigo_cargo }}</td>
+                                    <td class="py-2.5 px-3 font-bold text-white">{{ q.cargo_nome }}</td>
+                                    <td class="py-2.5 px-2 text-center font-bold text-slate-300">{{ q.vagas_lei }}</td>
+                                    <td class="py-2.5 px-2 text-center font-extrabold text-indigo-400">{{ q.vagas_edital }}</td>
+                                    <td class="py-2.5 px-2 text-center font-bold text-sky-400">{{ q.aprovados_diretos }}</td>
+                                    <td class="py-2.5 px-2 text-center font-semibold text-slate-400">{{ q.cadastro_reserva }}</td>
+                                    <td class="py-2.5 px-2 text-center font-bold text-amber-400">{{ q.convocados }}</td>
+                                    <td class="py-2.5 px-2 text-center font-black text-emerald-400 bg-emerald-950/20">{{ q.empossados_exercicio }}</td>
+                                    <td class="py-2.5 px-2 text-center font-bold text-rose-400">{{ q.desistencias }}</td>
+                                    <td class="py-2.5 px-2 text-center font-bold text-rose-300/80">{{ q.exoneracoes }}</td>
+                                    <td class="py-2.5 px-2 text-center font-bold text-purple-400">{{ q.sub_judice }}</td>
+                                    <td class="py-2.5 px-2 text-center font-black {{ 'text-rose-400' if q.saldo_livre > 0 else 'text-slate-500' }}">
+                                        {{ q.saldo_livre }}
+                                    </td>
+                                    <td class="py-2.5 px-2 text-center font-extrabold text-emerald-400">
+                                        {{ q.taxa_cobertura }}%
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="bg-slate-950 border-t-2 border-slate-700 text-slate-100 font-extrabold text-xs">
+                                <tr>
+                                    <td colspan="2" class="py-3 px-3 uppercase tracking-wider text-rose-400">Total Consolidado da Administração</td>
+                                    <td class="py-3 px-2 text-center text-slate-200">{{ totais.vagas_lei }}</td>
+                                    <td class="py-3 px-2 text-center text-indigo-300">{{ totais.vagas_edital }}</td>
+                                    <td class="py-3 px-2 text-center text-sky-300">{{ totais.aprovados_diretos }}</td>
+                                    <td class="py-3 px-2 text-center text-slate-300">{{ totais.cadastro_reserva }}</td>
+                                    <td class="py-3 px-2 text-center text-amber-300">{{ totais.convocados }}</td>
+                                    <td class="py-3 px-2 text-center text-emerald-300 bg-emerald-900/40 text-sm font-black">{{ totais.empossados_exercicio }}</td>
+                                    <td class="py-3 px-2 text-center text-rose-300">{{ totais.desistencias }}</td>
+                                    <td class="py-3 px-2 text-center text-rose-300/80">{{ totais.exoneracoes }}</td>
+                                    <td class="py-3 px-2 text-center text-purple-300">{{ totais.sub_judice }}</td>
+                                    <td class="py-3 px-2 text-center text-rose-400 font-black">{{ totais.saldo_livre }}</td>
+                                    <td class="py-3 px-2 text-center text-emerald-400 font-black text-sm">{{ totais.taxa_cobertura_geral }}%</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEÇÃO 2: ROL GERAL COMPLETO DE CANDIDATOS (APROVADOS E CADASTRO RESERVA) -->
+            <div id="tab_candidatos" class="space-y-4 tab-content hidden">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+                        <div>
+                            <h3 class="font-extrabold text-sm text-white flex items-center">
+                                <i class="fa-solid fa-users text-sky-400 mr-2"></i> Rol Geral de Candidatos Aprovados e Cadastro de Reserva
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Relação completa de todos os {{ candidatos|length }} candidatos homologados no Certame #{{ certame.numero_certame }}.</p>
+                        </div>
+                        <div class="relative w-full sm:w-72">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                            <input type="text" id="filtro_candidato_expirado" oninput="filtrarCandExpirado()" placeholder="Filtrar por Nome, CPF ou Cargo..." class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500">
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs min-w-[950px]" id="tbl_cand_expirado">
+                            <thead class="bg-slate-950 text-slate-400 uppercase font-extrabold text-[10px] tracking-wider border-b border-slate-800">
+                                <tr>
+                                    <th class="py-3 px-3 text-center">Class. Geral</th>
+                                    <th class="py-3 px-3">Candidato / CPF</th>
+                                    <th class="py-3 px-3">Cargo Ofertado</th>
+                                    <th class="py-3 px-2 text-center">Cota</th>
+                                    <th class="py-3 px-2 text-center">Status Final de Provimento</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800/60 text-slate-300 font-medium" id="tbody_cand_expirado">
+                                {% for cand in candidatos %}
+                                <tr class="row-exp-cand hover:bg-slate-800/40 transition"
+                                    data-search="{{ cand.nome_completo.lower() }} {{ cand.cpf }} {{ cand.cargo.nome_cargo.lower() if cand.cargo else '' }}">
+                                    <td class="py-2.5 px-3 text-center font-black text-white">#{{ cand.classificacao_original }}º</td>
+                                    <td class="py-2.5 px-3 font-bold text-white">
+                                        {{ cand.nome_completo }}
+                                        <span class="text-[10px] text-slate-400 font-mono block">{{ cand.cpf }}</span>
+                                    </td>
+                                    <td class="py-2.5 px-3 font-semibold text-slate-300">{{ cand.cargo.nome_cargo if cand.cargo else 'Cargo Diversos' }}</td>
+                                    <td class="py-2.5 px-2 text-center">
+                                        <span class="bg-slate-800 text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded">
+                                            {{ cand.tipo_cota }}
+                                        </span>
+                                    </td>
+                                    <td class="py-2.5 px-2 text-center">
+                                        {% set st = cand.status_atual %}
+                                        {% if 'EMPOSSADO' in st %}
+                                        <span class="bg-emerald-950 text-emerald-300 border border-emerald-800 text-[10px] font-black px-2.5 py-1 rounded-full inline-flex items-center">
+                                            <i class="fa-solid fa-circle-check mr-1 text-emerald-400"></i> EMPOSSADO (EXERCÍCIO)
+                                        </span>
+                                        {% elif 'CONVOCADO' in st %}
+                                        <span class="bg-blue-950 text-blue-300 border border-blue-800 text-[10px] font-bold px-2.5 py-1 rounded-full inline-flex items-center">
+                                            <i class="fa-solid fa-bullhorn mr-1 text-blue-400"></i> CONVOCADO
+                                        </span>
+                                        {% elif 'DESISTENTE' in st or 'RENÚNCIA' in st %}
+                                        <span class="bg-rose-950 text-rose-300 border border-rose-800 text-[10px] font-bold px-2.5 py-1 rounded-full inline-flex items-center">
+                                            <i class="fa-solid fa-user-xmark mr-1 text-rose-400"></i> DESISTENTE / RENÚNCIA
+                                        </span>
+                                        {% elif 'FINAL DA FILA' in st %}
+                                        <span class="bg-amber-950 text-amber-300 border border-amber-800 text-[10px] font-bold px-2.5 py-1 rounded-full inline-flex items-center">
+                                            <i class="fa-solid fa-arrow-down-short-wide mr-1 text-amber-400"></i> FINAL DA FILA
+                                        </span>
+                                        {% elif 'EXCLUÍDO' in st or 'EXONERADO' in st %}
+                                        <span class="bg-slate-800 text-slate-300 border border-slate-700 text-[10px] font-bold px-2.5 py-1 rounded-full inline-flex items-center">
+                                            <i class="fa-solid fa-user-minus mr-1 text-slate-400"></i> EXCLUÍDO / EXONERADO
+                                        </span>
+                                        {% elif 'APROVADO' in st %}
+                                        <span class="bg-emerald-950/40 text-emerald-400 border border-emerald-800/60 text-[10px] font-bold px-2.5 py-1 rounded-full inline-flex items-center">
+                                            <i class="fa-solid fa-check mr-1"></i> APROVADO IMEDIATO
+                                        </span>
+                                        {% else %}
+                                        <span class="bg-slate-900 text-slate-400 border border-slate-800 text-[10px] font-semibold px-2.5 py-1 rounded-full inline-flex items-center">
+                                            <i class="fa-solid fa-clock mr-1"></i> CADASTRO RESERVA
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEÇÃO 3: FASE PRÉ-EDITAL -->
+            <div id="tab_pre_edital" class="space-y-4 tab-content hidden">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
+                    <h3 class="font-extrabold text-sm text-white flex items-center border-b border-slate-800 pb-3">
+                        <i class="fa-solid fa-folder-open text-emerald-400 mr-2"></i> Dossiê de Planejamento e Fase Pré-Edital
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-1">
+                            <span class="text-slate-400 font-bold block text-[10px] uppercase">Órgão Solicitante</span>
+                            <span class="text-white font-extrabold block text-sm">{{ certame.orgao_solicitante }}</span>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-1">
+                            <span class="text-slate-400 font-bold block text-[10px] uppercase">Lei Autorizadora</span>
+                            <span class="text-white font-extrabold block text-sm">{{ certame.lei_autorizadora }}</span>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-1">
+                            <span class="text-slate-400 font-bold block text-[10px] uppercase">Prefeito Ordenador</span>
+                            <span class="text-white font-extrabold block text-sm">{{ certame.prefeito_ordenador }}</span>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-1">
+                            <span class="text-slate-400 font-bold block text-[10px] uppercase">Secretário Solicitante</span>
+                            <span class="text-white font-extrabold block text-sm">{{ certame.secretario_solicitante }}</span>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-1">
+                            <span class="text-slate-400 font-bold block text-[10px] uppercase">Contador Responsável (CRC)</span>
+                            <span class="text-white font-extrabold block text-sm">{{ certame.contador_responsavel }}</span>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-1">
+                            <span class="text-slate-400 font-bold block text-[10px] uppercase">Leis de Carreira</span>
+                            <span class="text-white font-extrabold block text-sm">{{ certame.leis_carreira }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEÇÃO 4: FASE OFICIAL -->
+            <div id="tab_fase_oficial" class="space-y-4 tab-content hidden">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
+                    <h3 class="font-extrabold text-sm text-white flex items-center border-b border-slate-800 pb-3">
+                        <i class="fa-solid fa-award text-indigo-400 mr-2"></i> Dossiê da Fase Oficial & Homologação
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-1">
+                            <span class="text-slate-400 font-bold block text-[10px] uppercase">Edital de Abertura</span>
+                            <span class="text-white font-extrabold block text-sm">Edital nº {{ certame.numero_certame }}</span>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-1">
+                            <span class="text-slate-400 font-bold block text-[10px] uppercase">Banca Organizadora</span>
+                            <span class="text-white font-extrabold block text-sm">{{ certame.banca_examinadora }}</span>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-1">
+                            <span class="text-slate-400 font-bold block text-[10px] uppercase">Data de Homologação</span>
+                            <span class="text-white font-extrabold block text-sm">{{ concurso.data_homologacao.strftime('%d/%m/%Y') if (concurso and concurso.data_homologacao) else '14/10/2022' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ASSINATURA E AUDITORIA EXECUTIVA DE ENCERRAMENTO -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center space-y-3 print-card">
+                <div class="w-12 h-12 bg-rose-500/20 rounded-full flex items-center justify-center text-rose-400 text-xl mx-auto border border-rose-500/40">
+                    <i class="fa-solid fa-stamp"></i>
+                </div>
+                <h4 class="font-extrabold text-sm text-white uppercase tracking-wider">
+                    Certificação Digital de Encerramento Auditado do Certame
+                </h4>
+                <p class="text-xs text-slate-400 max-w-xl mx-auto leading-relaxed">
+                    Certifico que este Dossiê Consolidado de Encerramento do Concurso Público nº {{ certame.numero_certame }} reúne a totalidade dos atos administrativos pré-editalícios, oficiais e de acompanhamento de provimento do Município de {{ certame.municipio }}, encontrando-se arquivado e à disposição dos órgãos de fiscalização e do Tribunal de Contas.
+                </p>
+                <div class="pt-4 border-t border-slate-800/80 max-w-xs mx-auto text-xs">
+                    <p class="font-extrabold text-slate-200">{{ usuario.nome or 'Sistema SIAP de Auditoria' }}</p>
+                    <p class="text-[10px] text-slate-500 font-mono">AUDITORIA E CONTROLE INTERNO MUNICIPAL</p>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- SCRIPTS DE INTERATIVIDADE -->
+    <script>
+        function switchTab(tabKey) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('#tab_navigation button').forEach(el => {
+                el.classList.remove('border-rose-500', 'text-rose-400');
+                el.classList.add('border-transparent', 'text-slate-400');
+            });
+
+            const targetContent = document.getElementById('tab_' + tabKey);
+            const targetBtn = document.getElementById('tab_btn_' + tabKey);
+
+            if (targetContent) targetContent.classList.remove('hidden');
+            if (targetBtn) {
+                targetBtn.classList.remove('border-transparent', 'text-slate-400');
+                targetBtn.classList.add('border-rose-500', 'text-rose-400');
+            }
+        }
+
+        function filtrarCandExpirado() {
+            const term = (document.getElementById('filtro_candidato_expirado').value || '').toLowerCase().trim();
+            const rows = document.querySelectorAll('#tbody_cand_expirado tr.row-exp-cand');
+            rows.forEach(r => {
+                const searchData = r.getAttribute('data-search') || '';
+                if (!term || searchData.includes(term)) {
+                    r.style.display = '';
+                } else {
+                    r.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

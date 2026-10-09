@@ -34,7 +34,16 @@ templates.env.filters["hash_sha256"] = sha256_filter
 def get_certames_menu_global():
     db = SessionLocal()
     try:
-        return db.query(CertameAbertura).order_by(CertameAbertura.id_certame.desc()).all()
+        from models import Concurso
+        from datetime import date
+        today = date.today()
+        certames = db.query(CertameAbertura).order_by(CertameAbertura.id_certame.desc()).all()
+        for c in certames:
+            conc = db.query(Concurso).filter_by(id_certame=c.id_certame).first()
+            dt_val = conc.data_validade_final if conc else None
+            st = (conc.status if conc else '').upper()
+            c.is_expirado = bool((dt_val and dt_val < today) or st == 'EXPIRADO')
+        return certames
     except Exception:
         return []
     finally:
@@ -1918,6 +1927,38 @@ def certame_relatorio_analitico_acompanhamento(id_certame: int, request: Request
         "alertas_controle": alertas_controle,
         "atos_registrados": atos_registrados,
         "data_hoje": date.today()
+    })
+
+# --- ROTA DE CONCURSO EXPIRADO ---
+@app.get("/certames/{id_certame}/expirado", response_class=HTMLResponse)
+def certames_concurso_expirado(
+    id_certame: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    usuario = Depends(get_current_user)
+):
+    if not usuario: return RedirectResponse(url="/login", status_code=303)
+    certame = db.query(CertameAbertura).filter_by(id_certame=id_certame).first()
+    if not certame: return RedirectResponse(url="/certames", status_code=303)
+
+    engine = AuditEngine(db)
+    dossie_expirado = engine.gerar_dossie_concurso_expirado(id_certame)
+    
+    fase_pre = certame
+    fase_oficial = db.query(CertameFaseOficial).filter_by(id_certame=id_certame).first()
+    atos_vigencia = db.query(CertameVigenciaAto).filter_by(id_certame=id_certame).order_by(CertameVigenciaAto.data_publicacao.asc()).all()
+
+    return templates.TemplateResponse("certame_expirado.html", {
+        "request": request,
+        "usuario": usuario,
+        "certame": certame,
+        "concurso": dossie_expirado["concurso"],
+        "fase_oficial": fase_oficial,
+        "atos_vigencia": atos_vigencia,
+        "quadro_cargos": dossie_expirado["quadro_cargos"],
+        "totais": dossie_expirado["totais"],
+        "candidatos": dossie_expirado["candidatos"],
+        "active_page": "expirado"
     })
 
 # --- ROTA DE VIGÊNCIA DO CERTAME ---
