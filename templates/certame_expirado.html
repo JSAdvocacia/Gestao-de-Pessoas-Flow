@@ -88,10 +88,10 @@
                                 <i class="fa-solid fa-box-archive text-rose-400 text-[9px] w-3 mr-1.5"></i>
                                 <span class="truncate">Concurso Expirado</span>
                             </a>
-                            <!-- SUBMENU RECUADO: RELATÓRIO DE AUDITORIA FINAL -->
-                            <a href="/certames/{{ c.id_certame }}/relatorio-auditoria-final" class="flex items-center pl-6 text-[10px] text-amber-300/80 font-bold hover:text-amber-200 py-0.5 transition border-l-2 border-amber-500/50 ml-2">
-                                <i class="fa-solid fa-file-shield text-amber-400 text-[9px] w-3 mr-1.5"></i>
-                                <span class="truncate">Relatório de Auditoria</span>
+                            <!-- SUBMENU RECUADO: RELATÓRIOS DE AUDITORIA -->
+                            <a href="/modulo/relatorios?id_certame={{ c.id_certame }}" class="flex items-center pl-6 text-[10px] text-amber-300/90 font-bold hover:text-amber-200 py-0.5 transition border-l-2 border-amber-500/50 ml-2">
+                                <i class="fa-solid fa-file-invoice text-amber-400 text-[9px] w-3 mr-1.5"></i>
+                                <span class="truncate">Relatórios de Auditoria</span>
                             </a>
                             {% endif %}
                         </div>
@@ -103,6 +103,10 @@
                 <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                     Módulos de Auditoria
                 </div>
+                <a href="/modulo/relatorios" class="flex items-center px-3 py-2.5 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-amber-300">
+                    <i class="fa-solid fa-file-invoice w-5 text-sm mr-2.5 text-amber-400"></i>
+                    <span>Relatórios de Auditoria</span>
+                </a>
                 <a href="/modulo/lotacionograma" class="flex items-center px-3 py-2.5 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
                     <i class="fa-solid fa-sitemap w-5 text-sm mr-2.5 text-slate-400"></i>
                     <span>Lotacionograma Legal</span>
@@ -154,8 +158,11 @@
 
                 <!-- AÇÕES DE EXPORTAÇÃO -->
                 <div class="flex flex-wrap items-center gap-2.5 no-print">
-                    <a href="/certames/{{ certame.id_certame }}/relatorio-auditoria-final" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2 rounded-xl text-xs shadow-md transition flex items-center">
-                        <i class="fa-solid fa-file-shield mr-2 text-sm text-slate-950"></i> Relatório de Auditoria Final
+                    <a href="/modulo/relatorios?id_certame={{ certame.id_certame }}" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2 rounded-xl text-xs shadow-md transition flex items-center">
+                        <i class="fa-solid fa-file-invoice mr-2 text-sm text-slate-950"></i> Módulo de Relatórios
+                    </a>
+                    <a href="/certames/{{ certame.id_certame }}/relatorio-auditoria-final" class="bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold px-3.5 py-2 rounded-xl text-xs border border-amber-500/40 transition flex items-center">
+                        <i class="fa-solid fa-file-shield mr-2 text-sm text-amber-400"></i> Dossiê Auditoria
                     </a>
                     <a href="/certames/{{ certame.id_certame }}/expirado/relatorio-analitico" class="bg-rose-600 hover:bg-rose-500 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-md transition flex items-center">
                         <i class="fa-solid fa-file-invoice mr-2 text-sm"></i> Relatório Analítico Completo (PDF)

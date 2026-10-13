@@ -25,6 +25,8 @@ routes_to_test = [
     ("/modulo/concursos", "Módulo Ordem de Classificação"),
     ("/modulo/temporarios", "Módulo Contratos Temporários"),
     ("/modulo/afastamentos", "Módulo Afastamentos & Licenças"),
+    ("/modulo/relatorios", "Módulo de Relatórios de Auditoria"),
+    ("/certames/1/relatorios", "Relatórios de Auditoria do Certame"),
     ("/achados", "Matriz de Achados"),
     ("/normativos", "Normativos & Jurisprudência"),
     ("/usuarios", "Gestão de Acesso"),

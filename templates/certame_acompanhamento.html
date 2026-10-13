@@ -76,10 +76,10 @@
                                 <i class="fa-solid fa-box-archive text-rose-400 text-[9px] w-3 mr-1.5"></i>
                                 <span class="truncate">Concurso Expirado</span>
                             </a>
-                            <!-- SUBMENU RECUADO: RELATÓRIO DE AUDITORIA FINAL -->
-                            <a href="/certames/{{ c.id_certame }}/relatorio-auditoria-final" class="flex items-center pl-6 text-[10px] text-amber-300/80 font-bold hover:text-amber-200 py-0.5 transition border-l-2 border-amber-500/50 ml-2">
-                                <i class="fa-solid fa-file-shield text-amber-400 text-[9px] w-3 mr-1.5"></i>
-                                <span class="truncate">Relatório de Auditoria</span>
+                            <!-- SUBMENU RECUADO: RELATÓRIOS DE AUDITORIA -->
+                            <a href="/modulo/relatorios?id_certame={{ c.id_certame }}" class="flex items-center pl-6 text-[10px] text-amber-300/80 font-bold hover:text-amber-200 py-0.5 transition border-l-2 border-amber-500/50 ml-2">
+                                <i class="fa-solid fa-file-invoice text-amber-400 text-[9px] w-3 mr-1.5"></i>
+                                <span class="truncate">Relatórios de Auditoria</span>
                             </a>
                             {% endif %}
                         </div>
@@ -106,6 +106,10 @@
                 <a href="/modulo/afastamentos" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
                     <i class="fa-solid fa-notes-medical w-5 text-sm mr-2.5"></i>
                     <span>Afastamentos & Licenças</span>
+                </a>
+                <a href="/modulo/relatorios" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive hover:text-amber-300">
+                    <i class="fa-solid fa-file-invoice w-5 text-sm mr-2.5 text-amber-400"></i>
+                    <span>Relatórios de Auditoria</span>
                 </a>
 
                 <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">

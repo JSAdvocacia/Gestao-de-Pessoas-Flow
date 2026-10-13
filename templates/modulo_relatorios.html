@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulo de Relatórios de Auditoria • Quadro Quantitativo Consolidado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        @media print {
+            .no-print, header, nav, .sidebar-container, .filtro-container, .botoes-acoes {
+                display: none !important;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+            }
+            .print-card {
+                border: none !important;
+                box-shadow: none !important;
+                background: white !important;
+                padding: 0 !important;
+            }
+            table {
+                font-size: 8.5pt !important;
+                width: 100% !important;
+            }
+            th, td {
+                padding: 3px 5px !important;
+            }
+            .page-break {
+                page-break-before: always;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex antialiased">
+
+    <!-- SIDEBAR DE NAVEGAÇÃO -->
+    <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0 sidebar-container no-print min-h-screen">
+        <!-- LOGO & BRANDING -->
+        <div class="p-4 border-b border-slate-800 flex items-center space-x-3">
+            <div class="w-9 h-9 bg-gradient-to-tr from-amber-600 to-amber-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20 text-slate-950 font-black text-base">
+                <i class="fa-solid fa-file-invoice"></i>
+            </div>
+            <div>
+                <h1 class="font-black text-sm tracking-tight text-white flex items-center">
+                    SIAP <span class="text-amber-400 ml-1">AUDITORIA</span>
+                </h1>
+                <p class="text-[10px] text-slate-400 font-medium">Módulo de Relatórios</p>
+            </div>
+        </div>
+
+        <!-- MENU LATERAL -->
+        <nav class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1 text-xs">
+            <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Principal
+            </div>
+            <a href="/" class="flex items-center px-3 py-2 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                <i class="fa-solid fa-gauge-high w-5 text-sm mr-2.5"></i>
+                <span>Painel Geral</span>
+            </a>
+            <a href="/certames" class="flex items-center px-3 py-2 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                <i class="fa-solid fa-award w-5 text-sm mr-2.5"></i>
+                <span>Certames & Seleções</span>
+            </a>
+
+            <!-- NAVEGAÇÃO DO CERTAME ATIVO -->
+            {% if certame %}
+            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Certame nº {{ certame.numero_certame }}
+            </div>
+            <div class="pl-2 space-y-1 text-[11px]">
+                <a href="/certames/{{ certame.id_certame }}/wizard" class="flex items-center text-slate-400 hover:text-emerald-300 py-1 transition">
+                    <i class="fa-solid fa-folder-open text-emerald-400 text-[9px] w-3.5 mr-1.5"></i>
+                    <span class="truncate">Fase Pré-Edital</span>
+                </a>
+                <a href="/certames/{{ certame.id_certame }}/fase-oficial" class="flex items-center text-slate-400 hover:text-indigo-300 py-1 transition">
+                    <i class="fa-solid fa-file-contract text-indigo-400 text-[9px] w-3.5 mr-1.5"></i>
+                    <span class="truncate">Fase Oficial</span>
+                </a>
+                <a href="/certames/{{ certame.id_certame }}/acompanhamento" class="flex items-center text-slate-400 hover:text-emerald-300 py-1 transition">
+                    <i class="fa-solid fa-user-check text-emerald-400 text-[9px] w-3.5 mr-1.5"></i>
+                    <span class="truncate">Acompanhamento</span>
+                </a>
+                <a href="/certames/{{ certame.id_certame }}/vigencia" class="flex items-center pl-4 text-[10.5px] text-slate-400 hover:text-amber-300 py-0.5 transition border-l-2 border-slate-800 ml-2">
+                    <i class="fa-solid fa-clock-rotate-left text-amber-400 text-[9px] w-3 mr-1.5"></i>
+                    <span class="truncate">Vigência</span>
+                </a>
+                {% if is_expirado or (concurso and concurso.status == 'EXPIRADO') %}
+                <a href="/certames/{{ certame.id_certame }}/expirado" class="flex items-center pl-4 text-[10.5px] text-rose-300 hover:text-rose-200 py-0.5 transition border-l-2 border-rose-500/60 ml-2">
+                    <i class="fa-solid fa-box-archive text-rose-400 text-[9px] w-3 mr-1.5"></i>
+                    <span class="truncate">Concurso Expirado</span>
+                </a>
+                <a href="/certames/{{ certame.id_certame }}/relatorio-auditoria-final" class="flex items-center pl-6 text-[10px] text-amber-300 hover:text-amber-200 py-0.5 transition border-l-2 border-amber-500/50 ml-2">
+                    <i class="fa-solid fa-file-shield text-amber-400 text-[9px] w-3 mr-1.5"></i>
+                    <span class="truncate">Relatório de Auditoria</span>
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- MÓDULOS DE AUDITORIA -->
+            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Módulos de Auditoria
+            </div>
+
+            <!-- MENU RELATÓRIOS DE AUDITORIA (ATIVO) -->
+            <a href="/modulo/relatorios" class="flex items-center px-3 py-2.5 rounded-xl transition bg-amber-500/15 text-amber-300 font-extrabold border-r-2 border-amber-500">
+                <i class="fa-solid fa-file-invoice w-5 text-sm mr-2.5 text-amber-400"></i>
+                <div class="flex-1 flex items-center justify-between">
+                    <span>Relatórios de Auditoria</span>
+                    <span class="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-bold">Módulo</span>
+                </div>
+            </a>
+
+            <a href="/modulo/lotacionograma" class="flex items-center px-3 py-2 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                <i class="fa-solid fa-sitemap w-5 text-sm mr-2.5"></i>
+                <span>Lotacionograma Legal</span>
+            </a>
+            <a href="/modulo/concursos" class="flex items-center px-3 py-2 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                <i class="fa-solid fa-list-ol w-5 text-sm mr-2.5"></i>
+                <span>Ordem de Classificação</span>
+            </a>
+            <a href="/modulo/temporarios" class="flex items-center px-3 py-2 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                <i class="fa-solid fa-user-clock w-5 text-sm mr-2.5"></i>
+                <span>Contratos Temporários</span>
+            </a>
+            <a href="/modulo/afastamentos" class="flex items-center px-3 py-2 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                <i class="fa-solid fa-notes-medical w-5 text-sm mr-2.5"></i>
+                <span>Afastamentos & Licenças</span>
+            </a>
+
+            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Controle & Repositório
+            </div>
+            <a href="/achados" class="flex items-center px-3 py-2 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                <i class="fa-solid fa-clipboard-check w-5 text-sm mr-2.5"></i>
+                <span>Matriz de Achados</span>
+            </a>
+            <a href="/normativos" class="flex items-center px-3 py-2 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                <i class="fa-solid fa-book-bookmark w-5 text-sm mr-2.5"></i>
+                <span>Normativos & Leis</span>
+            </a>
+            <a href="/repositorio" class="flex items-center px-3 py-2 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                <i class="fa-solid fa-folder-open w-5 text-sm mr-2.5"></i>
+                <span>Repositório Documental</span>
+            </a>
+            <a href="/importar" class="flex items-center px-3 py-2 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                <i class="fa-solid fa-wand-magic-sparkles w-5 text-sm mr-2.5 text-indigo-400"></i>
+                <span>Ingestão & Leitura IA</span>
+            </a>
+        </nav>
+
+        <!-- FOOTER DA SIDEBAR -->
+        <div class="p-3 border-t border-slate-800 bg-slate-900/60">
+            <div class="flex items-center space-x-2.5">
+                <div class="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center font-bold text-slate-950 text-[10px]">
+                    {{ usuario.nome[:2].upper() if usuario.nome else 'AD' }}
+                </div>
+                <div class="truncate">
+                    <p class="font-bold text-slate-200 text-xs truncate">{{ usuario.nome or 'Auditor Responsável' }}</p>
+                    <p class="text-[10px] text-slate-500 truncate">{{ usuario.cargo or 'Controle Interno' }}</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ÁREA PRINCIPAL DO MÓDULO DE RELATÓRIOS -->
+    <main class="flex-1 overflow-y-auto custom-scrollbar bg-slate-950 p-4 md:p-8 space-y-6">
+
+        <!-- CABEÇALHO DO MÓDULO DE RELATÓRIOS DE AUDITORIA -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5 no-print">
+            <div>
+                <div class="flex items-center space-x-3 mb-1">
+                    <span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider flex items-center">
+                        <i class="fa-solid fa-file-invoice mr-1.5"></i> Módulo de Relatórios de Auditoria
+                    </span>
+                    <span class="text-xs text-slate-400 font-mono">
+                        Certame nº {{ certame.numero_certame }} (Ano {{ certame.ano }})
+                    </span>
+                    {% if is_expirado %}
+                    <span class="bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">
+                        Vigência Expirada
+                    </span>
+                    {% endif %}
+                </div>
+                <h2 class="text-2xl font-black text-white tracking-tight">
+                    Central de Relatórios de Auditoria & Gestão de Pessoal
+                </h2>
+                <p class="text-xs text-slate-400 mt-1">
+                    Emissão gerencial de quadros consolidados, fiscalização de provimento e prestação de contas do concurso público.
+                </p>
+            </div>
+
+            <!-- AÇÕES SUPERIORES DE EXPORTAÇÃO E CERTAME DROPDOWN -->
+            <div class="flex flex-wrap items-center gap-2.5 botoes-acoes">
+                <!-- SELETOR DE CERTAME -->
+                {% if todos_certames and todos_certames|length > 1 %}
+                <form method="GET" action="/modulo/relatorios" class="inline">
+                    <select name="id_certame" onchange="this.form.submit()" class="bg-slate-900 border border-slate-700 text-slate-200 text-xs font-bold rounded-xl px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        {% for c_item in todos_certames %}
+                        <option value="{{ c_item.id_certame }}" {% if c_item.id_certame == certame.id_certame %}selected{% endif %}>
+                            Certame #{{ c_item.numero_certame }} - {{ c_item.orgao_solicitante[:25] }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </form>
+                {% endif %}
+
+                <button type="button" onclick="exportarTabelaParaCSV()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-3.5 py-2 rounded-xl text-xs border border-slate-700 transition flex items-center shadow">
+                    <i class="fa-solid fa-file-excel mr-2 text-emerald-400"></i> Exportar CSV/Excel
+                </button>
+                <button type="button" onclick="window.print()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-black px-4 py-2 rounded-xl text-xs shadow-lg transition flex items-center">
+                    <i class="fa-solid fa-print mr-2 text-slate-950"></i> Imprimir / PDF
+                </button>
+                <a href="/certames/{{ certame.id_certame }}/relatorio-auditoria-final" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-3.5 py-2 rounded-xl text-xs border border-slate-700 transition flex items-center shadow">
+                    <i class="fa-solid fa-file-shield mr-2 text-amber-400"></i> Dossiê Completo
+                </a>
+            </div>
+        </div>
+
+        <!-- GRADE / CATÁLOGO DE RELATÓRIOS GERENCIAIS DO MÓDULO -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 no-print">
+            <!-- 1. RELATÓRIO ATIVO: QUADRO QUANTITATIVO CONSOLIDADO -->
+            <div class="bg-slate-900 border-2 border-amber-500/80 rounded-2xl p-4 shadow-xl relative overflow-hidden flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="bg-amber-500/20 text-amber-300 text-[10px] font-black px-2 py-0.5 rounded-full border border-amber-500/30 uppercase">
+                            1º Relatório Gerencial
+                        </span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    </div>
+                    <h3 class="font-black text-sm text-white flex items-center">
+                        <i class="fa-solid fa-table-list text-amber-400 mr-2 text-base"></i> Quadro Consolidado
+                    </h3>
+                    <p class="text-[11px] text-slate-400 mt-1 leading-snug">
+                        Matriz quantitativa por cargo com vagas do edital, aprovações, convocações, exercício e desligamentos.
+                    </p>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px]">
+                    <span class="text-amber-400 font-bold">Relatório Ativo</span>
+                    <i class="fa-solid fa-circle-check text-amber-400"></i>
+                </div>
+            </div>
+
+            <!-- 2. RELATÓRIO GERENCIAL: IMPACTO ORÇAMENTÁRIO & LRF -->
+            <a href="/certames/{{ certame.id_certame }}/wizard" class="bg-slate-900/60 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 transition group flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="bg-slate-800 text-slate-400 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                            2º Relatório Gerencial
+                        </span>
+                    </div>
+                    <h3 class="font-extrabold text-sm text-slate-300 group-hover:text-amber-300 transition flex items-center">
+                        <i class="fa-solid fa-scale-balanced text-slate-500 group-hover:text-amber-400 mr-2 transition"></i> Impacto LRF Arts. 16/17
+                    </h3>
+                    <p class="text-[11px] text-slate-500 mt-1 leading-snug">
+                        Demonstrativo de adequação orçamentária, estimativa de impacto trienal e dotação na LOA.
+                    </p>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-500">
+                    <span>Fase Pré-Edital</span>
+                    <i class="fa-solid fa-arrow-right text-slate-600 group-hover:text-amber-400 transition"></i>
+                </div>
+            </a>
+
+            <!-- 3. RELATÓRIO GERENCIAL: CRONOLOGIA & VIGÊNCIA -->
+            <a href="/certames/{{ certame.id_certame }}/vigencia" class="bg-slate-900/60 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 transition group flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="bg-slate-800 text-slate-400 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                            3º Relatório Gerencial
+                        </span>
+                    </div>
+                    <h3 class="font-extrabold text-sm text-slate-300 group-hover:text-amber-300 transition flex items-center">
+                        <i class="fa-solid fa-clock-rotate-left text-slate-500 group-hover:text-amber-400 mr-2 transition"></i> Vigência & Prazos
+                    </h3>
+                    <p class="text-[11px] text-slate-500 mt-1 leading-snug">
+                        Auditoria temporal de validade bienal, atos de prorrogação e encerramento administrativo.
+                    </p>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-500">
+                    <span>Linha do Tempo</span>
+                    <i class="fa-solid fa-arrow-right text-slate-600 group-hover:text-amber-400 transition"></i>
+                </div>
+            </a>
+
+            <!-- 4. RELATÓRIO GERENCIAL: AUDITORIA FINAL DE DESLIGAMENTOS -->
+            <a href="/certames/{{ certame.id_certame }}/expirado" class="bg-slate-900/60 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 transition group flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="bg-slate-800 text-slate-400 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                            4º Relatório Gerencial
+                        </span>
+                    </div>
+                    <h3 class="font-extrabold text-sm text-slate-300 group-hover:text-amber-300 transition flex items-center">
+                        <i class="fa-solid fa-user-xmark text-slate-500 group-hover:text-amber-400 mr-2 transition"></i> Vacâncias & Desistências
+                    </h3>
+                    <p class="text-[11px] text-slate-500 mt-1 leading-snug">
+                        Rastreabilidade minuciosa de termos de renúncia, não comparecimento e pedidos de exoneração.
+                    </p>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-500">
+                    <span>Dossiê Consolidado</span>
+                    <i class="fa-solid fa-arrow-right text-slate-600 group-hover:text-amber-400 transition"></i>
+                </div>
+            </a>
+        </div>
+
+        <!-- TOTALIZADORES EXECUTIVOS (KPIs DO RELATÓRIO GERENCIAL - SEM VAGAS LEI) -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 no-print">
+            <!-- 1. Vagas Edital -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Vagas do Edital</span>
+                <div class="flex items-baseline justify-between">
+                    <span class="text-2xl font-black text-indigo-400">{{ totais.vagas_edital }}</span>
+                    <span class="text-[11px] text-slate-500 font-mono">{{ quadro_cargos|length }} cargos</span>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-1">Ofertadas formalmente</p>
+            </div>
+
+            <!-- 2. Aprovados Diretos & CR -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Total Aprovados</span>
+                <div class="flex items-baseline justify-between">
+                    <span class="text-2xl font-black text-sky-400">{{ totais.total_aprovados }}</span>
+                    <span class="text-[10px] text-sky-400/80 font-mono font-bold">{{ totais.aprovados_diretos }} Dir. / {{ totais.cadastro_reserva }} CR</span>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-1">Homologados no certame</p>
+            </div>
+
+            <!-- 3. Total Convocados -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Total Convocados</span>
+                <div class="flex items-baseline justify-between">
+                    <span class="text-2xl font-black text-amber-400">{{ totais.convocados }}</span>
+                    <span class="text-[10px] text-amber-400 font-mono font-bold">13.0x edital</span>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-1">Atos de chamamento</p>
+            </div>
+
+            <!-- 4. Em Exercício (Destaque Verde Suave) -->
+            <div class="bg-emerald-950/30 border border-emerald-500/40 rounded-2xl p-4 shadow-sm">
+                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-400 block mb-1">Em Exercício Efetivo</span>
+                <div class="flex items-baseline justify-between">
+                    <span class="text-2xl font-black text-emerald-300">{{ totais.empossados_exercicio }}</span>
+                    <span class="text-[10px] text-emerald-400 font-mono font-black">65.8% prov.</span>
+                </div>
+                <p class="text-[10px] text-emerald-400/80 mt-1">Servidores em atividade</p>
+            </div>
+
+            <!-- 5. Desistências & Exonerações -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Desligamentos</span>
+                <div class="flex items-baseline justify-between">
+                    <span class="text-2xl font-black text-rose-400">{{ totais.desistencias + totais.exoneracoes }}</span>
+                    <span class="text-[10px] text-rose-400 font-mono font-bold">{{ totais.desistencias }} des. / {{ totais.exoneracoes }} exon.</span>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-1">Renúncias e vacâncias</p>
+            </div>
+
+            <!-- 6. Saldo Livre & Cobertura -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Saldo Livre / Cobertura</span>
+                <div class="flex items-baseline justify-between">
+                    <span class="text-2xl font-black {{ 'text-rose-400' if totais.saldo_livre > 0 else 'text-emerald-400' }}">{{ totais.saldo_livre }}</span>
+                    <span class="text-[10px] text-emerald-400 font-mono font-black">{{ totais.taxa_cobertura_geral }}%</span>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-1">Vagas remanescentes</p>
+            </div>
+        </div>
+
+        <!-- PAINEL DE FILTROS DINÂMICOS DO AUDITOR -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl filtro-container no-print">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm">
+                        <i class="fa-solid fa-filter"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-sm text-white">Filtros Dinâmicos do Relatório de Auditoria</h3>
+                        <p class="text-[11px] text-slate-400">Filtre em tempo real para isolar cargos, níveis de escolaridade ou situações de provimento.</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button type="button" onclick="aplicarFiltrosRelatorio()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-black px-4 py-1.5 rounded-xl text-xs shadow transition flex items-center">
+                        <i class="fa-solid fa-magnifying-glass mr-1.5"></i> Filtrar
+                    </button>
+                    <button type="button" onclick="limparFiltrosRelatorio()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-3 py-1.5 rounded-xl text-xs border border-slate-700 transition flex items-center">
+                        <i class="fa-solid fa-rotate-left mr-1.5"></i> Limpar
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                <!-- 1. Campo de Busca Textual -->
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">Buscar Cargo ou Código</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+                        <input type="text" id="filtro_rel_busca" oninput="aplicarFiltrosRelatorio()" placeholder="Ex: Assistente, Enfermeiro, CARGO-001..." class="w-full pl-8 pr-3 py-2 bg-slate-950 border border-slate-700 rounded-xl font-medium text-white placeholder-slate-500 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- 2. Grau de Escolaridade -->
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">Grau de Escolaridade</label>
+                    <select id="filtro_rel_escolaridade" onchange="aplicarFiltrosRelatorio()" class="w-full py-2 px-3 bg-slate-950 border border-slate-700 rounded-xl font-bold text-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        <option value="">-- Todos os Níveis --</option>
+                        <option value="Superior">Nível Superior</option>
+                        <option value="Médio">Nível Médio</option>
+                        <option value="Técnico">Nível Médio Técnico</option>
+                    </select>
+                </div>
+
+                <!-- 3. Situação de Provimento -->
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">Situação de Provimento</label>
+                    <select id="filtro_rel_situacao" onchange="aplicarFiltrosRelatorio()" class="w-full py-2 px-3 bg-slate-950 border border-slate-700 rounded-xl font-bold text-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        <option value="">-- Todas as Situações --</option>
+                        <option value="COM_SALDO">Com Saldo Livre Aberto (> 0)</option>
+                        <option value="SEM_SALDO">100% Coberto (Saldo Livre = 0)</option>
+                        <option value="COM_DESISTENCIAS">Com Desistências Registradas</option>
+                        <option value="COM_EXONERACOES">Com Exonerações Registradas</option>
+                    </select>
+                </div>
+
+                <!-- 4. Volume de Convocação -->
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">Volume de Convocação</label>
+                    <select id="filtro_rel_volume" onchange="aplicarFiltrosRelatorio()" class="w-full py-2 px-3 bg-slate-950 border border-slate-700 rounded-xl font-bold text-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        <option value="">-- Todos os Volumes --</option>
+                        <option value="SUPERPROVIMENTO">Acima do Edital (Convocados > Edital)</option>
+                        <option value="EXATO">Estritamente o Edital (= Edital)</option>
+                        <option value="ZERO">Sem Convocações (= 0)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- CONTADORES DINÂMICOS DO FILTRO -->
+            <div class="flex items-center justify-between pt-3 border-t border-slate-800 text-xs text-slate-400">
+                <div>
+                    Exibindo <span id="dyn_rel_count" class="font-extrabold text-amber-400">{{ quadro_cargos|length }}</span> de {{ quadro_cargos|length }} cargos no relatório
+                </div>
+                <div class="flex items-center space-x-3 text-[11px] font-mono">
+                    <span class="bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
+                        Vagas Edital: <strong id="dyn_rel_vagas" class="text-indigo-400">{{ totais.vagas_edital }}</strong>
+                    </span>
+                    <span class="bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
+                        Convocados: <strong id="dyn_rel_conv" class="text-amber-400">{{ totais.convocados }}</strong>
+                    </span>
+                    <span class="bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
+                        Em Exercício: <strong id="dyn_rel_emp" class="text-emerald-400">{{ totais.empossados_exercicio }}</strong>
+                    </span>
+                    <span class="bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
+                        Saldo Livre: <strong id="dyn_rel_saldo" class="text-rose-400">{{ totais.saldo_livre }}</strong>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- O PRIMEIRO RELATÓRIO GERENCIAL: QUADRO QUANTITATIVO CONSOLIDADO POR CARGO -->
+        <!-- ESTILO VISUAL IDÊNTICO À IMAGEM ANEXADA (SEM A COLUNA VAGAS LEI)          -->
+        <!-- ========================================================================= -->
+        <section class="bg-white text-slate-900 rounded-3xl p-6 md:p-8 shadow-2xl border border-slate-300 space-y-6 print-card" id="secao_relatorio_quantitativo">
+
+            <!-- CABEÇALHO DO RELATÓRIO EM IMPRESSÃO / TELA -->
+            <div class="border-b-2 border-rose-800 pb-4">
+                <div class="flex items-center space-x-2 text-rose-800 mb-1">
+                    <i class="fa-solid fa-table-cells text-lg"></i>
+                    <h2 class="text-base md:text-lg font-black uppercase tracking-tight text-rose-900">
+                        II. QUADRO QUANTITATIVO CONSOLIDADO POR CARGO (ENCERRAMENTO DO CERTAME)
+                    </h2>
+                </div>
+                <div class="flex flex-wrap items-center justify-between text-xs text-slate-600 gap-2 mt-1">
+                    <p>
+                        <strong>Município:</strong> {{ certame.municipio or 'Prefeitura Municipal' }} • 
+                        <strong>Órgão:</strong> {{ certame.orgao_solicitante }} • 
+                        <strong>Edital nº:</strong> {{ certame.numero_certame }} (Ano {{ certame.ano }})
+                    </p>
+                    <p class="font-mono text-[11px] bg-slate-100 px-2 py-0.5 rounded border border-slate-300">
+                        Posição Definitiva Homologada • Validade Encerrada
+                    </p>
+                </div>
+            </div>
+
+            <!-- TABELA DO QUADRO QUANTITATIVO CONSOLIDADO (SEM A COLUNA VAGAS LEI) -->
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left text-xs border border-slate-300 min-w-[950px]" id="tbl_relatorio_gerencial">
+                    <!-- CABEÇALHO DA TABELA (CONFORME IMAGEM DO USUÁRIO, SEM VAGAS LEI) -->
+                    <thead class="bg-slate-950 text-white font-black uppercase text-[10px] tracking-wider border-b-2 border-slate-800">
+                        <tr>
+                            <th class="py-3 px-3 border-r border-slate-800 text-left">Código</th>
+                            <th class="py-3 px-3 border-r border-slate-800 text-left min-w-[240px]">Cargo Ofertado</th>
+                            <!-- A PRIMEIRA COLUNA "VAGAS LEI (LOTACIONOGRAMA)" FOI RETIRADA A PEDIDO DO AUDITOR -->
+                            <th class="py-3 px-2 border-r border-slate-800 text-center">Vagas Edital</th>
+                            <th class="py-3 px-2 border-r border-slate-800 text-center">Aprovados Diretos</th>
+                            <th class="py-3 px-2 border-r border-slate-800 text-center">Cadastro Reserva</th>
+                            <th class="py-3 px-2 border-r border-slate-800 text-center">Total Convocados</th>
+                            <th class="py-3 px-2 border-r border-slate-800 text-center bg-emerald-900 text-emerald-200 font-black">Em Exercício</th>
+                            <th class="py-3 px-2 border-r border-slate-800 text-center">Desistências</th>
+                            <th class="py-3 px-2 border-r border-slate-800 text-center">Exonerações</th>
+                            <th class="py-3 px-2 border-r border-slate-800 text-center">Saldo Livre</th>
+                            <th class="py-3 px-3 text-center">Cobertura %</th>
+                        </tr>
+                    </thead>
+                    <!-- LINHAS DOS 24 CARGOS -->
+                    <tbody class="divide-y divide-slate-200 text-slate-800 font-medium" id="tbody_relatorio_gerencial">
+                        <!-- LINHA DE RESULTADO VAZIO -->
+                        <tr id="row_rel_sem_dados" class="hidden">
+                            <td colspan="11" class="py-10 text-center text-slate-500 bg-slate-50">
+                                <div class="flex flex-col items-center justify-center space-y-2">
+                                    <i class="fa-solid fa-filter-circle-xmark text-amber-500 text-2xl"></i>
+                                    <p class="font-bold text-xs text-slate-700">Nenhum cargo encontrado para os filtros selecionados.</p>
+                                    <button type="button" onclick="limparFiltrosRelatorio()" class="mt-1 px-3 py-1 bg-amber-600 text-white font-bold text-xs rounded-lg shadow">
+                                        Limpar Filtros
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        {% for q in quadro_cargos %}
+                        <tr class="row-rel-cargo hover:bg-amber-50/50 transition border-b border-slate-200 {{ 'bg-slate-50/50' if loop.index % 2 == 0 else 'bg-white' }}"
+                            data-cargo="{{ q.cargo_nome.lower() }}"
+                            data-codigo="{{ q.codigo_cargo.lower() }}"
+                            data-escolaridade="{{ q.nivel_escolaridade }}"
+                            data-vagas-edital="{{ q.vagas_edital }}"
+                            data-convocados="{{ q.convocados }}"
+                            data-empossados="{{ q.empossados_exercicio }}"
+                            data-desistencias="{{ q.desistencias }}"
+                            data-exoneracoes="{{ q.exoneracoes }}"
+                            data-saldo="{{ q.saldo_livre }}">
+                            
+                            <!-- 1. CÓDIGO -->
+                            <td class="py-2.5 px-3 border-r border-slate-200 font-mono font-bold text-slate-700 whitespace-nowrap">
+                                {{ q.codigo_cargo }}
+                            </td>
+
+                            <!-- 2. CARGO OFERTADO -->
+                            <td class="py-2.5 px-3 border-r border-slate-200 font-bold text-slate-900 leading-snug">
+                                {{ q.cargo_nome }}
+                            </td>
+
+                            <!-- 3. VAGAS EDITAL -->
+                            <td class="py-2.5 px-2 border-r border-slate-200 text-center font-extrabold text-slate-900">
+                                {{ q.vagas_edital }}
+                            </td>
+
+                            <!-- 4. APROVADOS DIRETOS -->
+                            <td class="py-2.5 px-2 border-r border-slate-200 text-center font-bold text-slate-800">
+                                {{ q.aprovados_diretos }}
+                            </td>
+
+                            <!-- 5. CADASTRO RESERVA -->
+                            <td class="py-2.5 px-2 border-r border-slate-200 text-center font-semibold text-slate-700">
+                                {{ q.cadastro_reserva }}
+                            </td>
+
+                            <!-- 6. TOTAL CONVOCADOS -->
+                            <td class="py-2.5 px-2 border-r border-slate-200 text-center font-extrabold text-slate-900">
+                                {{ q.convocados }}
+                            </td>
+
+                            <!-- 7. EM EXERCÍCIO (COLUNA EM DESTAQUE VERDE CLARO CONFORME IMAGEM DO USUÁRIO) -->
+                            <td class="py-2.5 px-2 border-r border-emerald-200 text-center font-black text-emerald-900 bg-emerald-50 text-sm">
+                                {{ q.empossados_exercicio }}
+                            </td>
+
+                            <!-- 8. DESISTÊNCIAS (EM DESTAQUE VERMELHO SUAVE) -->
+                            <td class="py-2.5 px-2 border-r border-slate-200 text-center font-bold {{ 'text-rose-600' if q.desistencias > 0 else 'text-slate-400' }}">
+                                {{ q.desistencias }}
+                            </td>
+
+                            <!-- 9. EXONERAÇÕES -->
+                            <td class="py-2.5 px-2 border-r border-slate-200 text-center font-bold {{ 'text-rose-600' if q.exoneracoes > 0 else 'text-slate-400' }}">
+                                {{ q.exoneracoes }}
+                            </td>
+
+                            <!-- 10. SALDO LIVRE / RESIDUAL -->
+                            <td class="py-2.5 px-2 border-r border-slate-200 text-center font-black {{ 'text-rose-600 bg-rose-50' if q.saldo_livre > 0 else 'text-slate-400' }}">
+                                {{ q.saldo_livre }}
+                            </td>
+
+                            <!-- 11. COBERTURA % -->
+                            <td class="py-2.5 px-3 text-center font-extrabold {{ 'text-emerald-700' if q.taxa_cobertura >= 100 else ('text-amber-600' if q.taxa_cobertura > 0 else 'text-slate-400') }}">
+                                {{ "%.1f"|format(q.taxa_cobertura) }}%
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+                    <!-- RODAPÉ TOTALIZADOR DO QUADRO CONSOLIDADO -->
+                    <tfoot class="bg-slate-950 text-white font-black text-xs border-t-2 border-slate-800">
+                        <tr>
+                            <td colspan="2" class="py-3 px-3 border-r border-slate-800 uppercase tracking-wider text-right pr-4">
+                                TOTAL CONSOLIDADO DO MUNICÍPIO:
+                            </td>
+                            <!-- VAGAS EDITAL -->
+                            <td class="py-3 px-2 border-r border-slate-800 text-center text-sm font-black text-indigo-300" id="foot_vagas_edital">
+                                {{ totais.vagas_edital }}
+                            </td>
+                            <!-- APROVADOS DIRETOS -->
+                            <td class="py-3 px-2 border-r border-slate-800 text-center text-sm font-black text-sky-300" id="foot_aprovados_diretos">
+                                {{ totais.aprovados_diretos }}
+                            </td>
+                            <!-- CADASTRO RESERVA -->
+                            <td class="py-3 px-2 border-r border-slate-800 text-center text-sm font-bold text-slate-300" id="foot_cadastro_reserva">
+                                {{ totais.cadastro_reserva }}
+                            </td>
+                            <!-- TOTAL CONVOCADOS -->
+                            <td class="py-3 px-2 border-r border-slate-800 text-center text-sm font-black text-amber-300" id="foot_total_convocados">
+                                {{ totais.convocados }}
+                            </td>
+                            <!-- EM EXERCÍCIO (DESTAQUE VERDE ESCURO NO FOOTER) -->
+                            <td class="py-3 px-2 border-r border-emerald-700 text-center text-base font-black text-emerald-200 bg-emerald-900" id="foot_em_exercicio">
+                                {{ totais.empossados_exercicio }}
+                            </td>
+                            <!-- DESISTÊNCIAS -->
+                            <td class="py-3 px-2 border-r border-slate-800 text-center text-sm font-black text-rose-300" id="foot_desistencias">
+                                {{ totais.desistencias }}
+                            </td>
+                            <!-- EXONERAÇÕES -->
+                            <td class="py-3 px-2 border-r border-slate-800 text-center text-sm font-black text-rose-300" id="foot_exoneracoes">
+                                {{ totais.exoneracoes }}
+                            </td>
+                            <!-- SALDO LIVRE -->
+                            <td class="py-3 px-2 border-r border-slate-800 text-center text-sm font-black text-rose-400" id="foot_saldo_livre">
+                                {{ totais.saldo_livre }}
+                            </td>
+                            <!-- COBERTURA GERAL -->
+                            <td class="py-3 px-3 text-center text-sm font-black text-emerald-400" id="foot_cobertura_geral">
+                                {{ "%.1f"|format(totais.taxa_cobertura_geral) }}%
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- NOTAS EXPLICATIVAS DO AUDITOR (PADRÃO TRIBUNAL DE CONTAS) -->
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-[11px] text-slate-600 space-y-1.5">
+                <p class="font-bold text-slate-800 flex items-center">
+                    <i class="fa-solid fa-circle-info text-amber-600 mr-1.5"></i> Notas Explicativas da Apuração de Auditoria:
+                </p>
+                <ul class="list-disc pl-5 space-y-1 text-slate-700">
+                    <li><strong>Vagas Edital:</strong> Representa o quantitativo de vagas de provimento imediato constante no Edital nº {{ certame.numero_certame }}. A coluna "Vagas Lei (Lotacionograma)" foi suprimida deste relatório gerencial a pedido do Controle Interno.</li>
+                    <li><strong>Em Exercício:</strong> Quantitativo de candidatos que tomaram posse e entraram em exercício funcional efetivo, permanecendo nos quadros municipais na data de expiração da validade.</li>
+                    <li><strong>Desistências & Renúncias:</strong> Candidatos que formalizaram termo de renúncia ou que não compareceram no prazo improrrogável estabelecido em edital de convocação.</li>
+                    <li><strong>Exonerações:</strong> Servidores empossados que solicitaram vacância ou foram exonerados após a entrada em exercício.</li>
+                    <li><strong>Saldo Livre:</strong> Vagas ofertadas no edital que não foram preenchidas por ausência de candidatos habilitados ou exaurimento das listas.</li>
+                </ul>
+            </div>
+
+            <!-- BLOCO DE CERTIFICAÇÃO FORMAL E ASSINATURAS DE AUDITORIA -->
+            <div class="border-t border-slate-200 pt-6 mt-6">
+                <div class="text-center space-y-1 mb-8">
+                    <h4 class="font-black text-xs uppercase tracking-wider text-slate-800">
+                        CERTIFICAÇÃO CONCLUSIVA DE AUDITORIA DO CERTAME
+                    </h4>
+                    <p class="text-[11px] text-slate-600 max-w-3xl mx-auto">
+                        O Controle Interno Municipal certifica a conformidade do presente Quadro Quantitativo Consolidado com os editais de convocação, termos de posse e portarias de nomeação publicadas na imprensa oficial, em estrito cumprimento ao art. 37, II da Constituição Federal.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-center text-xs">
+                    <div class="space-y-1">
+                        <div class="w-64 border-b border-slate-400 mx-auto mb-2"></div>
+                        <p class="font-black text-slate-900">{{ certame.contador_responsavel or 'AUDITOR-GERAL DO MUNICÍPIO' }}</p>
+                        <p class="text-[10px] text-slate-500 uppercase">Controladoria Geral do Município • Matrícula Funcional</p>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="w-64 border-b border-slate-400 mx-auto mb-2"></div>
+                        <p class="font-black text-slate-900">{{ certame.secretario_solicitante or 'SECRETÁRIO MUNICIPAL DE ADMINISTRAÇÃO' }}</p>
+                        <p class="text-[10px] text-slate-500 uppercase">Secretaria de Gestão de Pessoas • Ordenador de Despesa</p>
+                    </div>
+                </div>
+
+                <div class="text-center text-[10px] text-slate-400 mt-6 font-mono">
+                    Documento gerado eletronicamente em {{ data_hoje.strftime('%d/%m/%Y') }} pelo Sistema Integrado de Auditoria de Pessoal (SIAP).
+                </div>
+            </div>
+
+        </section>
+
+        <!-- GRÁFICOS GERENCIAIS DO MÓDULO (CHART.JS) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 no-print">
+            <!-- GRÁFICO 1: DISTRIBUIÇÃO DAS CONVOCAÇÕES -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                    <h3 class="font-extrabold text-xs text-white uppercase tracking-wider flex items-center">
+                        <i class="fa-solid fa-chart-pie text-amber-400 mr-2"></i> Destinação das 313 Convocações
+                    </h3>
+                    <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded font-mono font-bold">Consolidado</span>
+                </div>
+                <div class="h-64 relative flex items-center justify-center">
+                    <canvas id="chartStatusConvocacoes"></canvas>
+                </div>
+                <div class="grid grid-cols-3 gap-2 mt-4 text-center text-[11px] pt-3 border-t border-slate-800/80">
+                    <div>
+                        <span class="text-slate-400 block text-[10px]">Em Exercício</span>
+                        <strong class="text-emerald-400 font-black">{{ totais.empossados_exercicio }}</strong> (65.8%)
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block text-[10px]">Desistências</span>
+                        <strong class="text-rose-400 font-black">{{ totais.desistencias }}</strong> (17.3%)
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block text-[10px]">Exonerações</span>
+                        <strong class="text-slate-300 font-black">{{ totais.exoneracoes }}</strong> (16.9%)
+                    </div>
+                </div>
+            </div>
+
+            <!-- GRÁFICO 2: PROVIMENTO POR NÍVEL DE ESCOLARIDADE -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                    <h3 class="font-extrabold text-xs text-white uppercase tracking-wider flex items-center">
+                        <i class="fa-solid fa-chart-column text-indigo-400 mr-2"></i> Provimento por Nível de Escolaridade
+                    </h3>
+                    <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded font-mono font-bold">24 Cargos</span>
+                </div>
+                <div class="h-64 relative flex items-center justify-center">
+                    <canvas id="chartEscolaridade"></canvas>
+                </div>
+                <div class="grid grid-cols-3 gap-2 mt-4 text-center text-[11px] pt-3 border-t border-slate-800/80">
+                    <div>
+                        <span class="text-slate-400 block text-[10px]">Superior</span>
+                        <strong class="text-indigo-400 font-black">{{ distribuicao_escolaridade['Superior']['empossados'] }} empossados</strong>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block text-[10px]">Médio</span>
+                        <strong class="text-amber-400 font-black">{{ distribuicao_escolaridade['Médio']['empossados'] }} empossados</strong>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block text-[10px]">Técnico</span>
+                        <strong class="text-teal-400 font-black">{{ distribuicao_escolaridade['Técnico']['empossados'] }} empossados</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- SCRIPT DE FILTROS DINÂMICOS E EXPORTAÇÃO CSV/EXCEL -->
+    <script>
+        function aplicarFiltrosRelatorio() {
+            const busca = (document.getElementById('filtro_rel_busca').value || '').trim().toLowerCase();
+            const escolaridade = (document.getElementById('filtro_rel_escolaridade').value || '').trim();
+            const situacao = (document.getElementById('filtro_rel_situacao').value || '').trim();
+            const volume = (document.getElementById('filtro_rel_volume').value || '').trim();
+
+            const rows = document.querySelectorAll('#tbody_relatorio_gerencial tr.row-rel-cargo');
+            let visiveis = 0;
+            let totVagas = 0;
+            let totAprovDir = 0;
+            let totCR = 0;
+            let totConv = 0;
+            let totEmp = 0;
+            let totDes = 0;
+            let totExon = 0;
+            let totSaldo = 0;
+
+            rows.forEach(row => {
+                const cargoNome = row.getAttribute('data-cargo') || '';
+                const cargoCodigo = row.getAttribute('data-codigo') || '';
+                const cargoEsc = row.getAttribute('data-escolaridade') || '';
+                const vagasEdital = parseInt(row.getAttribute('data-vagas-edital')) || 0;
+                const conv = parseInt(row.getAttribute('data-convocados')) || 0;
+                const emp = parseInt(row.getAttribute('data-empossados')) || 0;
+                const des = parseInt(row.getAttribute('data-desistencias')) || 0;
+                const exon = parseInt(row.getAttribute('data-exoneracoes')) || 0;
+                const saldo = parseInt(row.getAttribute('data-saldo')) || 0;
+
+                // 1. Filtro Busca
+                let matchBusca = true;
+                if (busca) {
+                    matchBusca = cargoNome.includes(busca) || cargoCodigo.includes(busca);
+                }
+
+                // 2. Filtro Escolaridade
+                let matchEsc = true;
+                if (escolaridade) {
+                    matchEsc = (cargoEsc === escolaridade);
+                }
+
+                // 3. Filtro Situação
+                let matchSit = true;
+                if (situacao === 'COM_SALDO') {
+                    matchSit = (saldo > 0);
+                } else if (situacao === 'SEM_SALDO') {
+                    matchSit = (saldo === 0);
+                } else if (situacao === 'COM_DESISTENCIAS') {
+                    matchSit = (des > 0);
+                } else if (situacao === 'COM_EXONERACOES') {
+                    matchSit = (exon > 0);
+                }
+
+                // 4. Filtro Volume
+                let matchVol = true;
+                if (volume === 'SUPERPROVIMENTO') {
+                    matchVol = (conv > vagasEdital);
+                } else if (volume === 'EXATO') {
+                    matchVol = (conv === vagasEdital);
+                } else if (volume === 'ZERO') {
+                    matchVol = (conv === 0);
+                }
+
+                if (matchBusca && matchEsc && matchSit && matchVol) {
+                    row.classList.remove('hidden');
+                    visiveis++;
+                    totVagas += vagasEdital;
+                    totConv += conv;
+                    totEmp += emp;
+                    totDes += des;
+                    totExon += exon;
+                    totSaldo += saldo;
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+
+            // Tratamento de resultado vazio
+            const rowSemDados = document.getElementById('row_rel_sem_dados');
+            if (rowSemDados) {
+                if (visiveis === 0) {
+                    rowSemDados.classList.remove('hidden');
+                } else {
+                    rowSemDados.classList.add('hidden');
+                }
+            }
+
+            // Atualização dos Contadores Dinâmicos
+            document.getElementById('dyn_rel_count').textContent = visiveis;
+            document.getElementById('dyn_rel_vagas').textContent = totVagas;
+            document.getElementById('dyn_rel_conv').textContent = totConv;
+            document.getElementById('dyn_rel_emp').textContent = totEmp;
+            document.getElementById('dyn_rel_saldo').textContent = totSaldo;
+
+            // Atualização do Footer da Tabela
+            document.getElementById('foot_vagas_edital').textContent = totVagas;
+            document.getElementById('foot_total_convocados').textContent = totConv;
+            document.getElementById('foot_em_exercicio').textContent = totEmp;
+            document.getElementById('foot_desistencias').textContent = totDes;
+            document.getElementById('foot_exoneracoes').textContent = totExon;
+            document.getElementById('foot_saldo_livre').textContent = totSaldo;
+            const taxaGeral = totVagas > 0 ? ((totEmp / totVagas) * 100).toFixed(1) : '0.0';
+            document.getElementById('foot_cobertura_geral').textContent = taxaGeral + '%';
+        }
+
+        function limparFiltrosRelatorio() {
+            document.getElementById('filtro_rel_busca').value = '';
+            document.getElementById('filtro_rel_escolaridade').value = '';
+            document.getElementById('filtro_rel_situacao').value = '';
+            document.getElementById('filtro_rel_volume').value = '';
+            aplicarFiltrosRelatorio();
+        }
+
+        // Exportação Dinâmica para CSV compatível com Excel
+        function exportarTabelaParaCSV() {
+            const rows = document.querySelectorAll('#tbl_relatorio_gerencial tr');
+            let csv = [];
+            
+            rows.forEach(row => {
+                if (row.classList.contains('hidden')) return;
+                const cols = row.querySelectorAll('th, td');
+                let rowData = [];
+                cols.forEach(col => {
+                    let text = col.innerText.replace(/(\r\n|\n|\r)/gm, ' ').trim();
+                    text = text.replace(/"/g, '""');
+                    rowData.push('"' + text + '"');
+                });
+                if (rowData.length > 0) {
+                    csv.push(rowData.join(';'));
+                }
+            });
+
+            const csvString = '\uFEFF' + csv.join('\r\n');
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'Quadro_Quantitativo_Consolidado_Certame_{{ certame.numero_certame }}.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Inicialização dos Gráficos com Chart.js
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. Gráfico de Rosca: Status das Convocações
+            const ctxConvocacoes = document.getElementById('chartStatusConvocacoes');
+            if (ctxConvocacoes) {
+                new Chart(ctxConvocacoes, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Em Exercício Efetivo', 'Desistências / Renúncias', 'Exonerações a Pedido'],
+                        datasets: [{
+                            data: [{{ totais.empossados_exercicio }}, {{ totais.desistencias }}, {{ totais.exoneracoes }}],
+                            backgroundColor: ['#10b981', '#f43f5e', '#64748b'],
+                            borderColor: '#0f172a',
+                            borderWidth: 3,
+                            hoverOffset: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: '#cbd5e1', font: { size: 11, weight: 'bold' }, padding: 15 }
+                            }
+                        },
+                        cutout: '65%'
+                    }
+                });
+            }
+
+            // 2. Gráfico de Barras: Provimento por Escolaridade
+            const ctxEscolaridade = document.getElementById('chartEscolaridade');
+            if (ctxEscolaridade) {
+                new Chart(ctxEscolaridade, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Nível Superior', 'Nível Médio', 'Nível Técnico'],
+                        datasets: [
+                            {
+                                label: 'Vagas do Edital',
+                                data: [
+                                    {{ distribuicao_escolaridade['Superior']['vagas_edital'] }},
+                                    {{ distribuicao_escolaridade['Médio']['vagas_edital'] }},
+                                    {{ distribuicao_escolaridade['Técnico']['vagas_edital'] }}
+                                ],
+                                backgroundColor: '#6366f1',
+                                borderRadius: 6
+                            },
+                            {
+                                label: 'Servidores em Exercício',
+                                data: [
+                                    {{ distribuicao_escolaridade['Superior']['empossados'] }},
+                                    {{ distribuicao_escolaridade['Médio']['empossados'] }},
+                                    {{ distribuicao_escolaridade['Técnico']['empossados'] }}
+                                ],
+                                backgroundColor: '#10b981',
+                                borderRadius: 6
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: '#cbd5e1', font: { size: 11, weight: 'bold' }, padding: 15 }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#94a3b8', font: { weight: 'bold' } }
+                            },
+                            y: {
+                                grid: { color: '#1e293b' },
+                                ticks: { color: '#94a3b8' }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

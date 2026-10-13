@@ -2021,6 +2021,75 @@ def certames_relatorio_auditoria_final(
         "active_page": "relatorio_auditoria_final"
     })
 
+# --- MÓDULO DE RELATÓRIOS DE AUDITORIA ---
+@app.get("/modulo/relatorios", response_class=HTMLResponse)
+@app.get("/modulo/relatorios-auditoria", response_class=HTMLResponse)
+@app.get("/relatorios", response_class=HTMLResponse)
+def modulo_relatorios_geral(
+    request: Request,
+    id_certame: int = None,
+    db: Session = Depends(get_db),
+    usuario = Depends(get_current_user)
+):
+    if not usuario: return RedirectResponse(url="/login", status_code=303)
+    todos_certames = db.query(CertameAbertura).order_by(CertameAbertura.ano.desc(), CertameAbertura.numero_certame.asc()).all()
+    if id_certame:
+        certame = db.query(CertameAbertura).filter_by(id_certame=id_certame).first()
+    else:
+        certame = todos_certames[0] if todos_certames else None
+        
+    if not certame:
+        return RedirectResponse(url="/certames", status_code=303)
+
+    engine = AuditEngine(db)
+    dados = engine.gerar_relatorio_auditoria_final(certame.id_certame)
+
+    return templates.TemplateResponse("modulo_relatorios.html", {
+        "request": request,
+        "usuario": usuario,
+        "certame": dados["certame"],
+        "todos_certames": todos_certames,
+        "concurso": dados["concurso"],
+        "fase_oficial": dados["fase_oficial"],
+        "quadro_cargos": dados["quadro_cargos"],
+        "totais": dados["totais"],
+        "distribuicao_escolaridade": dados["distribuicao_escolaridade"],
+        "is_expirado": dados["is_expirado"],
+        "data_hoje": date.today(),
+        "active_page": "modulo_relatorios"
+    })
+
+@app.get("/certames/{id_certame}/relatorios", response_class=HTMLResponse)
+@app.get("/certames/{id_certame}/relatorios/quantitativo-consolidado", response_class=HTMLResponse)
+def certames_relatorios_modulo(
+    id_certame: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    usuario = Depends(get_current_user)
+):
+    if not usuario: return RedirectResponse(url="/login", status_code=303)
+    certame = db.query(CertameAbertura).filter_by(id_certame=id_certame).first()
+    if not certame: return RedirectResponse(url="/certames", status_code=303)
+
+    todos_certames = db.query(CertameAbertura).order_by(CertameAbertura.ano.desc(), CertameAbertura.numero_certame.asc()).all()
+    engine = AuditEngine(db)
+    dados = engine.gerar_relatorio_auditoria_final(id_certame)
+
+    return templates.TemplateResponse("modulo_relatorios.html", {
+        "request": request,
+        "usuario": usuario,
+        "certame": dados["certame"],
+        "todos_certames": todos_certames,
+        "concurso": dados["concurso"],
+        "fase_oficial": dados["fase_oficial"],
+        "quadro_cargos": dados["quadro_cargos"],
+        "totais": dados["totais"],
+        "distribuicao_escolaridade": dados["distribuicao_escolaridade"],
+        "is_expirado": dados["is_expirado"],
+        "data_hoje": date.today(),
+        "active_page": "modulo_relatorios"
+    })
+
 # --- ROTA DE VIGÊNCIA DO CERTAME ---
 @app.get("/certames/{id_certame}/vigencia", response_class=HTMLResponse)
 def tela_vigencia_certame(
