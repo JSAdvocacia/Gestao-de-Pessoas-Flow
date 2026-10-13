@@ -298,7 +298,7 @@
                 <div>
                     <label class="block font-bold text-slate-300 mb-1">Situação Final de Provimento</label>
                     <select id="filtro_cand_situacao" onchange="aplicarFiltrosNominal()" class="w-full py-2 px-3 bg-slate-950 border border-slate-700 rounded-xl font-bold text-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
-                        <option value="">-- Todas as Situações (313) --</option>
+                        <option value="">-- Todas as Situações ({{ totais.total_convocados }}) --</option>
                         <option value="empossado">Apenas Empossados (Exercício) ({{ totais.empossados_exercicio }})</option>
                         <option value="desistente">Apenas Desistentes / Renúncias ({{ totais.desistencias }})</option>
                         <option value="exonerado">Apenas Excluídos / Exonerados ({{ totais.exoneracoes }})</option>
@@ -491,7 +491,7 @@
                         CERTIFICAÇÃO DO ROL NOMINAL DE CONVOCAÇÕES E PROVIMENTOS
                     </h4>
                     <p class="text-[11px] text-slate-600 max-w-3xl mx-auto">
-                        O Controle Interno Municipal atesta que todos os 313 candidatos nominados acima foram regularmente convocados por meio de editais publicados na imprensa oficial do Município, correspondendo exatamente aos atos de posse, termos de renúncia e decretos de exoneração expedidos durante a vigência do certame.
+                        O Controle Interno Municipal atesta que todos os {{ totais.total_convocados }} candidatos nominados acima foram regularmente convocados por meio de editais publicados na imprensa oficial do Município, correspondendo exatamente aos atos de posse, termos de renúncia e decretos de exoneração expedidos durante a vigência do certame.
                     </p>
                 </div>
 

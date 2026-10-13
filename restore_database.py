@@ -12,6 +12,10 @@ def parse_date(d_str):
     if not d_str or not d_str.strip():
         return None
     d_str = d_str.strip()
+    if d_str == '18/011/2024':
+        return datetime.date(2024, 11, 18)
+    if d_str == '057/2024':
+        return datetime.date(2024, 10, 2)
     try:
         return datetime.datetime.strptime(d_str, '%Y-%m-%d').date()
     except Exception:
@@ -150,12 +154,12 @@ with open('attached_provimento.csv', encoding='utf-8') as f:
         edital_desist = row.get('Edital Homologação Desistencia ', '').strip() or row.get('Edital Homologação Desistencia', '').strip()
         sub_judice = row.get('Posse sob Júdice', '').strip().upper()
 
-        if dt_exonera:
+        if dt_exonera or row.get('Data Exoneração', '').strip():
             status_atual = "EXCLUÍDO / EXONERADO"
-        elif dt_posse:
-            status_atual = "EMPOSSADO"
         elif edital_desist:
             status_atual = "DESISTENTE / RENÚNCIA"
+        elif dt_posse or row.get('Data da Posse', '').strip():
+            status_atual = "EMPOSSADO (EXERCÍCIO)"
         elif edital_conv:
             status_atual = "CONVOCADO"
         elif situacao == "APROVADO":

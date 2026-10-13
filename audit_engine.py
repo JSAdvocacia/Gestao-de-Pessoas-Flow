@@ -1479,17 +1479,20 @@ class AuditEngine:
             else:
                 mapa_cargos[cid]["cadastro_reserva"] += 1
 
-            if any(k in st for k in ["CONVOCADO", "EMPOSSADO", "DESISTENTE", "FINAL DA FILA", "EXCLUÍDO", "EXONERADO", "SUB JÚDICE"]):
+            has_posse = bool(getattr(cand, 'data_posse', None))
+            has_exon = bool(getattr(cand, 'data_exoneracao', None)) or any(k in st for k in ["EXCLUÍDO", "EXONERADO", "NÃO COMPARECEU"])
+            has_desist = bool(getattr(cand, 'edital_desistencia', None)) or any(k in st for k in ["DESISTENTE", "RENÚNCIA", "FINAL DA FILA"])
+            has_convoc = bool(getattr(cand, 'edital_convocacao', None)) or has_posse or has_exon or has_desist or any(k in st for k in ["CONVOCADO", "EMPOSSADO"])
+
+            if has_convoc:
                 mapa_cargos[cid]["convocados"] += 1
 
-            if "EMPOSSADO" in st:
-                mapa_cargos[cid]["empossados_exercicio"] += 1
-
-            if any(k in st for k in ["DESISTENTE", "RENÚNCIA", "FINAL DA FILA"]):
-                mapa_cargos[cid]["desistencias"] += 1
-
-            if any(k in st for k in ["EXCLUÍDO", "EXONERADO", "NÃO COMPARECEU"]):
+            if has_exon:
                 mapa_cargos[cid]["exoneracoes"] += 1
+            elif has_desist:
+                mapa_cargos[cid]["desistencias"] += 1
+            elif has_posse or "EMPOSSADO" in st:
+                mapa_cargos[cid]["empossados_exercicio"] += 1
 
             if "SUB JÚDICE" in st or getattr(cand, 'sub_judice', False):
                 mapa_cargos[cid]["sub_judice"] += 1
@@ -1605,10 +1608,10 @@ class AuditEngine:
             ).first()
             v_edital = vaga_rec.vagas_imediatas_edital if vaga_rec else 1
 
-            emp = sum(1 for c in cands_cargo if "EMPOSSADO" in (c.status_atual or "").upper())
-            des = sum(1 for c in cands_cargo if any(k in (c.status_atual or "").upper() for k in ["DESISTENTE", "RENÚNCIA"]))
-            exon = sum(1 for c in cands_cargo if any(k in (c.status_atual or "").upper() for k in ["EXCLUÍDO", "EXONERADO"]))
-            tram = sum(1 for c in cands_cargo if "CONVOCADO" in (c.status_atual or "").upper() and not any(k in (c.status_atual or "").upper() for k in ["EMPOSSADO", "DESISTENTE", "EXONERADO"]))
+            exon = sum(1 for c in cands_cargo if bool(getattr(c, 'data_exoneracao', None)) or any(k in (c.status_atual or "").upper() for k in ["EXCLUÍDO", "EXONERADO"]))
+            des = sum(1 for c in cands_cargo if not (bool(getattr(c, 'data_exoneracao', None)) or any(k in (c.status_atual or "").upper() for k in ["EXCLUÍDO", "EXONERADO"])) and (bool(getattr(c, 'edital_desistencia', None)) or any(k in (c.status_atual or "").upper() for k in ["DESISTENTE", "RENÚNCIA"])))
+            emp = sum(1 for c in cands_cargo if not (bool(getattr(c, 'data_exoneracao', None)) or any(k in (c.status_atual or "").upper() for k in ["EXCLUÍDO", "EXONERADO"])) and not (bool(getattr(c, 'edital_desistencia', None)) or any(k in (c.status_atual or "").upper() for k in ["DESISTENTE", "RENÚNCIA"])) and (bool(getattr(c, 'data_posse', None)) or "EMPOSSADO" in (c.status_atual or "").upper()))
+            tram = len(cands_cargo) - emp - des - exon
             saldo = max(0, v_edital - emp)
 
             if len(cands_cargo) > 0:
@@ -1622,18 +1625,22 @@ class AuditEngine:
             cands_fmt = []
             for c in cands_cargo:
                 st = (c.status_atual or "").upper()
-                if "EMPOSSADO" in st:
-                    status_lbl = "EMPOSSADO (EXERCÍCIO)"
-                    status_classe = "text-emerald-800 font-black bg-emerald-50 border-emerald-200"
-                    badge_tipo = "empossado"
-                elif any(k in st for k in ["DESISTENTE", "RENÚNCIA"]):
-                    status_lbl = "DESISTENTE / RENÚNCIA"
-                    status_classe = "text-rose-800 font-bold bg-rose-50 border-rose-200"
-                    badge_tipo = "desistente"
-                elif any(k in st for k in ["EXCLUÍDO", "EXONERADO"]):
+                has_posse = bool(getattr(c, 'data_posse', None))
+                has_exon = bool(getattr(c, 'data_exoneracao', None)) or any(k in st for k in ["EXCLUÍDO", "EXONERADO"])
+                has_desist = bool(getattr(c, 'edital_desistencia', None)) or any(k in st for k in ["DESISTENTE", "RENÚNCIA"])
+
+                if has_exon:
                     status_lbl = "EXCLUÍDO / EXONERADO"
                     status_classe = "text-slate-700 font-bold bg-slate-100 border-slate-300"
                     badge_tipo = "exonerado"
+                elif has_desist:
+                    status_lbl = "DESISTENTE / RENÚNCIA"
+                    status_classe = "text-rose-800 font-bold bg-rose-50 border-rose-200"
+                    badge_tipo = "desistente"
+                elif has_posse or "EMPOSSADO" in st:
+                    status_lbl = "EMPOSSADO (EXERCÍCIO)"
+                    status_classe = "text-emerald-800 font-black bg-emerald-50 border-emerald-200"
+                    badge_tipo = "empossado"
                 else:
                     status_lbl = "CONVOCADO"
                     status_classe = "text-blue-800 font-bold bg-blue-50 border-blue-200"
