@@ -1986,6 +1986,41 @@ def certames_relatorio_analitico_expirado(
         "data_hoje": date.today()
     })
 
+@app.get("/certames/{id_certame}/relatorio-auditoria-final", response_class=HTMLResponse)
+@app.get("/certames/{id_certame}/expirado/auditoria", response_class=HTMLResponse)
+def certames_relatorio_auditoria_final(
+    id_certame: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    usuario = Depends(get_current_user)
+):
+    if not usuario: return RedirectResponse(url="/login", status_code=303)
+    certame = db.query(CertameAbertura).filter_by(id_certame=id_certame).first()
+    if not certame: return RedirectResponse(url="/certames", status_code=303)
+
+    engine = AuditEngine(db)
+    dados = engine.gerar_relatorio_auditoria_final(id_certame)
+
+    return templates.TemplateResponse("certame_relatorio_auditoria_final.html", {
+        "request": request,
+        "usuario": usuario,
+        "certame": dados["certame"],
+        "concurso": dados["concurso"],
+        "fase_oficial": dados["fase_oficial"],
+        "parecer_tecnico": dados["parecer_tecnico"],
+        "parecer_oficial": dados["parecer_oficial"],
+        "atos_vigencia": dados["atos_vigencia"],
+        "timeline_datas": dados["timeline_datas"],
+        "dias_vigencia": dados["dias_vigencia"],
+        "is_expirado": dados["is_expirado"],
+        "quadro_cargos": dados["quadro_cargos"],
+        "totais": dados["totais"],
+        "distribuicao_escolaridade": dados["distribuicao_escolaridade"],
+        "candidatos": dados["candidatos"],
+        "data_hoje": date.today(),
+        "active_page": "relatorio_auditoria_final"
+    })
+
 # --- ROTA DE VIGÊNCIA DO CERTAME ---
 @app.get("/certames/{id_certame}/vigencia", response_class=HTMLResponse)
 def tela_vigencia_certame(
