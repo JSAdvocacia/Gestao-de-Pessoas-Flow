@@ -383,7 +383,7 @@
                         <!-- BADGES COM QUANTITATIVOS DO CARGO -->
                         <div class="flex items-center space-x-2 text-[10px] font-mono">
                             <span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded">
-                                Edital: <strong>{{ g.vagas_edital }}</strong>
+                                Edital: <strong>{{ '0 (CR)' if g.vagas_edital == 0 else g.vagas_edital }}</strong>
                             </span>
                             <span class="bg-amber-950/80 text-amber-300 px-2 py-0.5 rounded border border-amber-600/40">
                                 Convocados: <strong>{{ g.total_convocados }}</strong>
@@ -476,7 +476,11 @@
                     <!-- CASO O CARGO NÃO TENHA TIDO CONVOCAÇÕES -->
                     <div class="p-4 bg-slate-50 text-center text-xs text-slate-500 font-medium">
                         <i class="fa-solid fa-circle-exclamation text-amber-500 mr-1.5"></i>
+                        {% if g.vagas_edital == 0 %}
+                        Nenhuma convocação realizada para este cargo durante o período de vigência do certame (Cargo exclusivo de Cadastro de Reserva).
+                        {% else %}
                         Nenhuma convocação realizada para este cargo durante o período de vigência do certame (Saldo Livre de {{ g.vagas_edital }} vaga mantido).
+                        {% endif %}
                     </div>
                     {% endif %}
 
@@ -484,33 +488,9 @@
                 {% endfor %}
             </div>
 
-            <!-- BLOCO DE CERTIFICAÇÃO FORMAL DE AUDITORIA -->
-            <div class="border-t border-slate-200 pt-6 mt-8">
-                <div class="text-center space-y-1 mb-8">
-                    <h4 class="font-black text-xs uppercase tracking-wider text-slate-800">
-                        CERTIFICAÇÃO DO ROL NOMINAL DE CONVOCAÇÕES E PROVIMENTOS
-                    </h4>
-                    <p class="text-[11px] text-slate-600 max-w-3xl mx-auto">
-                        O Controle Interno Municipal atesta que todos os {{ totais.total_convocados }} candidatos nominados acima foram regularmente convocados por meio de editais publicados na imprensa oficial do Município, correspondendo exatamente aos atos de posse, termos de renúncia e decretos de exoneração expedidos durante a vigência do certame.
-                    </p>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-center text-xs">
-                    <div class="space-y-1">
-                        <div class="w-64 border-b border-slate-400 mx-auto mb-2"></div>
-                        <p class="font-black text-slate-900">{{ certame.contador_responsavel or 'AUDITOR-GERAL DO MUNICÍPIO' }}</p>
-                        <p class="text-[10px] text-slate-500 uppercase">Controladoria Geral do Município • Matrícula Funcional</p>
-                    </div>
-                    <div class="space-y-1">
-                        <div class="w-64 border-b border-slate-400 mx-auto mb-2"></div>
-                        <p class="font-black text-slate-900">{{ certame.secretario_solicitante or 'SECRETÁRIO MUNICIPAL DE ADMINISTRAÇÃO' }}</p>
-                        <p class="text-[10px] text-slate-500 uppercase">Secretaria de Gestão de Pessoas • Ordenador de Despesa</p>
-                    </div>
-                </div>
-
-                <div class="text-center text-[10px] text-slate-400 mt-6 font-mono">
-                    Documento emitido eletronicamente em {{ data_hoje.strftime('%d/%m/%Y') }} pelo Sistema Integrado de Auditoria de Pessoal (SIAP).
-                </div>
+            <!-- NOTA DE RODAPÉ ELETRÔNICA DO SISTEMA -->
+            <div class="border-t border-slate-200 pt-4 mt-6 text-center text-[10px] text-slate-400 font-mono">
+                Documento emitido eletronicamente em {{ data_hoje.strftime('%d/%m/%Y') }} pelo Sistema Integrado de Auditoria de Pessoal (SIAP).
             </div>
 
         </section>

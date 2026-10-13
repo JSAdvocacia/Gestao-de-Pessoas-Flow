@@ -132,10 +132,11 @@ with open('attached_provimento.csv', encoding='utf-8') as f:
                 )
                 db.add(lot)
 
+                is_exclusivo_cr = any(k in cargo_nome for k in ["Higiene Dental", "Educação Física"])
                 v_conc = ConcursoVaga(
                     id_concurso=concurso.id_concurso,
                     id_cargo=cg.id_cargo,
-                    vagas_imediatas_edital=1,
+                    vagas_imediatas_edital=0 if is_exclusivo_cr else 1,
                     vagas_cr=10
                 )
                 db.add(v_conc)

@@ -142,7 +142,13 @@
                             <td class="p-2 border font-mono font-bold text-slate-600">{{ q.codigo_cargo }}</td>
                             <td class="p-2 border font-bold text-slate-900">{{ q.cargo_nome }}</td>
                             <td class="p-2 border text-center font-bold">{{ q.vagas_lei }}</td>
-                            <td class="p-2 border text-center font-extrabold text-indigo-700">{{ q.vagas_edital }}</td>
+                            <td class="p-2 border text-center font-extrabold text-indigo-700">
+                                {% if q.vagas_edital == 0 %}
+                                <span class="text-slate-500 font-bold" title="Cargo exclusivo Cadastro de Reserva">0 (CR)</span>
+                                {% else %}
+                                {{ q.vagas_edital }}
+                                {% endif %}
+                            </td>
                             <td class="p-2 border text-center font-bold text-sky-700">{{ q.aprovados_diretos }}</td>
                             <td class="p-2 border text-center text-slate-600">{{ q.cadastro_reserva }}</td>
                             <td class="p-2 border text-center font-bold text-amber-700">{{ q.convocados }}</td>
@@ -150,7 +156,13 @@
                             <td class="p-2 border text-center font-bold text-rose-700">{{ q.desistencias }}</td>
                             <td class="p-2 border text-center font-bold text-rose-600/80">{{ q.exoneracoes }}</td>
                             <td class="p-2 border text-center font-black {{ 'text-rose-700' if q.saldo_livre > 0 else 'text-slate-400' }}">{{ q.saldo_livre }}</td>
-                            <td class="p-2 border text-center font-extrabold text-emerald-700">{{ q.taxa_cobertura }}%</td>
+                            <td class="p-2 border text-center font-extrabold text-emerald-700">
+                                {% if q.vagas_edital == 0 %}
+                                <span class="text-slate-400 font-bold">CR</span>
+                                {% else %}
+                                {{ q.taxa_cobertura }}%
+                                {% endif %}
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -254,34 +266,10 @@
             </div>
         </section>
 
-        <!-- SEÇÃO V — PARECER CONCLUSIVO DO CONTROLE INTERNO -->
-        <section class="space-y-4 pt-4 border-t-2 border-slate-300">
-            <h3 class="text-xs font-black uppercase text-slate-900 tracking-wider flex items-center">
-                <i class="fa-solid fa-certificate mr-2 text-rose-600"></i> V. Parecer Conclusivo & Certificação de Auditoria
-            </h3>
-            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-300 text-xs text-slate-800 leading-relaxed space-y-2">
-                <p>
-                    O <strong>Controle Interno Municipal</strong>, no uso das atribuições conferidas pela Constituição Federal e pela Legislação Municipal vigente, <strong>CERTIFICA</strong> que o Concurso Público Edital nº <strong>{{ certame.numero_certame }}</strong> teve seu prazo de validade integralmente expirado em <strong>{{ concurso.data_validade_final.strftime('%d/%m/%Y') if (concurso and concurso.data_validade_final) else '14/10/2024' }}</strong>.
-                </p>
-                <p>
-                    Todos os provimentos realizados foram auditados, constatando-se a legalidade das nomeações efetuadas, a observância à ordem rigorosa de classificação e o correto encerramento do banco de aprovados, não subsistindo pendências nem direito subjetivo à nomeação decorrente de saldo editalício remanescente.
-                </p>
-            </div>
-
-            <!-- ASSINATURAS OFICIAIS -->
-            <div class="grid grid-cols-2 gap-8 pt-8 text-center text-xs">
-                <div class="border-t border-slate-800 pt-2 space-y-0.5">
-                    <p class="font-extrabold text-slate-900">{{ usuario.nome or 'Controlador Interno' }}</p>
-                    <p class="text-[10px] text-slate-600 uppercase font-bold">Auditor / Controlador Interno Municipal</p>
-                    <p class="text-[9px] text-slate-400 font-mono">Portaria de Designação nº 148/2023</p>
-                </div>
-                <div class="border-t border-slate-800 pt-2 space-y-0.5">
-                    <p class="font-extrabold text-slate-900">{{ certame.contador_responsavel or 'Márcio Henrique Tosti' }}</p>
-                    <p class="text-[10px] text-slate-600 uppercase font-bold">Contador Responsável — CRC nº 7815/O</p>
-                    <p class="text-[9px] text-slate-400 font-mono">Setor de Gestão de Pessoas & RH</p>
-                </div>
-            </div>
-        </section>
+        <!-- NOTA DE RODAPÉ ELETRÔNICA DO SISTEMA -->
+        <div class="border-t border-slate-200 pt-4 mt-6 text-center text-[10px] text-slate-400 font-mono">
+            Documento emitido eletronicamente em {{ data_hoje.strftime('%d/%m/%Y') if data_hoje else '13/10/2026' }} pelo Sistema Integrado de Auditoria de Pessoal (SIAP).
+        </div>
 
     </div>
 </body>

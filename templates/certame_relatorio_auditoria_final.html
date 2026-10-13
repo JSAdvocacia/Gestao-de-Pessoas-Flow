@@ -596,7 +596,13 @@
                                     </span>
                                 </td>
                                 <td class="py-2.5 px-2 text-center font-bold text-slate-300 cell-vagas-lei">{{ q.vagas_lei }}</td>
-                                <td class="py-2.5 px-2 text-center font-extrabold text-indigo-400 cell-vagas-edital">{{ q.vagas_edital }}</td>
+                                <td class="py-2.5 px-2 text-center font-extrabold text-indigo-400 cell-vagas-edital">
+                                    {% if q.vagas_edital == 0 %}
+                                    <span class="text-slate-500 font-bold" title="Cargo exclusivo Cadastro de Reserva">0 (CR)</span>
+                                    {% else %}
+                                    {{ q.vagas_edital }}
+                                    {% endif %}
+                                </td>
                                 <td class="py-2.5 px-2 text-center font-bold text-sky-400">{{ q.aprovados_diretos }}</td>
                                 <td class="py-2.5 px-2 text-center font-semibold text-slate-400">{{ q.cadastro_reserva }}</td>
                                 <td class="py-2.5 px-2 text-center font-bold text-amber-400 cell-convocados">{{ q.convocados }}</td>
@@ -671,23 +677,9 @@
                     </p>
                 </div>
 
-                <!-- ASSINATURAS DOS RESPONSÁVEIS -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 text-center text-xs">
-                    <div class="border-t border-slate-800 pt-2.5 space-y-0.5">
-                        <p class="font-extrabold text-slate-200">{{ usuario.nome or 'Jansen de Pinho e Silva' }}</p>
-                        <p class="text-[10px] text-amber-400 uppercase font-bold">Controlador Interno / Auditor Responsável</p>
-                        <p class="text-[9px] text-slate-500 font-mono">Portaria de Designação Municipal</p>
-                    </div>
-                    <div class="border-t border-slate-800 pt-2.5 space-y-0.5">
-                        <p class="font-extrabold text-slate-200">{{ certame.contador_responsavel or 'Márcio Henrique Tosti' }}</p>
-                        <p class="text-[10px] text-slate-400 uppercase font-bold">Contador Geral — CRC nº 7815/O</p>
-                        <p class="text-[9px] text-slate-500 font-mono">Setor Contábil & Gestão de Pessoas</p>
-                    </div>
-                    <div class="border-t border-slate-800 pt-2.5 space-y-0.5">
-                        <p class="font-extrabold text-slate-200">{{ certame.prefeito_ordenador or 'Alcino Pereira Barcelos' }}</p>
-                        <p class="text-[10px] text-slate-400 uppercase font-bold">Prefeito Municipal / Ordenador de Despesas</p>
-                        <p class="text-[9px] text-slate-500 font-mono">Prefeitura Municipal de Pontes e Lacerda - MT</p>
-                    </div>
+                <!-- NOTA DE RODAPÉ ELETRÔNICA DO SISTEMA -->
+                <div class="border-t border-slate-800 pt-4 mt-4 text-center text-[10px] text-slate-400 font-mono">
+                    Documento emitido eletronicamente em {{ data_hoje.strftime('%d/%m/%Y') if data_hoje else '13/10/2026' }} pelo Sistema Integrado de Auditoria de Pessoal (SIAP).
                 </div>
             </div>
 

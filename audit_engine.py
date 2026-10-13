@@ -1502,10 +1502,13 @@ class AuditEngine:
             emp = item["empossados_exercicio"]
             saldo = max(0, v_ed - emp)
             item["saldo_livre"] = saldo
-            item["taxa_cobertura"] = round((emp / v_ed) * 100, 1) if v_ed > 0 else 0.0
+            item["taxa_cobertura"] = round((emp / v_ed) * 100, 1) if v_ed > 0 else 100.0
             item["total_aprovados"] = item["aprovados_diretos"] + item["cadastro_reserva"]
 
-            if saldo == 0:
+            if v_ed == 0:
+                item["situacao_provimento"] = "CADASTRO RESERVA"
+                totais["cargos_preenchidos_100"] += 1
+            elif saldo == 0:
                 item["situacao_provimento"] = "100% PREENCHIDO"
                 totais["cargos_preenchidos_100"] += 1
             else:

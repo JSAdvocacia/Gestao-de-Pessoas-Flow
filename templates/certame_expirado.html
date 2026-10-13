@@ -294,7 +294,13 @@
                                     <td class="py-2.5 px-3 font-mono text-[11px] font-bold text-slate-400">{{ q.codigo_cargo }}</td>
                                     <td class="py-2.5 px-3 font-bold text-white">{{ q.cargo_nome }}</td>
                                     <td class="py-2.5 px-2 text-center font-bold text-slate-300">{{ q.vagas_lei }}</td>
-                                    <td class="py-2.5 px-2 text-center font-extrabold text-indigo-400">{{ q.vagas_edital }}</td>
+                                    <td class="py-2.5 px-2 text-center font-extrabold text-indigo-400">
+                                        {% if q.vagas_edital == 0 %}
+                                        <span class="text-slate-500 font-bold" title="Cargo exclusivo Cadastro de Reserva">0 (CR)</span>
+                                        {% else %}
+                                        {{ q.vagas_edital }}
+                                        {% endif %}
+                                    </td>
                                     <td class="py-2.5 px-2 text-center font-bold text-sky-400">{{ q.aprovados_diretos }}</td>
                                     <td class="py-2.5 px-2 text-center font-semibold text-slate-400">{{ q.cadastro_reserva }}</td>
                                     <td class="py-2.5 px-2 text-center font-bold text-amber-400">{{ q.convocados }}</td>
@@ -472,21 +478,9 @@
                 </div>
             </div>
 
-            <!-- ASSINATURA E AUDITORIA EXECUTIVA DE ENCERRAMENTO -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center space-y-3 print-card">
-                <div class="w-12 h-12 bg-rose-500/20 rounded-full flex items-center justify-center text-rose-400 text-xl mx-auto border border-rose-500/40">
-                    <i class="fa-solid fa-stamp"></i>
-                </div>
-                <h4 class="font-extrabold text-sm text-white uppercase tracking-wider">
-                    Certificação Digital de Encerramento Auditado do Certame
-                </h4>
-                <p class="text-xs text-slate-400 max-w-xl mx-auto leading-relaxed">
-                    Certifico que este Dossiê Consolidado de Encerramento do Concurso Público nº {{ certame.numero_certame }} reúne a totalidade dos atos administrativos pré-editalícios, oficiais e de acompanhamento de provimento do Município de {{ certame.municipio }}, encontrando-se arquivado e à disposição dos órgãos de fiscalização e do Tribunal de Contas.
-                </p>
-                <div class="pt-4 border-t border-slate-800/80 max-w-xs mx-auto text-xs">
-                    <p class="font-extrabold text-slate-200">{{ usuario.nome or 'Sistema SIAP de Auditoria' }}</p>
-                    <p class="text-[10px] text-slate-500 font-mono">AUDITORIA E CONTROLE INTERNO MUNICIPAL</p>
-                </div>
+            <!-- NOTA DE RODAPÉ ELETRÔNICA DO SISTEMA -->
+            <div class="border-t border-slate-800 pt-4 mt-6 text-center text-[10px] text-slate-400 font-mono">
+                Documento emitido eletronicamente em {{ data_hoje.strftime('%d/%m/%Y') if data_hoje else '13/10/2026' }} pelo Sistema Integrado de Auditoria de Pessoal (SIAP).
             </div>
 
         </main>

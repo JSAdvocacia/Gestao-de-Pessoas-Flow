@@ -566,7 +566,11 @@
 
                             <!-- 3. VAGAS EDITAL -->
                             <td class="py-2.5 px-2 border-r border-slate-200 text-center font-extrabold text-slate-900">
+                                {% if q.vagas_edital == 0 %}
+                                <span class="text-slate-500 font-bold" title="Cargo exclusivo Cadastro de Reserva">0 (CR)</span>
+                                {% else %}
                                 {{ q.vagas_edital }}
+                                {% endif %}
                             </td>
 
                             <!-- 4. APROVADOS DIRETOS -->
@@ -606,7 +610,11 @@
 
                             <!-- 11. COBERTURA % -->
                             <td class="py-2.5 px-3 text-center font-extrabold {{ 'text-emerald-700' if q.taxa_cobertura >= 100 else ('text-amber-600' if q.taxa_cobertura > 0 else 'text-slate-400') }}">
+                                {% if q.vagas_edital == 0 %}
+                                <span class="text-slate-400 font-bold" title="Exclusivo Cadastro de Reserva">CR</span>
+                                {% else %}
                                 {{ "%.1f"|format(q.taxa_cobertura) }}%
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
@@ -673,33 +681,9 @@
                 </ul>
             </div>
 
-            <!-- BLOCO DE CERTIFICAÇÃO FORMAL E ASSINATURAS DE AUDITORIA -->
-            <div class="border-t border-slate-200 pt-6 mt-6">
-                <div class="text-center space-y-1 mb-8">
-                    <h4 class="font-black text-xs uppercase tracking-wider text-slate-800">
-                        CERTIFICAÇÃO CONCLUSIVA DE AUDITORIA DO CERTAME
-                    </h4>
-                    <p class="text-[11px] text-slate-600 max-w-3xl mx-auto">
-                        O Controle Interno Municipal certifica a conformidade do presente Quadro Quantitativo Consolidado com os editais de convocação, termos de posse e portarias de nomeação publicadas na imprensa oficial, em estrito cumprimento ao art. 37, II da Constituição Federal.
-                    </p>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-center text-xs">
-                    <div class="space-y-1">
-                        <div class="w-64 border-b border-slate-400 mx-auto mb-2"></div>
-                        <p class="font-black text-slate-900">{{ certame.contador_responsavel or 'AUDITOR-GERAL DO MUNICÍPIO' }}</p>
-                        <p class="text-[10px] text-slate-500 uppercase">Controladoria Geral do Município • Matrícula Funcional</p>
-                    </div>
-                    <div class="space-y-1">
-                        <div class="w-64 border-b border-slate-400 mx-auto mb-2"></div>
-                        <p class="font-black text-slate-900">{{ certame.secretario_solicitante or 'SECRETÁRIO MUNICIPAL DE ADMINISTRAÇÃO' }}</p>
-                        <p class="text-[10px] text-slate-500 uppercase">Secretaria de Gestão de Pessoas • Ordenador de Despesa</p>
-                    </div>
-                </div>
-
-                <div class="text-center text-[10px] text-slate-400 mt-6 font-mono">
-                    Documento gerado eletronicamente em {{ data_hoje.strftime('%d/%m/%Y') }} pelo Sistema Integrado de Auditoria de Pessoal (SIAP).
-                </div>
+            <!-- NOTA DE RODAPÉ ELETRÔNICA DO SISTEMA -->
+            <div class="border-t border-slate-200 pt-4 mt-6 text-center text-[10px] text-slate-400 font-mono">
+                Documento gerado eletronicamente em {{ data_hoje.strftime('%d/%m/%Y') if data_hoje else '13/10/2026' }} pelo Sistema Integrado de Auditoria de Pessoal (SIAP).
             </div>
 
         </section>
@@ -710,7 +694,7 @@
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
                     <h3 class="font-extrabold text-xs text-white uppercase tracking-wider flex items-center">
-                        <i class="fa-solid fa-chart-pie text-amber-400 mr-2"></i> Destinação das 313 Convocações
+                        <i class="fa-solid fa-chart-pie text-amber-400 mr-2"></i> Destinação das {{ totais.convocados }} Convocações
                     </h3>
                     <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded font-mono font-bold">Consolidado</span>
                 </div>
