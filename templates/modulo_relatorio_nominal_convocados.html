@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rol Nominal de Convocados por Cargo • Módulo de Relatórios de Auditoria</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        @media print {
+            .no-print, header, nav, .sidebar-container, .filtro-container, .botoes-acoes {
+                display: none !important;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+            }
+            .print-card {
+                border: none !important;
+                box-shadow: none !important;
+                background: white !important;
+                padding: 0 !important;
+            }
+            table {
+                font-size: 8pt !important;
+                width: 100% !important;
+            }
+            th, td {
+                padding: 3px 5px !important;
+            }
+            .bloco-cargo {
+                page-break-inside: avoid;
+                margin-bottom: 20px !important;
+            }
+            .page-break {
+                page-break-before: always;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex antialiased">
+
+    <!-- SIDEBAR DE NAVEGAÇÃO -->
+    <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0 sidebar-container no-print min-h-screen">
+        <div class="p-4 border-b border-slate-800 flex items-center space-x-3">
+            <div class="w-9 h-9 bg-gradient-to-tr from-amber-600 to-amber-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20 text-slate-950 font-black text-base">
+                <i class="fa-solid fa-file-invoice"></i>
+            </div>
+            <div>
+                <h1 class="font-black text-sm tracking-tight text-white flex items-center">
+                    SIAP <span class="text-amber-400 ml-1">AUDITORIA</span>
+                </h1>
+                <p class="text-[10px] text-slate-400 font-medium">Módulo de Relatórios</p>
+            </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1 text-xs">
+            <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Principal
+            </div>
+            <a href="/" class="flex items-center px-3 py-2 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                <i class="fa-solid fa-gauge-high w-5 text-sm mr-2.5"></i>
+                <span>Painel Geral</span>
+            </a>
+            <a href="/certames" class="flex items-center px-3 py-2 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                <i class="fa-solid fa-award w-5 text-sm mr-2.5"></i>
+                <span>Certames & Seleções</span>
+            </a>
+
+            {% if certame %}
+            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Certame nº {{ certame.numero_certame }}
+            </div>
+            <div class="pl-2 space-y-1 text-[11px]">
+                <a href="/certames/{{ certame.id_certame }}/wizard" class="flex items-center text-slate-400 hover:text-emerald-300 py-1 transition">
+                    <i class="fa-solid fa-folder-open text-emerald-400 text-[9px] w-3.5 mr-1.5"></i>
+                    <span class="truncate">Fase Pré-Edital</span>
+                </a>
+                <a href="/certames/{{ certame.id_certame }}/fase-oficial" class="flex items-center text-slate-400 hover:text-indigo-300 py-1 transition">
+                    <i class="fa-solid fa-file-contract text-indigo-400 text-[9px] w-3.5 mr-1.5"></i>
+                    <span class="truncate">Fase Oficial</span>
+                </a>
+                <a href="/certames/{{ certame.id_certame }}/acompanhamento" class="flex items-center text-slate-400 hover:text-emerald-300 py-1 transition">
+                    <i class="fa-solid fa-user-check text-emerald-400 text-[9px] w-3.5 mr-1.5"></i>
+                    <span class="truncate">Acompanhamento</span>
+                </a>
+                <a href="/certames/{{ certame.id_certame }}/vigencia" class="flex items-center pl-4 text-[10.5px] text-slate-400 hover:text-amber-300 py-0.5 transition border-l-2 border-slate-800 ml-2">
+                    <i class="fa-solid fa-clock-rotate-left text-amber-400 text-[9px] w-3 mr-1.5"></i>
+                    <span class="truncate">Vigência</span>
+                </a>
+                <a href="/certames/{{ certame.id_certame }}/expirado" class="flex items-center pl-4 text-[10.5px] text-rose-300 hover:text-rose-200 py-0.5 transition border-l-2 border-rose-500/60 ml-2">
+                    <i class="fa-solid fa-box-archive text-rose-400 text-[9px] w-3 mr-1.5"></i>
+                    <span class="truncate">Concurso Expirado</span>
+                </a>
+                <a href="/modulo/relatorios?id_certame={{ certame.id_certame }}" class="flex items-center pl-6 text-[10px] text-amber-300 hover:text-amber-200 py-0.5 transition border-l-2 border-amber-500/50 ml-2 bg-amber-950/40 rounded-r font-bold">
+                    <i class="fa-solid fa-file-invoice text-amber-400 text-[9px] w-3 mr-1.5"></i>
+                    <span class="truncate">Relatórios de Auditoria</span>
+                </a>
+            </div>
+            {% endif %}
+
+            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Módulos de Auditoria
+            </div>
+            <a href="/modulo/relatorios" class="flex items-center px-3 py-2.5 rounded-xl transition bg-amber-500/15 text-amber-300 font-extrabold border-r-2 border-amber-500">
+                <i class="fa-solid fa-file-invoice w-5 text-sm mr-2.5 text-amber-400"></i>
+                <div class="flex-1 flex items-center justify-between">
+                    <span>Relatórios de Auditoria</span>
+                    <span class="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-bold">Módulo</span>
+                </div>
+            </a>
+            <a href="/modulo/lotacionograma" class="flex items-center px-3 py-2 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                <i class="fa-solid fa-sitemap w-5 text-sm mr-2.5"></i>
+                <span>Lotacionograma Legal</span>
+            </a>
+            <a href="/modulo/concursos" class="flex items-center px-3 py-2 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                <i class="fa-solid fa-list-ol w-5 text-sm mr-2.5"></i>
+                <span>Ordem de Classificação</span>
+            </a>
+            <a href="/modulo/temporarios" class="flex items-center px-3 py-2 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                <i class="fa-solid fa-user-clock w-5 text-sm mr-2.5"></i>
+                <span>Contratos Temporários</span>
+            </a>
+            <a href="/modulo/afastamentos" class="flex items-center px-3 py-2 rounded-xl transition text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                <i class="fa-solid fa-notes-medical w-5 text-sm mr-2.5"></i>
+                <span>Afastamentos & Licenças</span>
+            </a>
+        </nav>
+
+        <div class="p-3 border-t border-slate-800 bg-slate-900/60">
+            <div class="flex items-center space-x-2.5">
+                <div class="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center font-bold text-slate-950 text-[10px]">
+                    {{ usuario.nome[:2].upper() if usuario.nome else 'AD' }}
+                </div>
+                <div class="truncate">
+                    <p class="font-bold text-slate-200 text-xs truncate">{{ usuario.nome or 'Auditor Responsável' }}</p>
+                    <p class="text-[10px] text-slate-500 truncate">{{ usuario.cargo or 'Controle Interno' }}</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL DO RELATÓRIO -->
+    <main class="flex-1 overflow-y-auto custom-scrollbar bg-slate-950 p-4 md:p-8 space-y-6">
+
+        <!-- CABEÇALHO DO RELATÓRIO NOMINAL -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5 no-print">
+            <div>
+                <div class="flex items-center space-x-3 mb-1">
+                    <span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider flex items-center">
+                        <i class="fa-solid fa-users-viewfinder mr-1.5"></i> 2º Relatório Gerencial de Auditoria
+                    </span>
+                    <span class="text-xs text-slate-400 font-mono">
+                        Certame nº {{ certame.numero_certame }} (Ano {{ certame.ano }})
+                    </span>
+                    <span class="bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">
+                        Vigência Expirada
+                    </span>
+                </div>
+                <h2 class="text-2xl font-black text-white tracking-tight">
+                    Rol Nominal de Convocados, Empossados e Desligados por Cargo
+                </h2>
+                <p class="text-xs text-slate-400 mt-1">
+                    Demonstrativo nominal dos 313 candidatos convocados por cargo. Os 445 candidatos mantidos estritamente em cadastro de reserva sem chamamento foram suprimidos.
+                </p>
+            </div>
+
+            <!-- BOTÕES DE AÇÃO E EXPORTAÇÃO -->
+            <div class="flex flex-wrap items-center gap-2.5 botoes-acoes">
+                <a href="/modulo/relatorios?id_certame={{ certame.id_certame }}" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-3.5 py-2 rounded-xl text-xs border border-slate-700 transition flex items-center shadow">
+                    <i class="fa-solid fa-table-cells mr-1.5 text-amber-400"></i> Quadro Consolidado
+                </a>
+                <button type="button" onclick="exportarRolNominalCSV()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-3.5 py-2 rounded-xl text-xs border border-slate-700 transition flex items-center shadow">
+                    <i class="fa-solid fa-file-excel mr-2 text-emerald-400"></i> Exportar CSV/Excel
+                </button>
+                <button type="button" onclick="window.print()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-black px-4 py-2 rounded-xl text-xs shadow-lg transition flex items-center">
+                    <i class="fa-solid fa-print mr-2 text-slate-950"></i> Imprimir / PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- ABAS / SELETOR DE RELATÓRIOS GERENCIAIS -->
+        <div class="flex items-center space-x-2 border-b border-slate-800 pb-2 no-print">
+            <a href="/modulo/relatorios?id_certame={{ certame.id_certame }}" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-900 transition flex items-center">
+                <i class="fa-solid fa-table-list mr-2 text-slate-500"></i> 1. Quadro Quantitativo Consolidado
+            </a>
+            <div class="px-4 py-2 rounded-xl text-xs font-black text-amber-300 bg-amber-500/20 border border-amber-500/40 flex items-center shadow">
+                <i class="fa-solid fa-users mr-2 text-amber-400"></i> 2. Rol Nominal de Convocados por Cargo (Ativo)
+            </div>
+        </div>
+
+        <!-- CARDS DE TOTALIZADORES EXECUTIVOS (KPIS DOS CONVOCADOS) -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 no-print">
+            <!-- 1. Total Convocados -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Total Convocados</span>
+                <div class="flex items-baseline justify-between">
+                    <span class="text-2xl font-black text-amber-400">{{ totais.total_convocados }}</span>
+                    <span class="text-[10px] text-amber-400 font-mono font-bold">100% chamados</span>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-1">Editais de chamamento</p>
+            </div>
+
+            <!-- 2. Em Exercício Efetivo (Verde) -->
+            <div class="bg-emerald-950/30 border border-emerald-500/40 rounded-2xl p-4 shadow-sm">
+                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-400 block mb-1">Em Exercício Efetivo</span>
+                <div class="flex items-baseline justify-between">
+                    <span class="text-2xl font-black text-emerald-300">{{ totais.empossados_exercicio }}</span>
+                    <span class="text-[10px] text-emerald-400 font-mono font-black">{{ "%.1f"|format(totais.taxa_aproveitamento) }}%</span>
+                </div>
+                <p class="text-[10px] text-emerald-400/80 mt-1">Servidores em atividade</p>
+            </div>
+
+            <!-- 3. Desistências / Renúncias (Vermelho) -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Desistências / Renúncias</span>
+                <div class="flex items-baseline justify-between">
+                    <span class="text-2xl font-black text-rose-400">{{ totais.desistencias }}</span>
+                    <span class="text-[10px] text-rose-400 font-mono font-bold">{{ "%.1f"|format((totais.desistencias / totais.total_convocados)*100) }}%</span>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-1">Termos de renúncia formal</p>
+            </div>
+
+            <!-- 4. Exonerações / Excluídos -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Excluídos / Exonerados</span>
+                <div class="flex items-baseline justify-between">
+                    <span class="text-2xl font-black text-slate-300">{{ totais.exoneracoes }}</span>
+                    <span class="text-[10px] text-slate-400 font-mono font-bold">{{ "%.1f"|format((totais.exoneracoes / totais.total_convocados)*100) }}%</span>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-1">Vacâncias e não comparecimento</p>
+            </div>
+
+            <!-- 5. Cadastro Reserva Omitido (Alerta Auditoria) -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">CR Não Convocados</span>
+                <div class="flex items-baseline justify-between">
+                    <span class="text-2xl font-black text-slate-500">{{ totais.candidatos_cr_omitidos }}</span>
+                    <span class="text-[10px] text-slate-500 font-mono">Suprimidos</span>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-1">Permaneceram em fila</p>
+            </div>
+        </div>
+
+        <!-- PAINEL DE FILTROS DINÂMICOS DO AUDITOR -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl filtro-container no-print">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm">
+                        <i class="fa-solid fa-filter"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-sm text-white">Filtros Dinâmicos do Rol Nominal</h3>
+                        <p class="text-[11px] text-slate-400">Filtre por candidato, cargo específico ou situação de provimento.</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button type="button" onclick="expandirTodosCargos()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-3 py-1.5 rounded-xl text-xs border border-slate-700 transition flex items-center">
+                        <i class="fa-solid fa-up-right-and-down-left-from-center mr-1.5"></i> Expandir Todos
+                    </button>
+                    <button type="button" onclick="limparFiltrosNominal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-3 py-1.5 rounded-xl text-xs border border-slate-700 transition flex items-center">
+                        <i class="fa-solid fa-rotate-left mr-1.5"></i> Limpar Filtros
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <!-- 1. Campo de Busca Textual -->
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">Buscar Candidato por Nome ou CPF</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+                        <input type="text" id="filtro_cand_busca" oninput="aplicarFiltrosNominal()" placeholder="Ex: Jaqueline, Matheus, 000.250..." class="w-full pl-8 pr-3 py-2 bg-slate-950 border border-slate-700 rounded-xl font-medium text-white placeholder-slate-500 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- 2. Seleção de Cargo Específico -->
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">Filtrar Cargo</label>
+                    <select id="filtro_cand_cargo" onchange="aplicarFiltrosNominal()" class="w-full py-2 px-3 bg-slate-950 border border-slate-700 rounded-xl font-bold text-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        <option value="">-- Todos os Cargos ({{ grupos_cargos|length }}) --</option>
+                        {% for g in grupos_cargos %}
+                        <option value="{{ g.codigo_cargo }}">{{ g.codigo_cargo }} - {{ g.cargo_nome }} ({{ g.total_convocados }} conv.)</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- 3. Situação Final de Provimento -->
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">Situação Final de Provimento</label>
+                    <select id="filtro_cand_situacao" onchange="aplicarFiltrosNominal()" class="w-full py-2 px-3 bg-slate-950 border border-slate-700 rounded-xl font-bold text-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        <option value="">-- Todas as Situações (313) --</option>
+                        <option value="empossado">Apenas Empossados (Exercício) ({{ totais.empossados_exercicio }})</option>
+                        <option value="desistente">Apenas Desistentes / Renúncias ({{ totais.desistencias }})</option>
+                        <option value="exonerado">Apenas Excluídos / Exonerados ({{ totais.exoneracoes }})</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- CONTADOR DINÂMICO -->
+            <div class="flex items-center justify-between pt-3 border-t border-slate-800 text-xs text-slate-400">
+                <div>
+                    Exibindo <span id="dyn_cands_count" class="font-extrabold text-amber-400">{{ totais.total_convocados }}</span> de {{ totais.total_convocados }} candidatos convocados
+                </div>
+                <div class="flex items-center space-x-3 text-[11px] font-mono">
+                    <span class="bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
+                        Exercício: <strong id="dyn_emp_count" class="text-emerald-400">{{ totais.empossados_exercicio }}</strong>
+                    </span>
+                    <span class="bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
+                        Desistências: <strong id="dyn_des_count" class="text-rose-400">{{ totais.desistencias }}</strong>
+                    </span>
+                    <span class="bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
+                        Exonerações: <strong id="dyn_exon_count" class="text-slate-300">{{ totais.exoneracoes }}</strong>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- O RELATÓRIO NOMINAL SEPARADO POR CARGO (ESTILO VISUAL IDÊNTICO À IMAGEM)   -->
+        <!-- ========================================================================= -->
+        <section class="bg-white text-slate-900 rounded-3xl p-6 md:p-8 shadow-2xl border border-slate-300 space-y-8 print-card" id="secao_relatorio_nominal">
+
+            <!-- CABEÇALHO DO DOCUMENTO INSTITUCIONAL -->
+            <div class="border-b-2 border-rose-800 pb-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
+                    <div class="flex items-center space-x-2 text-rose-800">
+                        <i class="fa-solid fa-users text-lg"></i>
+                        <h2 class="text-base md:text-lg font-black uppercase tracking-tight text-rose-900">
+                            IV. ROL NOMINAL DE CANDIDATOS CONVOCADOS E SITUAÇÃO FINAL POR CARGO
+                        </h2>
+                    </div>
+                    <span class="text-xs font-bold text-slate-500 font-mono">
+                        Total Auditado: {{ totais.total_convocados }} Candidatos Convocados
+                    </span>
+                </div>
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    Relação nominal discriminada cargo a cargo contendo exclusivamente os servidores que foram convocados, empossados em exercício efetivo ou que formalizaram desistência/exoneração.
+                    <strong>Candidatos classificados estritamente em cadastro de reserva sem convocação ({{ totais.candidatos_cr_omitidos }} candidatos) foram suprimidos desta apuração.</strong>
+                </p>
+            </div>
+
+            <!-- RESULTADO VAZIO -->
+            <div id="box_cands_sem_resultado" class="hidden py-12 text-center text-slate-500 bg-slate-50 rounded-2xl border border-slate-200">
+                <i class="fa-solid fa-filter-circle-xmark text-amber-500 text-3xl mb-2"></i>
+                <p class="font-bold text-sm text-slate-700">Nenhum candidato encontrado com os critérios de filtro selecionados.</p>
+                <button type="button" onclick="limparFiltrosNominal()" class="mt-2 px-4 py-1.5 bg-amber-600 text-white font-bold text-xs rounded-xl shadow">
+                    Limpar Filtros
+                </button>
+            </div>
+
+            <!-- BLOCOS DE CARGOS (SEPARADOS POR CARGO) -->
+            <div class="space-y-6" id="container_blocos_cargos">
+                {% for g in grupos_cargos %}
+                <div class="bloco-cargo border border-slate-300 rounded-2xl overflow-hidden shadow-sm"
+                     data-codigo-cargo="{{ g.codigo_cargo }}"
+                     data-nome-cargo="{{ g.cargo_nome.lower() }}"
+                     data-total-convocados="{{ g.total_convocados }}">
+
+                    <!-- HEADER DO CARGO -->
+                    <div class="bg-slate-900 text-white p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2">
+                        <div class="flex items-center space-x-2.5">
+                            <span class="bg-amber-500 text-slate-950 font-mono font-black text-xs px-2.5 py-0.5 rounded shadow">
+                                {{ g.codigo_cargo }}
+                            </span>
+                            <h3 class="font-black text-xs md:text-sm text-slate-100 uppercase tracking-tight">
+                                {{ g.cargo_nome }}
+                            </h3>
+                            <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">
+                                {{ g.nivel_escolaridade }}
+                            </span>
+                        </div>
+
+                        <!-- BADGES COM QUANTITATIVOS DO CARGO -->
+                        <div class="flex items-center space-x-2 text-[10px] font-mono">
+                            <span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded">
+                                Edital: <strong>{{ g.vagas_edital }}</strong>
+                            </span>
+                            <span class="bg-amber-950/80 text-amber-300 px-2 py-0.5 rounded border border-amber-600/40">
+                                Convocados: <strong>{{ g.total_convocados }}</strong>
+                            </span>
+                            <span class="bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded border border-emerald-600/40 font-bold">
+                                Exercício: <strong>{{ g.empossados_exercicio }}</strong>
+                            </span>
+                            <span class="bg-rose-950 text-rose-300 px-2 py-0.5 rounded border border-rose-600/40">
+                                Desistências: <strong>{{ g.desistencias }}</strong>
+                            </span>
+                            <span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded">
+                                Exonerações: <strong>{{ g.exoneracoes }}</strong>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- TABELA NOMINAL DOS CANDIDATOS DO CARGO -->
+                    {% if g.total_convocados > 0 %}
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse tbl-cargo-candidatos">
+                            <thead class="bg-slate-950 text-white font-black uppercase text-[9.5px] tracking-wider border-b border-slate-800">
+                                <tr>
+                                    <th class="py-2.5 px-3 text-center border-r border-slate-800 w-16">Class.</th>
+                                    <th class="py-2.5 px-3 border-r border-slate-800">Nome do Candidato</th>
+                                    <th class="py-2.5 px-3 border-r border-slate-800 w-36">CPF</th>
+                                    <th class="py-2.5 px-3 border-r border-slate-800">Cargo</th>
+                                    <th class="py-2.5 px-2 text-center border-r border-slate-800 w-20">Cota</th>
+                                    <th class="py-2.5 px-3 text-center w-56">Situação Final de Provimento</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 font-medium">
+                                {% for cand in g.candidatos %}
+                                <tr class="row-cand-item hover:bg-amber-50/50 transition {{ 'bg-slate-50/50' if loop.index % 2 == 0 else 'bg-white' }}"
+                                    data-nome="{{ cand.nome_completo.lower() }}"
+                                    data-cpf="{{ cand.cpf }}"
+                                    data-badge-tipo="{{ cand.badge_tipo }}"
+                                    data-codigo-cargo="{{ g.codigo_cargo }}">
+                                    
+                                    <!-- 1. CLASSIFICAÇÃO -->
+                                    <td class="py-2 px-3 text-center font-black text-slate-900 border-r border-slate-200">
+                                        #{{ cand.classificacao_original }}º
+                                    </td>
+
+                                    <!-- 2. NOME DO CANDIDATO -->
+                                    <td class="py-2 px-3 font-bold text-slate-900 border-r border-slate-200">
+                                        {{ cand.nome_completo }}
+                                    </td>
+
+                                    <!-- 3. CPF -->
+                                    <td class="py-2 px-3 font-mono text-slate-600 border-r border-slate-200 whitespace-nowrap">
+                                        {{ cand.cpf }}
+                                    </td>
+
+                                    <!-- 4. CARGO -->
+                                    <td class="py-2 px-3 text-slate-800 border-r border-slate-200 leading-snug">
+                                        {{ g.cargo_nome }}
+                                    </td>
+
+                                    <!-- 5. COTA -->
+                                    <td class="py-2 px-2 text-center font-bold text-slate-700 border-r border-slate-200 uppercase">
+                                        {{ cand.tipo_cota }}
+                                    </td>
+
+                                    <!-- 6. SITUAÇÃO FINAL (STYLING IDÊNTICO À IMAGEM DO USUÁRIO) -->
+                                    <td class="py-2 px-3 text-center">
+                                        {% if cand.badge_tipo == 'empossado' %}
+                                        <span class="text-emerald-800 font-black">
+                                            EMPOSSADO (EXERCÍCIO)
+                                        </span>
+                                        {% elif cand.badge_tipo == 'desistente' %}
+                                        <span class="text-rose-800 font-bold">
+                                            DESISTENTE / RENÚNCIA
+                                        </span>
+                                        {% elif cand.badge_tipo == 'exonerado' %}
+                                        <span class="text-slate-700 font-bold">
+                                            EXCLUÍDO / EXONERADO
+                                        </span>
+                                        {% else %}
+                                        <span class="text-blue-800 font-bold">
+                                            CONVOCADO
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <!-- CASO O CARGO NÃO TENHA TIDO CONVOCAÇÕES -->
+                    <div class="p-4 bg-slate-50 text-center text-xs text-slate-500 font-medium">
+                        <i class="fa-solid fa-circle-exclamation text-amber-500 mr-1.5"></i>
+                        Nenhuma convocação realizada para este cargo durante o período de vigência do certame (Saldo Livre de {{ g.vagas_edital }} vaga mantido).
+                    </div>
+                    {% endif %}
+
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- BLOCO DE CERTIFICAÇÃO FORMAL DE AUDITORIA -->
+            <div class="border-t border-slate-200 pt-6 mt-8">
+                <div class="text-center space-y-1 mb-8">
+                    <h4 class="font-black text-xs uppercase tracking-wider text-slate-800">
+                        CERTIFICAÇÃO DO ROL NOMINAL DE CONVOCAÇÕES E PROVIMENTOS
+                    </h4>
+                    <p class="text-[11px] text-slate-600 max-w-3xl mx-auto">
+                        O Controle Interno Municipal atesta que todos os 313 candidatos nominados acima foram regularmente convocados por meio de editais publicados na imprensa oficial do Município, correspondendo exatamente aos atos de posse, termos de renúncia e decretos de exoneração expedidos durante a vigência do certame.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-center text-xs">
+                    <div class="space-y-1">
+                        <div class="w-64 border-b border-slate-400 mx-auto mb-2"></div>
+                        <p class="font-black text-slate-900">{{ certame.contador_responsavel or 'AUDITOR-GERAL DO MUNICÍPIO' }}</p>
+                        <p class="text-[10px] text-slate-500 uppercase">Controladoria Geral do Município • Matrícula Funcional</p>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="w-64 border-b border-slate-400 mx-auto mb-2"></div>
+                        <p class="font-black text-slate-900">{{ certame.secretario_solicitante or 'SECRETÁRIO MUNICIPAL DE ADMINISTRAÇÃO' }}</p>
+                        <p class="text-[10px] text-slate-500 uppercase">Secretaria de Gestão de Pessoas • Ordenador de Despesa</p>
+                    </div>
+                </div>
+
+                <div class="text-center text-[10px] text-slate-400 mt-6 font-mono">
+                    Documento emitido eletronicamente em {{ data_hoje.strftime('%d/%m/%Y') }} pelo Sistema Integrado de Auditoria de Pessoal (SIAP).
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- SCRIPT DE FILTROS DINÂMICOS E EXPORTAÇÃO CSV -->
+    <script>
+        function aplicarFiltrosNominal() {
+            const busca = (document.getElementById('filtro_cand_busca').value || '').trim().toLowerCase();
+            const cargoFiltro = (document.getElementById('filtro_cand_cargo').value || '').trim();
+            const situacaoFiltro = (document.getElementById('filtro_cand_situacao').value || '').trim();
+
+            const blocos = document.querySelectorAll('.bloco-cargo');
+            let totalCandsVisiveis = 0;
+            let totalEmpVisiveis = 0;
+            let totalDesVisiveis = 0;
+            let totalExonVisiveis = 0;
+            let blocosComResultados = 0;
+
+            blocos.forEach(bloco => {
+                const codCargo = bloco.getAttribute('data-codigo-cargo') || '';
+                const totalConv = parseInt(bloco.getAttribute('data-total-convocados')) || 0;
+
+                // Se o cargo foi filtrado
+                if (cargoFiltro && codCargo !== cargoFiltro) {
+                    bloco.classList.add('hidden');
+                    return;
+                }
+
+                if (totalConv === 0) {
+                    if (busca || situacaoFiltro) {
+                        bloco.classList.add('hidden');
+                    } else {
+                        bloco.classList.remove('hidden');
+                        blocosComResultados++;
+                    }
+                    return;
+                }
+
+                const rows = bloco.querySelectorAll('tr.row-cand-item');
+                let rowsVisiveisNoBloco = 0;
+
+                rows.forEach(row => {
+                    const nome = row.getAttribute('data-nome') || '';
+                    const cpf = row.getAttribute('data-cpf') || '';
+                    const badgeTipo = row.getAttribute('data-badge-tipo') || '';
+
+                    // 1. Busca
+                    let matchBusca = true;
+                    if (busca) {
+                        matchBusca = nome.includes(busca) || cpf.includes(busca);
+                    }
+
+                    // 2. Situação
+                    let matchSit = true;
+                    if (situacaoFiltro) {
+                        matchSit = (badgeTipo === situacaoFiltro);
+                    }
+
+                    if (matchBusca && matchSit) {
+                        row.classList.remove('hidden');
+                        rowsVisiveisNoBloco++;
+                        totalCandsVisiveis++;
+
+                        if (badgeTipo === 'empossado') totalEmpVisiveis++;
+                        else if (badgeTipo === 'desistente') totalDesVisiveis++;
+                        else if (badgeTipo === 'exonerado') totalExonVisiveis++;
+                    } else {
+                        row.classList.add('hidden');
+                    }
+                });
+
+                if (rowsVisiveisNoBloco > 0) {
+                    bloco.classList.remove('hidden');
+                    blocosComResultados++;
+                } else {
+                    bloco.classList.add('hidden');
+                }
+            });
+
+            // Tratamento de resultado vazio geral
+            const boxVazio = document.getElementById('box_cands_sem_resultado');
+            if (boxVazio) {
+                if (blocosComResultados === 0) {
+                    boxVazio.classList.remove('hidden');
+                } else {
+                    boxVazio.classList.add('hidden');
+                }
+            }
+
+            // Atualização dos Contadores Dinâmicos
+            document.getElementById('dyn_cands_count').textContent = totalCandsVisiveis;
+            document.getElementById('dyn_emp_count').textContent = totalEmpVisiveis;
+            document.getElementById('dyn_des_count').textContent = totalDesVisiveis;
+            document.getElementById('dyn_exon_count').textContent = totalExonVisiveis;
+        }
+
+        function limparFiltrosNominal() {
+            document.getElementById('filtro_cand_busca').value = '';
+            document.getElementById('filtro_cand_cargo').value = '';
+            document.getElementById('filtro_cand_situacao').value = '';
+            aplicarFiltrosNominal();
+        }
+
+        function expandirTodosCargos() {
+            document.getElementById('filtro_cand_cargo').value = '';
+            aplicarFiltrosNominal();
+        }
+
+        // Exportação Dinâmica do Rol Nominal para CSV
+        function exportarRolNominalCSV() {
+            let csv = [];
+            csv.push(['"CÓDIGO CARGO"', '"CARGO"', '"CLASSIFICAÇÃO"', '"NOME DO CANDIDATO"', '"CPF"', '"COTA"', '"SITUAÇÃO FINAL"'].join(';'));
+
+            const blocos = document.querySelectorAll('.bloco-cargo');
+            blocos.forEach(bloco => {
+                if (bloco.classList.contains('hidden')) return;
+                const cod = bloco.getAttribute('data-codigo-cargo') || '';
+                const rows = bloco.querySelectorAll('tr.row-cand-item');
+
+                rows.forEach(row => {
+                    if (row.classList.contains('hidden')) return;
+                    const cols = row.querySelectorAll('td');
+                    if (cols.length >= 6) {
+                        const classif = cols[0].innerText.trim();
+                        const nome = cols[1].innerText.trim();
+                        const cpf = cols[2].innerText.trim();
+                        const cargo = cols[3].innerText.trim();
+                        const cota = cols[4].innerText.trim();
+                        const situacao = cols[5].innerText.trim();
+
+                        csv.push([
+                            `"${cod}"`,
+                            `"${cargo}"`,
+                            `"${classif}"`,
+                            `"${nome}"`,
+                            `"${cpf}"`,
+                            `"${cota}"`,
+                            `"${situacao}"`
+                        ].join(';'));
+                    }
+                });
+            });
+
+            const csvString = '\uFEFF' + csv.join('\r\n');
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'Rol_Nominal_Convocados_Certame_{{ certame.numero_certame }}.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>

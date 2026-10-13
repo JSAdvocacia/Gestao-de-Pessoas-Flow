@@ -27,6 +27,8 @@ routes_to_test = [
     ("/modulo/afastamentos", "Módulo Afastamentos & Licenças"),
     ("/modulo/relatorios", "Módulo de Relatórios de Auditoria"),
     ("/certames/1/relatorios", "Relatórios de Auditoria do Certame"),
+    ("/modulo/relatorios/rol-convocados", "Rol Nominal de Convocados por Cargo"),
+    ("/certames/1/relatorios/rol-convocados", "Rol Nominal Convocados do Certame"),
     ("/achados", "Matriz de Achados"),
     ("/normativos", "Normativos & Jurisprudência"),
     ("/usuarios", "Gestão de Acesso"),

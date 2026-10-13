@@ -1550,3 +1550,133 @@ class AuditEngine:
             "candidatos": candidatos
         }
 
+    def gerar_relatorio_nominal_convocados(self, certame_id: int):
+        """
+        Gera o Relatório Nominal de Candidatos Convocados por Cargo (Encerramento do Certame).
+        Filtra estritamente os candidatos convocados (empossados em exercício, desistentes,
+        exonerados/excluídos e convocados em trâmite), agrupando-os por cargo e
+        omitindo os candidatos que permaneceram apenas em cadastro de reserva sem chamamento.
+        """
+        from models import Candidato, Cargo, ConcursoVaga, CertameAbertura, Concurso, CertameFaseOficial
+        from datetime import date
+
+        certame = self.db.query(CertameAbertura).filter_by(id_certame=certame_id).first()
+        concurso = self.db.query(Concurso).filter_by(id_certame=certame_id).first()
+        fase_oficial = self.db.query(CertameFaseOficial).filter_by(id_certame=certame_id).first()
+
+        todos_candidatos = self.db.query(Candidato).filter(
+            (Candidato.id_certame == certame_id) | 
+            (Candidato.id_concurso == (concurso.id_concurso if concurso else 0))
+        ).order_by(Candidato.id_cargo, Candidato.classificacao_original).all()
+
+        # Filtrar apenas os que foram convocados (movimentações reais)
+        # Exclui os que permaneceram apenas como cadastro de reserva não chamado
+        candidatos_convocados = []
+        for cand in todos_candidatos:
+            st = (cand.status_atual or "").upper()
+            if any(k in st for k in ["EMPOSSADO", "CONVOCADO", "DESISTENTE", "RENÚNCIA", "EXCLUÍDO", "EXONERADO"]):
+                candidatos_convocados.append(cand)
+
+        # Buscar todos os cargos do certame (CARGO-001 a CARGO-024)
+        cargos_db = self.db.query(Cargo).filter(Cargo.codigo_cargo.like("CARGO-%")).order_by(Cargo.codigo_cargo.asc()).all()
+        if not cargos_db:
+            cargos_db = self.db.query(Cargo).order_by(Cargo.id_cargo.asc()).all()
+
+        grupos_cargos = []
+        totais = {
+            "total_homologados": len(todos_candidatos),
+            "total_convocados": len(candidatos_convocados),
+            "empossados_exercicio": 0,
+            "desistencias": 0,
+            "exoneracoes": 0,
+            "convocados_tramite": 0,
+            "candidatos_cr_omitidos": len(todos_candidatos) - len(candidatos_convocados),
+            "cargos_com_convocados": 0,
+            "total_cargos": len(cargos_db)
+        }
+
+        for cargo in cargos_db:
+            cands_cargo = [c for c in candidatos_convocados if c.id_cargo == cargo.id_cargo]
+            cands_cargo.sort(key=lambda x: x.classificacao_original or 999999)
+
+            vaga_rec = self.db.query(ConcursoVaga).filter_by(
+                id_concurso=concurso.id_concurso if concurso else 0,
+                id_cargo=cargo.id_cargo
+            ).first()
+            v_edital = vaga_rec.vagas_imediatas_edital if vaga_rec else 1
+
+            emp = sum(1 for c in cands_cargo if "EMPOSSADO" in (c.status_atual or "").upper())
+            des = sum(1 for c in cands_cargo if any(k in (c.status_atual or "").upper() for k in ["DESISTENTE", "RENÚNCIA"]))
+            exon = sum(1 for c in cands_cargo if any(k in (c.status_atual or "").upper() for k in ["EXCLUÍDO", "EXONERADO"]))
+            tram = sum(1 for c in cands_cargo if "CONVOCADO" in (c.status_atual or "").upper() and not any(k in (c.status_atual or "").upper() for k in ["EMPOSSADO", "DESISTENTE", "EXONERADO"]))
+            saldo = max(0, v_edital - emp)
+
+            if len(cands_cargo) > 0:
+                totais["cargos_com_convocados"] += 1
+
+            totais["empossados_exercicio"] += emp
+            totais["desistencias"] += des
+            totais["exoneracoes"] += exon
+            totais["convocados_tramite"] += tram
+
+            cands_fmt = []
+            for c in cands_cargo:
+                st = (c.status_atual or "").upper()
+                if "EMPOSSADO" in st:
+                    status_lbl = "EMPOSSADO (EXERCÍCIO)"
+                    status_classe = "text-emerald-800 font-black bg-emerald-50 border-emerald-200"
+                    badge_tipo = "empossado"
+                elif any(k in st for k in ["DESISTENTE", "RENÚNCIA"]):
+                    status_lbl = "DESISTENTE / RENÚNCIA"
+                    status_classe = "text-rose-800 font-bold bg-rose-50 border-rose-200"
+                    badge_tipo = "desistente"
+                elif any(k in st for k in ["EXCLUÍDO", "EXONERADO"]):
+                    status_lbl = "EXCLUÍDO / EXONERADO"
+                    status_classe = "text-slate-700 font-bold bg-slate-100 border-slate-300"
+                    badge_tipo = "exonerado"
+                else:
+                    status_lbl = "CONVOCADO"
+                    status_classe = "text-blue-800 font-bold bg-blue-50 border-blue-200"
+                    badge_tipo = "convocado"
+
+                cands_fmt.append({
+                    "id_candidato": c.id_candidato,
+                    "classificacao_original": c.classificacao_original,
+                    "classificacao_efetiva": c.classificacao_efetiva,
+                    "nome_completo": c.nome_completo,
+                    "cpf": c.cpf,
+                    "tipo_cota": c.tipo_cota or "AMPLA",
+                    "status_atual": c.status_atual,
+                    "status_lbl": status_lbl,
+                    "status_classe": status_classe,
+                    "badge_tipo": badge_tipo
+                })
+
+            grupos_cargos.append({
+                "id_cargo": cargo.id_cargo,
+                "codigo_cargo": cargo.codigo_cargo or f"CARGO-{cargo.id_cargo}",
+                "cargo_nome": cargo.nome_cargo,
+                "nivel_escolaridade": cargo.nivel_escolaridade or "Superior",
+                "vagas_edital": v_edital,
+                "total_convocados": len(cands_cargo),
+                "empossados_exercicio": emp,
+                "desistencias": des,
+                "exoneracoes": exon,
+                "convocados_tramite": tram,
+                "saldo_livre": saldo,
+                "taxa_cobertura": round((emp / v_edital) * 100, 1) if v_edital > 0 else 0.0,
+                "candidatos": cands_fmt
+            })
+
+        totais["taxa_aproveitamento"] = round((totais["empossados_exercicio"] / totais["total_convocados"]) * 100, 1) if totais["total_convocados"] > 0 else 0.0
+
+        return {
+            "certame": certame,
+            "concurso": concurso,
+            "fase_oficial": fase_oficial,
+            "grupos_cargos": grupos_cargos,
+            "totais": totais,
+            "data_hoje": date.today(),
+            "is_expirado": True
+        }
+
