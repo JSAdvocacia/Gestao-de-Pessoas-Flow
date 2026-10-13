@@ -1156,7 +1156,11 @@ async def anexar_fase_oficial(
                 texto_extraido += "\n\n" + conteudo_texto.strip()
 
             # Processar IA na Fase Oficial
-            DocumentParserAI.process_fase_oficial_text(texto_extraido, tipo_documento, fase_oficial)
+            try:
+                DocumentParserAI.process_fase_oficial_text(texto_extraido, tipo_documento, fase_oficial, db=db)
+            except Exception as e:
+                import logging
+                logging.getLogger("uvicorn").error(f"Erro ao processar IA na fase oficial: {e}", exc_info=True)
 
             # Salvar anexo
             anexo = CertameAnexo(
@@ -1194,7 +1198,11 @@ async def anexar_fase_oficial(
         caminho_salvo = res_pdf["caminho_arquivo"]
         tamanho_bytes = res_pdf["tamanho_bytes"]
 
-        DocumentParserAI.process_fase_oficial_text(texto_extraido, tipo_documento, fase_oficial)
+        try:
+            DocumentParserAI.process_fase_oficial_text(texto_extraido, tipo_documento, fase_oficial, db=db)
+        except Exception as e:
+            import logging
+            logging.getLogger("uvicorn").error(f"Erro ao processar IA na fase oficial: {e}", exc_info=True)
 
         anexo = CertameAnexo(
             id_certame=id_certame,

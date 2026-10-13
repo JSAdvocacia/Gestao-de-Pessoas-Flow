@@ -823,7 +823,8 @@ class AuditEngine:
             lot = self.db.query(Lotacionograma).filter_by(id_cargo=cg.id_cargo).first()
             v_ed = self.db.query(ConcursoVaga).filter_by(id_concurso=concurso.id_concurso, id_cargo=cg.id_cargo).first()
             
-            vagas_oferta = v_ed.vagas_imediatas_edital if v_ed else (min(lot.vagas_disponiveis_oficial, 10) if lot and lot.vagas_disponiveis_oficial > 0 else 1)
+            is_pure_cr = any(k in cg.nome_cargo.upper() for k in ["HIGIENE DENTAL", "EDUCAÇÃO FÍSICA", "EDUCACAO FISICA"])
+            vagas_oferta = 0 if is_pure_cr else (v_ed.vagas_imediatas_edital if v_ed else (min(lot.vagas_disponiveis_oficial, 10) if lot and lot.vagas_disponiveis_oficial > 0 else 1))
             if not v_ed:
                 v_ed = ConcursoVaga(
                     id_concurso=concurso.id_concurso,
@@ -832,6 +833,8 @@ class AuditEngine:
                     vagas_cr=5
                 )
                 self.db.add(v_ed)
+            elif is_pure_cr:
+                v_ed.vagas_imediatas_edital = 0
 
             if lot and v_ed.vagas_imediatas_edital > lot.vagas_disponiveis_oficial:
                 self.registrar_achado(

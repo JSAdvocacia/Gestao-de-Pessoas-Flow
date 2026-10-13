@@ -321,7 +321,7 @@ class DocumentParserAI:
         return {"tipo": "Portaria de Convocação", "portaria": num_portaria, "convocacoes_adicionadas": convocacoes_adicionadas}
 
     @staticmethod
-    def process_fase_oficial_text(text: str, tipo_documento: str, fase_oficial) -> dict:
+    def process_fase_oficial_text(text: str, tipo_documento: str, fase_oficial, db: Session = None) -> dict:
         """
         Lê e extrai automaticamente informações oficiais da Fase Pós-Edital
         (Datas de Diário Oficial, Decretos de Homologação, Total de Inscritos, Isenções, Gabarito)
@@ -390,8 +390,20 @@ class DocumentParserAI:
             fase_oficial.status_fase_oficial = "HOMOLOGADO_FINAL"
 
             # Tenta extrair a lista completa de candidatos e cargos se houver texto
-            if db and fase_oficial.id_certame:
-                DocumentParserAI.process_homologacao_resultado_final(text, db, fase_oficial.id_certame)
+            if fase_oficial.id_certame:
+                try:
+                    if db:
+                        DocumentParserAI.process_homologacao_resultado_final(text, db, fase_oficial.id_certame)
+                    else:
+                        from models import SessionLocal
+                        _local_db = SessionLocal()
+                        try:
+                            DocumentParserAI.process_homologacao_resultado_final(text, _local_db, fase_oficial.id_certame)
+                        finally:
+                            _local_db.close()
+                except Exception as e:
+                    import logging
+                    logging.getLogger("uvicorn").error(f"Erro ao processar homologação de candidatos: {e}", exc_info=True)
 
         return {"status": "SUCESSO", "tipo": tipo_documento}
 
@@ -510,17 +522,21 @@ class DocumentParserAI:
             aprovados_cnt = len([c for c in list_cands if c["situacao"] == "APROVADO"])
             cr_cnt = len([c for c in list_cands if c["situacao"] == "CADASTRO RESERVA"])
 
+            is_pure_cr = any(k in cargo.nome_cargo.upper() for k in ["HIGIENE DENTAL", "EDUCAÇÃO FÍSICA", "EDUCACAO FISICA"]) or (aprovados_cnt == 0)
             cv = db.query(ConcursoVaga).filter_by(id_concurso=concurso.id_concurso, id_cargo=cargo.id_cargo).first()
             if not cv:
+                vagas_imed = 0 if is_pure_cr else (aprovados_cnt or 1)
                 cv = ConcursoVaga(
                     id_concurso=concurso.id_concurso,
                     id_cargo=cargo.id_cargo,
-                    vagas_imediatas_edital=aprovados_cnt or 1,
+                    vagas_imediatas_edital=vagas_imed,
                     vagas_cr=cr_cnt
                 )
                 db.add(cv)
             else:
-                if aprovados_cnt > 0:
+                if is_pure_cr:
+                    cv.vagas_imediatas_edital = 0
+                elif aprovados_cnt > 0:
                     cv.vagas_imediatas_edital = aprovados_cnt
                 cv.vagas_cr = cr_cnt
             db.commit()
