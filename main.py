@@ -1536,16 +1536,23 @@ async def processar_ato_acompanhamento(
             text_ext += "\n" + conteudo_texto
 
         if text_ext:
-            # Auto-detecção de planilha/CSV de provimento tabular
-            if ("inscric" in text_ext.lower() or "cargo" in text_ext.lower()) and any(k in text_ext.lower() for k in ["posse", "convoc", "situac", "status", "exoner"]):
+            # Auto-detecção de formato e conteúdo do documento
+            is_csv_tabular = any(sep in text_ext[:1000] for sep in [",", ";", "\t", "|"]) and ("inscric" in text_ext.lower() or "cargo" in text_ext.lower()) and any(k in text_ext.lower() for k in ["posse", "convoc", "situac", "status", "exoner"])
+            res_ia_done = False
+
+            if is_csv_tabular:
                 res_csv = DocumentParserAI.process_csv_provimento_tabular(text_ext, db, id_certame)
-                total_afetados_ia += res_csv.get("afetados", 0)
-            elif "HOMOLOGA" in text_ext.upper() and ("APROVADO" in text_ext.upper() or "RESULTADO FINAL" in text_ext.upper()):
-                res_homol = DocumentParserAI.process_homologacao_resultado_final(text_ext, db, id_certame)
-                total_afetados_ia += res_homol.get("candidatos_injetados", 0)
-            else:
-                res_prov = DocumentParserAI.process_ato_provimento_texto(text_ext, db, id_certame, tipo_ato_default=tipo_ato)
-                total_afetados_ia += res_prov.get("afetados", 0)
+                if res_csv.get("afetados", 0) > 0:
+                    total_afetados_ia += res_csv.get("afetados", 0)
+                    res_ia_done = True
+
+            if not res_ia_done:
+                if "HOMOLOGA" in text_ext.upper() and ("APROVADO" in text_ext.upper() or "RESULTADO FINAL" in text_ext.upper()):
+                    res_homol = DocumentParserAI.process_homologacao_resultado_final(text_ext, db, id_certame)
+                    total_afetados_ia += res_homol.get("candidatos_injetados", 0)
+                else:
+                    res_prov = DocumentParserAI.process_ato_provimento_texto(text_ext, db, id_certame, tipo_ato_default=tipo_ato)
+                    total_afetados_ia += res_prov.get("afetados", 0)
 
         # Manter acervo unificado: Adicionar anexo e documento no repositório do certame
         tipo_anx = f"ACOMPANHAMENTO_{tipo_ato}"

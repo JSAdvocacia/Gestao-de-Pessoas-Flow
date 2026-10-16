@@ -969,44 +969,81 @@ class DocumentParserAI:
         if not novo_status:
             novo_status = "CONVOCADO"
 
+        # Extrair número do edital ou portaria
+        num_doc_match = re.search(r'(?:EDITAL\s+DE\s+CONVOCA[ÇC][ÃA]O|PORTARIA)\s*(?:N[ºo°\.]?\s*)?([0-9\/\-]+)', text, re.IGNORECASE)
+        num_doc = num_doc_match.group(1) if num_doc_match else "LEITURA_IA"
+
+        # Extrair data do documento se presente
+        data_doc = date.today()
+        dt_match = re.search(r'(\d{1,2})\s+de\s+([a-zç]+)\s+de\s+(20\d\d)', text_lower)
+        if dt_match:
+            meses_pt = {
+                'janeiro': 1, 'fevereiro': 2, 'março': 3, 'marco': 3, 'abril': 4,
+                'maio': 5, 'junho': 6, 'julho': 7, 'agosto': 8, 'setembro': 9,
+                'outubro': 10, 'novembro': 11, 'dezembro': 12
+            }
+            dia_int = int(dt_match.group(1))
+            mes_str = dt_match.group(2).lower()
+            ano_int = int(dt_match.group(3))
+            if mes_str in meses_pt:
+                try:
+                    data_doc = date(ano_int, meses_pt[mes_str], dia_int)
+                except Exception:
+                    pass
+
+        doc_rotulo = f"Edital nº {num_doc}" if "edital" in text_lower else f"Portaria nº {num_doc}"
+
         for cand in candidatos_certame:
+            matched = False
             if cand.nome_completo and len(cand.nome_completo) >= 6:
-                nome_cand = cand.nome_completo.strip()
-                if nome_cand.lower() in text_lower:
-                    st_anterior = cand.status_atual
-                    cand.status_atual = novo_status
+                nome_cand = cand.nome_completo.strip().lower()
+                if nome_cand in text_lower:
+                    matched = True
 
-                    if novo_status == "FINAL DA FILA (RECLASSIFICADO)":
-                        cand.classificacao_efetiva = cand.classificacao_original + 10
+            if not matched and cand.cpf:
+                raw_cpf = re.sub(r'\D', '', cand.cpf)
+                raw_insc = raw_cpf[-6:] if len(raw_cpf) >= 6 else ""
+                if raw_insc and raw_insc in text:
+                    matched = True
 
-                    mov = MovimentacaoCandidato(
-                        id_candidato=cand.id_candidato,
-                        tipo_evento=tipo_evento,
-                        numero_processo_sei="LEITURA_IA_AUTOMATICA",
-                        motivo_justificativa=f"Status atualizado automaticamente via Leitura IA do documento (anterior: {st_anterior}).",
-                        classificacao_anterior=cand.classificacao_original,
-                        classificacao_nova=cand.classificacao_efetiva
-                    )
-                    db.add(mov)
+            if matched:
+                st_anterior = cand.status_atual
+                cand.status_atual = novo_status
+                if "CONVOCADO" in novo_status:
+                    cand.edital_convocacao = doc_rotulo
 
-                    if "CONVOCADO" in novo_status or tipo_evento == "PORTARIA_CONVOCACAO":
-                        conv = db.query(Convocacao).filter_by(id_candidato=cand.id_candidato).first()
-                        if not conv:
-                            conv = Convocacao(
-                                id_concurso=cand.id_concurso,
-                                id_candidato=cand.id_candidato,
-                                ordem_convocacao_global=cand.classificacao_original,
-                                numero_portaria="LEITURA_IA",
-                                data_publicacao_doe=date.today(),
-                                prazo_posse_limite=date.today() + timedelta(days=30),
-                                compareceu=(novo_status == "EMPOSSADO")
-                            )
-                            db.add(conv)
-                        else:
-                            if novo_status == "EMPOSSADO":
-                                conv.compareceu = True
+                if novo_status == "FINAL DA FILA (RECLASSIFICADO)":
+                    cand.classificacao_efetiva = cand.classificacao_original + 10
 
-                    afetados += 1
+                mov = MovimentacaoCandidato(
+                    id_candidato=cand.id_candidato,
+                    tipo_evento=tipo_evento,
+                    numero_processo_sei=doc_rotulo,
+                    data_registro=data_doc,
+                    motivo_justificativa=f"Status atualizado automaticamente via Leitura IA do documento (anterior: {st_anterior}).",
+                    classificacao_anterior=cand.classificacao_original,
+                    classificacao_nova=cand.classificacao_efetiva
+                )
+                db.add(mov)
+
+                if "CONVOCADO" in novo_status or tipo_evento == "PORTARIA_CONVOCACAO":
+                    conv = db.query(Convocacao).filter_by(id_candidato=cand.id_candidato).first()
+                    if not conv:
+                        conv = Convocacao(
+                            id_concurso=cand.id_concurso,
+                            id_candidato=cand.id_candidato,
+                            ordem_convocacao_global=cand.classificacao_original,
+                            numero_portaria=doc_rotulo,
+                            data_publicacao_doe=data_doc,
+                            prazo_posse_limite=data_doc + timedelta(days=30),
+                            compareceu=(novo_status == "EMPOSSADO")
+                        )
+                        db.add(conv)
+                    else:
+                        if novo_status == "EMPOSSADO":
+                            conv.compareceu = True
+
+                afetados += 1
 
         db.commit()
         return {"afetados": afetados, "novo_status": novo_status}

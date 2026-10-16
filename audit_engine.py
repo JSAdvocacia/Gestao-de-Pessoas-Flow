@@ -823,8 +823,25 @@ class AuditEngine:
             lot = self.db.query(Lotacionograma).filter_by(id_cargo=cg.id_cargo).first()
             v_ed = self.db.query(ConcursoVaga).filter_by(id_concurso=concurso.id_concurso, id_cargo=cg.id_cargo).first()
             
-            is_pure_cr = any(k in cg.nome_cargo.upper() for k in ["HIGIENE DENTAL", "EDUCAÇÃO FÍSICA", "EDUCACAO FISICA"])
-            vagas_oferta = 0 if is_pure_cr else (v_ed.vagas_imediatas_edital if v_ed else (min(lot.vagas_disponiveis_oficial, 10) if lot and lot.vagas_disponiveis_oficial > 0 else 1))
+            # Definição estrita das vagas imediatas conforme Edital de Abertura nº 001/2023 (item 1.2)
+            # Demais cargos são estritamente Cadastro de Reserva (CR = 0 vagas imediatas)
+            cg_nome_u = cg.nome_cargo.upper()
+            if "MÉDICO (40" in cg_nome_u or "MEDICO (40" in cg_nome_u or "MEDICO 40" in cg_nome_u:
+                vagas_padrao = 3
+            elif any(k in cg_nome_u for k in [
+                "ENFERMEIRO - ZONA URBANA",
+                "ODONTÓLOGO", "ODONTOLOGO",
+                "EDUCAÇÃO INFANTIL - ZONA URBANA", "EDUCACAO INFANTIL - ZONA URBANA",
+                "ANOS INICIAIS - ZONA URBANA",
+                "MULTIMEIOS",
+                "ADMINISTRAÇÃO ESCOLAR", "ADMINISTRAO ESCOLAR",
+                "DESENVOLVIMENTO INFANTIL"
+            ]):
+                vagas_padrao = 1
+            else:
+                vagas_padrao = 0
+
+            vagas_oferta = v_ed.vagas_imediatas_edital if (v_ed and v_ed.vagas_imediatas_edital is not None) else vagas_padrao
             if not v_ed:
                 v_ed = ConcursoVaga(
                     id_concurso=concurso.id_concurso,
@@ -833,8 +850,6 @@ class AuditEngine:
                     vagas_cr=5
                 )
                 self.db.add(v_ed)
-            elif is_pure_cr:
-                v_ed.vagas_imediatas_edital = 0
 
             if lot and v_ed.vagas_imediatas_edital > lot.vagas_disponiveis_oficial:
                 self.registrar_achado(
@@ -935,7 +950,7 @@ class AuditEngine:
                 vaga_rec = self.db.query(ConcursoVaga).filter_by(id_concurso=concurso.id_concurso, id_cargo=cid).first()
                 lot_rec = self.db.query(Lotacionograma).filter_by(id_cargo=cid).first()
 
-                v_edital = vaga_rec.vagas_imediatas_edital if vaga_rec else 1
+                v_edital = vaga_rec.vagas_imediatas_edital if (vaga_rec and vaga_rec.vagas_imediatas_edital is not None) else 0
                 v_lei = lot_rec.vagas_criadas_lei if lot_rec else 10
                 v_oc = lot_rec.vagas_ocupadas_oficial if lot_rec else 0
                 v_livres = lot_rec.vagas_disponiveis_oficial if lot_rec else max(0, v_lei - v_oc)
@@ -1229,7 +1244,7 @@ class AuditEngine:
                 vaga_rec = self.db.query(ConcursoVaga).filter_by(id_concurso=concurso.id_concurso if concurso else 0, id_cargo=cid).first()
                 lot_rec = self.db.query(Lotacionograma).filter_by(id_cargo=cid).first()
 
-                v_edital = vaga_rec.vagas_imediatas_edital if vaga_rec else 1
+                v_edital = vaga_rec.vagas_imediatas_edital if (vaga_rec and vaga_rec.vagas_imediatas_edital is not None) else 0
                 v_lei = lot_rec.vagas_criadas_lei if lot_rec else 10
 
                 mapa_cargos[cid] = {
@@ -1252,7 +1267,7 @@ class AuditEngine:
             
             # Classificação inicial (se <= vagas_edital é Aprovado Direto, se > é Cadastro Reserva)
             v_ed = mapa_cargos[cid]["vagas_edital"]
-            if cand.classificacao_original <= v_ed:
+            if v_ed > 0 and cand.classificacao_original <= v_ed and mapa_cargos[cid]["aprovados_diretos"] < v_ed:
                 mapa_cargos[cid]["aprovados_diretos"] += 1
             else:
                 mapa_cargos[cid]["cadastro_reserva"] += 1
@@ -1448,7 +1463,7 @@ class AuditEngine:
                 lot_rec = self.db.query(Lotacionograma).filter_by(id_cargo=cid).first()
                 cargo_obj = cand.cargo
 
-                v_edital = vaga_rec.vagas_imediatas_edital if vaga_rec else 1
+                v_edital = vaga_rec.vagas_imediatas_edital if (vaga_rec and vaga_rec.vagas_imediatas_edital is not None) else 0
                 v_lei = lot_rec.vagas_criadas_lei if lot_rec else 10
 
                 nome_c = cargo_obj.nome_cargo if cargo_obj else f"Cargo {cid}"
@@ -1480,7 +1495,7 @@ class AuditEngine:
 
             st = (cand.status_atual or "").upper()
             v_ed = mapa_cargos[cid]["vagas_edital"]
-            if cand.classificacao_original <= v_ed:
+            if v_ed > 0 and cand.classificacao_original <= v_ed and mapa_cargos[cid]["aprovados_diretos"] < v_ed:
                 mapa_cargos[cid]["aprovados_diretos"] += 1
             else:
                 mapa_cargos[cid]["cadastro_reserva"] += 1
@@ -1615,7 +1630,7 @@ class AuditEngine:
                 id_concurso=concurso.id_concurso if concurso else 0,
                 id_cargo=cargo.id_cargo
             ).first()
-            v_edital = vaga_rec.vagas_imediatas_edital if vaga_rec else 1
+            v_edital = vaga_rec.vagas_imediatas_edital if (vaga_rec and vaga_rec.vagas_imediatas_edital is not None) else 0
 
             exon = sum(1 for c in cands_cargo if bool(getattr(c, 'data_exoneracao', None)) or any(k in (c.status_atual or "").upper() for k in ["EXCLUÍDO", "EXONERADO"]))
             des = sum(1 for c in cands_cargo if not (bool(getattr(c, 'data_exoneracao', None)) or any(k in (c.status_atual or "").upper() for k in ["EXCLUÍDO", "EXONERADO"])) and (bool(getattr(c, 'edital_desistencia', None)) or any(k in (c.status_atual or "").upper() for k in ["DESISTENTE", "RENÚNCIA"])))
