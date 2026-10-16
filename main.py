@@ -2193,11 +2193,15 @@ def tela_vigencia_certame(
     else:
         data_homologacao = certame.data_abertura_processo or date(2024, 6, 1)
 
-    prazo_original_meses = 24
+    # Determinação dinâmica do prazo de validade (12 meses para seletivo / 24 para concurso)
+    prazo_original_meses = getattr(concurso, 'prazo_validade_meses', None) or (fase_oficial.prazo_validade_meses if (fase_oficial and getattr(fase_oficial, 'prazo_validade_meses', None)) else (12 if 'SELETIVO' in (certame.modalidade or '').upper() else 24))
+
+    anos_vigencia = prazo_original_meses // 12
+    meses_extra = prazo_original_meses % 12
     try:
-        data_fim_original = date(data_homologacao.year + 2, data_homologacao.month, data_homologacao.day)
+        data_fim_original = date(data_homologacao.year + anos_vigencia, data_homologacao.month + meses_extra, data_homologacao.day)
     except Exception:
-        data_fim_original = data_homologacao + timedelta(days=730)
+        data_fim_original = data_homologacao + timedelta(days=int(prazo_original_meses * 30.4375))
 
     data_fim_efetiva = data_fim_original
     status_vigencia = "VIGENTE"
@@ -2223,8 +2227,10 @@ def tela_vigencia_certame(
 
     dias_restantes = (data_fim_efetiva - hoje).days
 
-    # Atualiza status no concurso
+    # Atualiza status e vigência no concurso
     if concurso:
+        concurso.data_homologacao = data_homologacao
+        concurso.prazo_validade_meses = prazo_original_meses
         concurso.data_validade_final = data_fim_efetiva
         concurso.status = status_vigencia
         db.commit()
@@ -2360,6 +2366,50 @@ async def adicionar_ato_vigencia(
 
     msg_txt = f"Ato '{num_ato_final}' registrado! Vigência do certame estendida/atualizada até {dt_fim.strftime('%d/%m/%Y')}."
     return RedirectResponse(url=f"/certames/{id_certame}/vigencia?msg={msg_txt}", status_code=303)
+
+
+@app.post("/certames/{id_certame}/vigencia/configurar-marco-inicial")
+async def configurar_marco_inicial_vigencia(
+    id_certame: int,
+    data_homologacao_str: str = Form(...),
+    prazo_validade_meses: int = Form(...),
+    numero_decreto: str = Form(None),
+    db: Session = Depends(get_db)
+):
+    certame = db.query(CertameAbertura).filter_by(id_certame=id_certame).first()
+    if not certame: return RedirectResponse(url="/certames", status_code=303)
+
+    try:
+        dt_homol = date.fromisoformat(data_homologacao_str)
+    except Exception:
+        dt_homol = date.today()
+
+    if certame.fase_oficial:
+        certame.fase_oficial.data_homologacao_resultado_final = dt_homol
+        certame.fase_oficial.prazo_validade_meses = prazo_validade_meses
+        if numero_decreto and numero_decreto.strip():
+            certame.fase_oficial.numero_decreto_homologacao = numero_decreto.strip()
+    
+    concurso = db.query(Concurso).filter_by(id_certame=id_certame).first()
+    if concurso:
+        concurso.data_homologacao = dt_homol
+        concurso.prazo_validade_meses = prazo_validade_meses
+        anos = prazo_validade_meses // 12
+        meses_extra = prazo_validade_meses % 12
+        try:
+            concurso.data_validade_final = date(dt_homol.year + anos, dt_homol.month + meses_extra, dt_homol.day)
+        except Exception:
+            concurso.data_validade_final = dt_homol + timedelta(days=int(prazo_validade_meses * 30.4375))
+        
+        hoje = date.today()
+        concurso.status = "VIGENTE" if concurso.data_validade_final >= hoje else "EXPIRADO"
+
+    db.commit()
+
+    engine = AuditEngine(db)
+    engine.executar_analise_tce_certame(id_certame)
+
+    return RedirectResponse(url=f"/certames/{id_certame}/vigencia?msg=Marco inicial e prazo de validade ({prazo_validade_meses} meses) atualizados com sucesso!", status_code=303)
 
 
 @app.post("/certames/{id_certame}/vigencia/excluir-ato/{id_vigencia_ato}")

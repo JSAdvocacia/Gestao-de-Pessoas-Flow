@@ -68,6 +68,7 @@ class Concurso(Base):
     ano_edital = Column(Integer, nullable=False)
     data_homologacao = Column(Date, nullable=False)
     data_validade_final = Column(Date, nullable=False)
+    prazo_validade_meses = Column(Integer, default=12) # 12 meses (1 ano), 24 meses (2 anos)
     status = Column(String(30), default="VIGENTE") # VIGENTE, EXPIRADO, SUSPENSO
 
     vagas = relationship("ConcursoVaga", back_populates="concurso")
@@ -280,6 +281,7 @@ class CertameFaseOficial(Base):
     data_resultado_final = Column(Date, nullable=True)
     data_homologacao_resultado_final = Column(Date, nullable=True)
     numero_decreto_homologacao = Column(String(100), nullable=True)
+    prazo_validade_meses = Column(Integer, default=12) # 12 meses (1 ano), 24 meses (2 anos)
     status_fase_oficial = Column(String(50), default="EM_ANDAMENTO") # EM_ANDAMENTO, HOMOLOGADO_FINAL
 
     certame = relationship("CertameAbertura", back_populates="fase_oficial")
@@ -439,6 +441,16 @@ def init_db():
             pass
         try:
             conn.execute(text("ALTER TABLE concursos ADD COLUMN id_certame INTEGER REFERENCES certames_abertura(id_certame)"))
+            conn.commit()
+        except Exception:
+            pass
+        try:
+            conn.execute(text("ALTER TABLE concursos ADD COLUMN prazo_validade_meses INTEGER DEFAULT 12"))
+            conn.commit()
+        except Exception:
+            pass
+        try:
+            conn.execute(text("ALTER TABLE certames_fase_oficial ADD COLUMN prazo_validade_meses INTEGER DEFAULT 12"))
             conn.commit()
         except Exception:
             pass

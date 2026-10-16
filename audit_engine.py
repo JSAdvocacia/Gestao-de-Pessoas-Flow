@@ -1348,6 +1348,9 @@ class AuditEngine:
         dias_vigencia = (dt_validade_final - dt_inicio_vigencia).days if (dt_validade_final and dt_inicio_vigencia) else 730
         is_expirado = bool((dt_validade_final and dt_validade_final < hoje) or (concurso and concurso.status == 'EXPIRADO'))
 
+        prazo_meses_calc = getattr(concurso, 'prazo_validade_meses', None) or (fase_oficial.prazo_validade_meses if (fase_oficial and getattr(fase_oficial, 'prazo_validade_meses', None)) else (12 if 'SELETIVO' in (certame.modalidade if certame else '').upper() else 24))
+        prazo_anos_calc = max(1, round(prazo_meses_calc / 12))
+
         timeline_datas = [
             {
                 "chave": "abertura",
@@ -1361,7 +1364,7 @@ class AuditEngine:
             {
                 "chave": "edital",
                 "fase": "Fase Oficial",
-                "titulo": "Publicação do Edital de Abertura nº 001/2022",
+                "titulo": f"Publicação do Edital de Abertura nº {certame.numero_certame if certame else ''}",
                 "data_fmt": dt_edital.strftime('%d/%m/%Y') if dt_edital else "25/05/2022",
                 "descricao": "Publicação no Diário Oficial e abertura formal das inscrições e isenções.",
                 "icone": "fa-file-lines",
@@ -1389,7 +1392,7 @@ class AuditEngine:
                 "chave": "homologacao",
                 "fase": "Fase Oficial",
                 "titulo": "Homologação do Resultado Final",
-                "data_fmt": dt_homologacao.strftime('%d/%m/%Y') if dt_homologacao else "14/10/2022",
+                "data_fmt": dt_homologacao.strftime('%d/%m/%Y') if dt_homologacao else "11/01/2024",
                 "descricao": "Decreto de homologação definitiva do resultado e classificação final.",
                 "icone": "fa-award",
                 "badge_cor": "bg-amber-500/20 text-amber-300 border-amber-500/40"
@@ -1397,9 +1400,9 @@ class AuditEngine:
             {
                 "chave": "vigencia",
                 "fase": "Vigência & Provimentos",
-                "titulo": "Início da Vigência Bienal",
-                "data_fmt": dt_inicio_vigencia.strftime('%d/%m/%Y') if dt_inicio_vigencia else "14/10/2022",
-                "descricao": "Início da contagem do prazo de 2 anos para convocações e nomeações.",
+                "titulo": f"Início da Vigência {'Anual' if prazo_anos_calc == 1 else ('Bienal' if prazo_anos_calc == 2 else f'{prazo_anos_calc} Anos')}",
+                "data_fmt": dt_inicio_vigencia.strftime('%d/%m/%Y') if dt_inicio_vigencia else "11/01/2024",
+                "descricao": f"Início da contagem do prazo de {prazo_anos_calc} ano(s) ({prazo_meses_calc} meses) para convocações e provimentos.",
                 "icone": "fa-calendar-check",
                 "badge_cor": "bg-teal-500/20 text-teal-300 border-teal-500/40"
             },
@@ -1407,7 +1410,7 @@ class AuditEngine:
                 "chave": "encerramento",
                 "fase": "Encerramento Definitivo",
                 "titulo": "Término da Validade (Expiração)",
-                "data_fmt": dt_validade_final.strftime('%d/%m/%Y') if dt_validade_final else "14/10/2024",
+                "data_fmt": dt_validade_final.strftime('%d/%m/%Y') if dt_validade_final else "11/01/2025",
                 "descricao": "Conclusão definitiva do certame com trânsito em julgado administrativo.",
                 "icone": "fa-box-archive",
                 "badge_cor": "bg-rose-500/20 text-rose-300 border-rose-500/40"

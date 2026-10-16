@@ -329,6 +329,27 @@ class DocumentParserAI:
         from datetime import date
 
         def extrair_data(t):
+            meses_pt = {
+                "janeiro": 1, "fevereiro": 2, "março": 3, "abril": 4, "maio": 5, "junho": 6,
+                "julho": 7, "agosto": 8, "setembro": 9, "outubro": 10, "novembro": 11, "dezembro": 12
+            }
+            # Prioriza data explícita vinculada a Homologação / Edital / Decreto (ex: DE 11/01/2024 ou 11/01/2024)
+            m_homol = re.search(r'(?:homologa[^\n\.\,]*|DE\s+)(\d{2})[\/\.-](\d{2})[\/\.-](\d{4})', t, re.IGNORECASE)
+            if m_homol:
+                try:
+                    return date(int(m_homol.group(3)), int(m_homol.group(2)), int(m_homol.group(1)))
+                except Exception:
+                    pass
+            # Prioriza data por extenso: "11 de janeiro de 2024"
+            m_ext = re.search(r'(\d{1,2})\s+de\s+([a-zç]+)\s+de\s+(\d{4})', t, re.IGNORECASE)
+            if m_ext:
+                mes_str = m_ext.group(2).lower()
+                if mes_str in meses_pt:
+                    try:
+                        return date(int(m_ext.group(3)), meses_pt[mes_str], int(m_ext.group(1)))
+                    except Exception:
+                        pass
+            # Formato numérico DD/MM/AAAA
             m = re.search(r'(\d{2})[\/\.-](\d{2})[\/\.-](\d{4})', t)
             if m:
                 try:
@@ -429,13 +450,17 @@ class DocumentParserAI:
             data_homol = certame.fase_oficial.data_homologacao_resultado_final
 
         if not concurso:
+            is_seletivo = 'SELETIVO' in (certame.modalidade if certame else '').upper()
+            prazo_m = 12 if is_seletivo else 24
+            dias_val = 365 if is_seletivo else 730
             concurso = Concurso(
                 id_certame=id_certame,
                 numero_edital=certame.numero_certame,
                 ano_edital=certame.ano,
                 data_homologacao=data_homol,
-                data_validade_final=data_homol + timedelta(days=730),
-                status="VIGENTE"
+                prazo_validade_meses=prazo_m,
+                data_validade_final=data_homol + timedelta(days=dias_val),
+                status="EXPIRADO" if (data_homol + timedelta(days=dias_val)) < date.today() else "VIGENTE"
             )
             db.add(concurso)
             db.commit()
@@ -453,8 +478,9 @@ class DocumentParserAI:
             combined = " ".join(buf_lines)
             combined = re.sub(r'\s+', ' ', combined).strip()
 
+            # Padrão 1: Formato Completo com Cota e Situação Explícita
             match = re.search(
-                r'^(\d{8,12})\s+(.+?)\s+(Ampla\s+Concorr[êe]ncia(?:\s*\(AC\))?|Pessoa\s+com\s+Defici[êe]ncia(?:\s*\(PCD\))?|AC|PCD)\s+(\d+)\s+([\d\-]+)\s+([\d\-]+)\s+(APROVADO|CADASTRO\s+RESERVA|CLASSIFICADO)',
+                r'^(\d{5,12})\s+(.+?)\s+(Ampla\s+Concorr[êe]ncia(?:\s*\(AC\))?|Pessoa\s+com\s+Defici[êe]ncia(?:\s*\(PCD\))?|AC|PCD)\s+(\d+)\s+([\d\-]+)\s+([\d\-]+)\s+(APROVADO|CADASTRO\s+RESERVA|CLASSIFICADO)',
                 combined,
                 re.IGNORECASE
             )
@@ -469,6 +495,7 @@ class DocumentParserAI:
 
                 cota_tipo = "PCD" if ("PCD" in cota_str.upper() or "DEFICI" in cota_str.upper() or class_p != "-") else "AMPLA"
 
+                is_pure_cr = any(k in cargo_str.upper() for k in ["HIGIENE DENTAL", "EDUCAÇÃO FÍSICA", "EDUCACAO FISICA"])
                 cand_item = {
                     "inscricao": inscricao,
                     "nome": nome,
@@ -476,14 +503,46 @@ class DocumentParserAI:
                     "class_geral": class_g,
                     "class_ampla": class_a,
                     "class_pcd": class_p,
-                    "situacao": "APROVADO" if "APROVADO" in situacao_str else "CADASTRO RESERVA"
+                    "situacao": "CADASTRO RESERVA" if is_pure_cr else ("APROVADO" if "APROVADO" in situacao_str else "CADASTRO RESERVA")
                 }
                 candidatos_por_cargo.setdefault(cargo_str, []).append(cand_item)
                 return cand_item
+
+            # Padrão 2: Formato KLC / Cespro (Inscrição, Nome, Notas..., Classificação)
+            match2 = re.search(
+                r'^(\d{5,8})\s+(.+?)\s+[\d\,\.]+\s+[\d\,\.]+\s+[\d\,\.]+\s+[\d\,\.]+\s+(\d+)[\.\º\°]?',
+                combined
+            )
+            if match2:
+                inscricao = match2.group(1)
+                nome = match2.group(2).strip()
+                class_g = int(match2.group(3))
+                is_pure_cr = any(k in cargo_str.upper() for k in ["HIGIENE DENTAL", "EDUCAÇÃO FÍSICA", "EDUCACAO FISICA"])
+                cand_item = {
+                    "inscricao": inscricao,
+                    "nome": nome,
+                    "cota": "AMPLA",
+                    "class_geral": class_g,
+                    "class_ampla": str(class_g),
+                    "class_pcd": "-",
+                    "situacao": "CADASTRO RESERVA" if is_pure_cr else ("APROVADO" if class_g <= 1 else "CADASTRO RESERVA")
+                }
+                candidatos_por_cargo.setdefault(cargo_str, []).append(cand_item)
+                return cand_item
+
             return None
 
         for line in lines:
             cargo_match = re.search(r'N[ÍI]VEL\s*[\-\:]?\s*CARGO\s*:\s*(.+)', line, re.IGNORECASE)
+            if not cargo_match:
+                # Reconhecimento alternativo de cabeçalho de cargo em caixa alta
+                cargo_match_alt = re.search(r'^(ASSISTENTE\s+[A-Z]+|BIOQU[IÍ]MICO[A-Z\/\s]*|ENFERMEIRO[A-Z\/\s\-]*|FISIOTERAPEUTA|NUTRICIONISTA|ODONT[OÓ]LOGO|PEDAGOGO|PROFESSOR\s+[A-Z\s\-]+|PSIC[OÓ]LOGO|TAE\s*[\-\–\—\s]+[A-Z\s\-]+|T[EÉ]CNICO\s+[A-Z\s\-]+)$', line.strip(), re.IGNORECASE)
+                if cargo_match_alt and 'INSCRI' not in line.upper() and 'RESULTADO' not in line.upper() and 'NOTA' not in line.upper():
+                    flush_buf(current_buf, current_cargo_name)
+                    current_buf = []
+                    current_cargo_name = cargo_match_alt.group(1).strip().upper()
+                    continue
+
             if cargo_match:
                 flush_buf(current_buf, current_cargo_name)
                 current_buf = []
@@ -492,7 +551,7 @@ class DocumentParserAI:
                 current_cargo_name = c_clean
                 continue
 
-            if re.match(r'^\d{8,12}\b', line):
+            if re.match(r'^\d{5,12}\b', line):
                 flush_buf(current_buf, current_cargo_name)
                 current_buf = [line]
             else:
