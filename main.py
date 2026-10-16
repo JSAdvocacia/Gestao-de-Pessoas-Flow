@@ -2170,6 +2170,60 @@ def certames_relatorio_rol_convocados(
         "active_page": "modulo_relatorios"
     })
 
+# --- ROTA DE EXPORTAÇÃO PDF DO ROL NOMINAL DE CONVOCADOS COM FILTRO APLICADO ---
+@app.get("/certames/{id_certame}/relatorios/rol-convocados/pdf")
+def certames_relatorio_rol_convocados_pdf(
+    id_certame: int,
+    cargo: str = "",
+    situacao: str = "",
+    busca: str = "",
+    db: Session = Depends(get_db),
+    usuario = Depends(get_current_user)
+):
+    if not usuario: return RedirectResponse(url="/login", status_code=303)
+    certame = db.query(CertameAbertura).filter_by(id_certame=id_certame).first()
+    if not certame:
+        certame = db.query(CertameAbertura).first()
+    if not certame:
+        return RedirectResponse(url="/certames", status_code=303)
+
+    engine = AuditEngine(db)
+    dados = engine.gerar_relatorio_nominal_convocados(certame.id_certame)
+
+    res = PDFTextGenerator.gerar_pdf_rol_convocados_filtrado(
+        certame=certame,
+        filtro_cargo_cod=cargo,
+        filtro_situacao=situacao,
+        termo_busca=busca,
+        grupos_cargos=dados["grupos_cargos"],
+        totais=dados["totais"],
+        pasta_upload=UPLOAD_DIR
+    )
+
+    return FileResponse(
+        res["caminho_arquivo"],
+        media_type="application/pdf",
+        filename=res["nome_arquivo"]
+    )
+
+@app.get("/modulo/relatorios/rol-convocados/pdf")
+def modulo_relatorio_rol_convocados_pdf(
+    id_certame: int = 2,
+    cargo: str = "",
+    situacao: str = "",
+    busca: str = "",
+    db: Session = Depends(get_db),
+    usuario = Depends(get_current_user)
+):
+    return certames_relatorio_rol_convocados_pdf(
+        id_certame=id_certame,
+        cargo=cargo,
+        situacao=situacao,
+        busca=busca,
+        db=db,
+        usuario=usuario
+    )
+
 # --- ROTA DE VIGÊNCIA DO CERTAME ---
 @app.get("/certames/{id_certame}/vigencia", response_class=HTMLResponse)
 def tela_vigencia_certame(

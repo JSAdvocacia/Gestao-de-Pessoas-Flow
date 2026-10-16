@@ -1604,10 +1604,18 @@ class AuditEngine:
             if any(k in st for k in ["EMPOSSADO", "CONVOCADO", "DESISTENTE", "RENÚNCIA", "EXCLUÍDO", "EXONERADO"]):
                 candidatos_convocados.append(cand)
 
-        # Buscar todos os cargos do certame (CARGO-001 a CARGO-024)
-        cargos_db = self.db.query(Cargo).filter(Cargo.codigo_cargo.like("CARGO-%")).order_by(Cargo.codigo_cargo.asc()).all()
-        if not cargos_db:
-            cargos_db = self.db.query(Cargo).order_by(Cargo.id_cargo.asc()).all()
+        # Buscar os cargos vinculados a este certame/concurso
+        cargos_certame_ids = [cv.id_cargo for cv in self.db.query(ConcursoVaga).filter_by(id_concurso=concurso.id_concurso).all()] if concurso else []
+        if not cargos_certame_ids:
+            cargos_certame_ids = [c[0] for c in self.db.query(Candidato.id_cargo).filter(
+                (Candidato.id_certame == certame_id) | 
+                (Candidato.id_concurso == (concurso.id_concurso if concurso else 0))
+            ).distinct().all()]
+
+        if cargos_certame_ids:
+            cargos_db = self.db.query(Cargo).filter(Cargo.id_cargo.in_(cargos_certame_ids)).order_by(Cargo.nome_cargo.asc()).all()
+        else:
+            cargos_db = self.db.query(Cargo).order_by(Cargo.nome_cargo.asc()).all()
 
         grupos_cargos = []
         totais = {

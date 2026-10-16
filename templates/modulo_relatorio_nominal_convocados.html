@@ -170,7 +170,7 @@
                     Rol Nominal de Convocados, Empossados e Desligados por Cargo
                 </h2>
                 <p class="text-xs text-slate-400 mt-1">
-                    Demonstrativo nominal dos 313 candidatos convocados por cargo. Os 445 candidatos mantidos estritamente em cadastro de reserva sem chamamento foram suprimidos.
+                    Demonstrativo nominal dos {{ totais.total_convocados }} candidatos convocados por cargo. Os {{ totais.candidatos_cr_omitidos }} candidatos mantidos estritamente em cadastro de reserva sem chamamento foram suprimidos.
                 </p>
             </div>
 
@@ -182,8 +182,11 @@
                 <button type="button" onclick="exportarRolNominalCSV()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-3.5 py-2 rounded-xl text-xs border border-slate-700 transition flex items-center shadow">
                     <i class="fa-solid fa-file-excel mr-2 text-emerald-400"></i> Exportar CSV/Excel
                 </button>
-                <button type="button" onclick="window.print()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-black px-4 py-2 rounded-xl text-xs shadow-lg transition flex items-center">
-                    <i class="fa-solid fa-print mr-2 text-slate-950"></i> Imprimir / PDF
+                <button type="button" onclick="gerarPDFdoFiltro()" class="bg-rose-700 hover:bg-rose-600 text-white font-black px-4 py-2 rounded-xl text-xs shadow-lg transition flex items-center">
+                    <i class="fa-solid fa-file-pdf mr-2 text-white"></i> Baixar PDF do Filtro
+                </button>
+                <button type="button" onclick="imprimirFiltroAplicado()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-black px-4 py-2 rounded-xl text-xs shadow-lg transition flex items-center">
+                    <i class="fa-solid fa-print mr-2 text-slate-950"></i> Imprimir (A4)
                 </button>
             </div>
         </div>
@@ -264,6 +267,9 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-2">
+                    <button type="button" onclick="gerarPDFdoFiltro()" class="bg-rose-700 hover:bg-rose-600 text-white font-extrabold px-3 py-1.5 rounded-xl text-xs shadow transition flex items-center">
+                        <i class="fa-solid fa-file-pdf mr-1.5"></i> Baixar PDF do Filtro
+                    </button>
                     <button type="button" onclick="expandirTodosCargos()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-3 py-1.5 rounded-xl text-xs border border-slate-700 transition flex items-center">
                         <i class="fa-solid fa-up-right-and-down-left-from-center mr-1.5"></i> Expandir Todos
                     </button>
@@ -302,6 +308,7 @@
                         <option value="empossado">Apenas Empossados (Exercício) ({{ totais.empossados_exercicio }})</option>
                         <option value="desistente">Apenas Desistentes / Renúncias ({{ totais.desistencias }})</option>
                         <option value="exonerado">Apenas Excluídos / Exonerados ({{ totais.exoneracoes }})</option>
+                        <option value="convocado">Apenas Convocados em Trâmite ({{ totais.convocados_tramite }})</option>
                     </select>
                 </div>
             </div>
@@ -320,6 +327,9 @@
                     </span>
                     <span class="bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
                         Exonerações: <strong id="dyn_exon_count" class="text-slate-300">{{ totais.exoneracoes }}</strong>
+                    </span>
+                    <span class="bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
+                        Em Trâmite: <strong id="dyn_conv_count" class="text-blue-400">{{ totais.convocados_tramite }}</strong>
                     </span>
                 </div>
             </div>
@@ -347,6 +357,25 @@
                     Relação nominal discriminada cargo a cargo contendo exclusivamente os servidores que foram convocados, empossados em exercício efetivo ou que formalizaram desistência/exoneração.
                     <strong>Candidatos classificados estritamente em cadastro de reserva sem convocação ({{ totais.candidatos_cr_omitidos }} candidatos) foram suprimidos desta apuração.</strong>
                 </p>
+            </div>
+
+            <!-- BANNER DE FILTRO ATIVO (EXIBIDO NA TELA E NA IMPRESSÃO QUANDO HOUVER FILTRO APLICADO) -->
+            <div id="banner_filtro_impressao" class="hidden bg-amber-50 border-l-4 border-amber-500 rounded-r-xl p-3.5 text-xs text-amber-950 mb-4 shadow-sm">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <span class="font-black uppercase tracking-wider text-amber-900 flex items-center">
+                            <i class="fa-solid fa-filter mr-1.5 text-amber-600"></i> Relatório Específico de Filtro Aplicado
+                        </span>
+                        <p class="mt-1 text-slate-700" id="texto_filtro_impressao">
+                            Exibindo todos os candidatos convocados.
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-2 no-print">
+                        <button type="button" onclick="gerarPDFdoFiltro()" class="bg-rose-700 hover:bg-rose-600 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow flex items-center">
+                            <i class="fa-solid fa-file-pdf mr-1.5"></i> Baixar este PDF
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- RESULTADO VAZIO -->
@@ -497,7 +526,7 @@
 
     </main>
 
-    <!-- SCRIPT DE FILTROS DINÂMICOS E EXPORTAÇÃO CSV -->
+    <!-- SCRIPT DE FILTROS DINÂMICOS E EXPORTAÇÃO CSV / PDF -->
     <script>
         function aplicarFiltrosNominal() {
             const busca = (document.getElementById('filtro_cand_busca').value || '').trim().toLowerCase();
@@ -509,24 +538,27 @@
             let totalEmpVisiveis = 0;
             let totalDesVisiveis = 0;
             let totalExonVisiveis = 0;
+            let totalConvVisiveis = 0;
             let blocosComResultados = 0;
 
             blocos.forEach(bloco => {
                 const codCargo = bloco.getAttribute('data-codigo-cargo') || '';
                 const totalConv = parseInt(bloco.getAttribute('data-total-convocados')) || 0;
 
-                // Se o cargo foi filtrado
+                // Se o cargo foi filtrado especificamente
                 if (cargoFiltro && codCargo !== cargoFiltro) {
                     bloco.classList.add('hidden');
                     return;
                 }
 
+                // Se cargo tem 0 convocados
                 if (totalConv === 0) {
-                    if (busca || situacaoFiltro) {
-                        bloco.classList.add('hidden');
-                    } else {
+                    // Só exibe se o usuário selecionou expressamente este cargo específico no filtro
+                    if (cargoFiltro && cargoFiltro === codCargo && !busca && !situacaoFiltro) {
                         bloco.classList.remove('hidden');
                         blocosComResultados++;
+                    } else {
+                        bloco.classList.add('hidden');
                     }
                     return;
                 }
@@ -539,13 +571,13 @@
                     const cpf = row.getAttribute('data-cpf') || '';
                     const badgeTipo = row.getAttribute('data-badge-tipo') || '';
 
-                    // 1. Busca
+                    // 1. Busca textual
                     let matchBusca = true;
                     if (busca) {
                         matchBusca = nome.includes(busca) || cpf.includes(busca);
                     }
 
-                    // 2. Situação
+                    // 2. Situação de provimento
                     let matchSit = true;
                     if (situacaoFiltro) {
                         matchSit = (badgeTipo === situacaoFiltro);
@@ -559,6 +591,7 @@
                         if (badgeTipo === 'empossado') totalEmpVisiveis++;
                         else if (badgeTipo === 'desistente') totalDesVisiveis++;
                         else if (badgeTipo === 'exonerado') totalExonVisiveis++;
+                        else totalConvVisiveis++;
                     } else {
                         row.classList.add('hidden');
                     }
@@ -587,6 +620,41 @@
             document.getElementById('dyn_emp_count').textContent = totalEmpVisiveis;
             document.getElementById('dyn_des_count').textContent = totalDesVisiveis;
             document.getElementById('dyn_exon_count').textContent = totalExonVisiveis;
+            if (document.getElementById('dyn_conv_count')) {
+                document.getElementById('dyn_conv_count').textContent = totalConvVisiveis;
+            }
+
+            // Atualização do Banner de Filtro Aplicado (Visual e Impressão)
+            const bannerFiltro = document.getElementById('banner_filtro_impressao');
+            const textoFiltro = document.getElementById('texto_filtro_impressao');
+            if (bannerFiltro && textoFiltro) {
+                const filtrosDesc = [];
+                if (cargoFiltro) {
+                    const cargoSelect = document.getElementById('filtro_cand_cargo');
+                    const cargoTexto = cargoSelect.options[cargoSelect.selectedIndex].text;
+                    filtrosDesc.push(`Cargo: ${cargoTexto}`);
+                }
+                if (situacaoFiltro) {
+                    const sitLabels = {
+                        'empossado': 'Apenas Empossados (Exercício Efetivo)',
+                        'desistente': 'Apenas Desistências / Renúncias Formais',
+                        'exonerado': 'Apenas Excluídos / Exonerados',
+                        'convocado': 'Apenas Convocados em Trâmite'
+                    };
+                    filtrosDesc.push(`Situação: ${sitLabels[situacaoFiltro] || situacaoFiltro}`);
+                }
+                if (busca) {
+                    filtrosDesc.push(`Termo de busca: "${busca}"`);
+                }
+
+                if (filtrosDesc.length > 0) {
+                    textoFiltro.innerHTML = `<strong>Critérios Ativos:</strong> ${filtrosDesc.join(' | ')} &bull; <strong>${totalCandsVisiveis}</strong> candidato(s) retornado(s).`;
+                    bannerFiltro.classList.remove('hidden');
+                } else {
+                    textoFiltro.innerHTML = `Exibindo todos os cargos com convocações (Total: <strong>${totalCandsVisiveis}</strong> candidatos convocados).`;
+                    bannerFiltro.classList.add('hidden');
+                }
+            }
         }
 
         function limparFiltrosNominal() {
@@ -599,6 +667,28 @@
         function expandirTodosCargos() {
             document.getElementById('filtro_cand_cargo').value = '';
             aplicarFiltrosNominal();
+        }
+
+        // Geração Direta de Relatório em PDF do Filtro Específico Aplicado
+        function gerarPDFdoFiltro() {
+            const busca = (document.getElementById('filtro_cand_busca').value || '').trim();
+            const cargoFiltro = (document.getElementById('filtro_cand_cargo').value || '').trim();
+            const situacaoFiltro = (document.getElementById('filtro_cand_situacao').value || '').trim();
+
+            const params = new URLSearchParams();
+            if (cargoFiltro) params.append('cargo', cargoFiltro);
+            if (situacaoFiltro) params.append('situacao', situacaoFiltro);
+            if (busca) params.append('busca', busca);
+
+            const queryString = params.toString();
+            const url = `/certames/{{ certame.id_certame }}/relatorios/rol-convocados/pdf${queryString ? '?' + queryString : ''}`;
+            window.open(url, '_blank');
+        }
+
+        // Impressão via Navegador com os Filtros Aplicados
+        function imprimirFiltroAplicado() {
+            aplicarFiltrosNominal();
+            window.print();
         }
 
         // Exportação Dinâmica do Rol Nominal para CSV
@@ -647,6 +737,11 @@
             link.click();
             document.body.removeChild(link);
         }
+
+        // Executar filtro ao carregar a página para ocultar blocos vazios
+        document.addEventListener('DOMContentLoaded', function() {
+            aplicarFiltrosNominal();
+        });
     </script>
 </body>
 </html>

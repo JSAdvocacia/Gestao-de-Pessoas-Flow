@@ -244,3 +244,204 @@ class PDFTextGenerator:
             "nome_arquivo": nome_arquivo,
             "tamanho_bytes": tamanho_bytes
         }
+
+    @staticmethod
+    def gerar_pdf_rol_convocados_filtrado(
+        certame,
+        filtro_cargo_cod: str,
+        filtro_situacao: str,
+        termo_busca: str,
+        grupos_cargos: list,
+        totais: dict,
+        pasta_upload: str
+    ) -> dict:
+        os.makedirs(pasta_upload, exist_ok=True)
+
+        filtro_nome_slug = "geral"
+        if filtro_cargo_cod:
+            filtro_nome_slug = filtro_cargo_cod.replace('/', '_').replace(' ', '_').lower()
+        if filtro_situacao:
+            filtro_nome_slug += f"_{filtro_situacao}"
+
+        nome_arquivo = f"rol_convocados_{certame.numero_certame.replace('/', '_')}_{filtro_nome_slug}_{uuid.uuid4().hex[:6]}.pdf"
+        caminho_arquivo = os.path.join(pasta_upload, nome_arquivo)
+
+        # Filtrar grupos e candidatos
+        grupos_filtrados = []
+        tot_cands_filt = 0
+        tot_emp_filt = 0
+        tot_des_filt = 0
+        tot_exon_filt = 0
+
+        nome_cargo_filtrado = "Todos os Cargos Ofertados"
+
+        for g in grupos_cargos:
+            cod_g = g.get("codigo_cargo", "")
+            if filtro_cargo_cod and cod_g != filtro_cargo_cod:
+                continue
+
+            if filtro_cargo_cod and cod_g == filtro_cargo_cod:
+                nome_cargo_filtrado = f"{cod_g} - {g.get('cargo_nome')}"
+
+            cands_do_bloco = []
+            for c in g.get("candidatos", []):
+                # Filtro busca
+                if termo_busca:
+                    tb = termo_busca.lower()
+                    if tb not in c.get("nome_completo", "").lower() and tb not in c.get("cpf", "").lower():
+                        continue
+
+                # Filtro situação
+                bt = c.get("badge_tipo", "")
+                if filtro_situacao and bt != filtro_situacao:
+                    continue
+
+                cands_do_bloco.append(c)
+                tot_cands_filt += 1
+                if bt == "empossado":
+                    tot_emp_filt += 1
+                elif bt == "desistente":
+                    tot_des_filt += 1
+                elif bt == "exonerado":
+                    tot_exon_filt += 1
+
+            if cands_do_bloco:
+                g_copia = dict(g)
+                g_copia["candidatos_filtrados"] = cands_do_bloco
+                grupos_filtrados.append(g_copia)
+
+        situacao_label_map = {
+            "": "Todas as Situações",
+            "empossado": "Apenas Empossados (Exercício)",
+            "desistente": "Apenas Desistentes / Renúncias",
+            "exonerado": "Apenas Excluídos / Exonerados",
+            "convocado": "Apenas Convocados em Trâmite"
+        }
+        sit_label = situacao_label_map.get(filtro_situacao, filtro_situacao or "Todas as Situações")
+
+        pdf = FPDF(orientation='L', unit='mm', format='A4')
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.add_page()
+
+        # Header Bar
+        pdf.set_fill_color(5, 10, 24)
+        pdf.rect(0, 0, 297, 28, 'F')
+
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.set_text_color(255, 255, 255)
+        pdf.set_xy(10, 4)
+        pdf.cell(277, 5, sanitize_text(f"ESTADO DE MATO GROSSO - PREFEITURA MUNICIPAL DE {certame.municipio.upper()}"), ln=True, align="C")
+
+        pdf.set_font("Helvetica", "B", 9)
+        pdf.set_text_color(0, 150, 94)
+        pdf.cell(277, 5, sanitize_text("SISTEMA INTEGRADO DE AUDITORIA DE PESSOAL (SIAP) - CONTROLADORIA MUNICIPAL"), ln=True, align="C")
+
+        pdf.set_font("Helvetica", "", 8)
+        pdf.set_text_color(200, 200, 200)
+        pdf.cell(277, 5, sanitize_text(f"ROL NOMINAL DE CANDIDATOS CONVOCADOS POR CARGO * CERTAME Nº {certame.numero_certame} ({certame.ano})"), ln=True, align="C")
+
+        pdf.ln(12)
+
+        # Filter Box
+        pdf.set_fill_color(248, 250, 252)
+        pdf.set_draw_color(203, 213, 225)
+        pdf.set_text_color(15, 23, 42)
+        pdf.rect(10, 32, 277, 16, 'DF')
+
+        pdf.set_xy(12, 34)
+        pdf.set_font("Helvetica", "B", 8.5)
+        busca_lbl = termo_busca if termo_busca else "Nenhuma"
+        pdf.cell(273, 5, sanitize_text(f"FILTRO APLICADO: Cargo: {nome_cargo_filtrado} | Situação: {sit_label} | Termo de Busca: {busca_lbl}"), ln=True)
+
+        pdf.set_xy(12, 40)
+        pdf.set_font("Helvetica", "", 8)
+        pdf.set_text_color(71, 85, 105)
+        pdf.cell(273, 5, sanitize_text(f"Total de Candidatos no Filtro: {tot_cands_filt} | Em Exercício: {tot_emp_filt} | Desistências: {tot_des_filt} | Exonerações: {tot_exon_filt} | Em Trâmite: {tot_cands_filt - tot_emp_filt - tot_des_filt - tot_exon_filt}"), ln=True)
+
+        pdf.ln(8)
+
+        if not grupos_filtrados:
+            pdf.ln(10)
+            pdf.set_font("Helvetica", "B", 10)
+            pdf.set_text_color(225, 29, 72)
+            pdf.cell(277, 10, sanitize_text("Nenhum candidato localizado com os critérios de filtro selecionados."), border=1, align="C")
+        else:
+            for gf in grupos_filtrados:
+                # Cargo Subheader
+                pdf.ln(2)
+                pdf.set_fill_color(30, 41, 59)
+                pdf.set_draw_color(15, 23, 42)
+                pdf.set_text_color(255, 255, 255)
+                pdf.set_font("Helvetica", "B", 8.5)
+                ved_txt = "0 (CR)" if gf.get("vagas_edital", 0) == 0 else str(gf.get("vagas_edital"))
+                c_head = f" {gf.get('codigo_cargo')} - {gf.get('cargo_nome').upper()} [{gf.get('nivel_escolaridade')}] | Vagas Edital: {ved_txt} | Convocados: {gf.get('total_convocados')}"
+                pdf.cell(277, 6.5, sanitize_text(c_head), border=1, align="L", fill=True)
+                pdf.ln()
+
+                # Table Column Headers
+                pdf.set_fill_color(241, 245, 249)
+                pdf.set_draw_color(203, 213, 225)
+                pdf.set_text_color(15, 23, 42)
+                pdf.set_font("Helvetica", "B", 8)
+
+                pdf.cell(16, 6, sanitize_text("Class."), border=1, align="C", fill=True)
+                pdf.cell(75, 6, sanitize_text("Nome do Candidato"), border=1, align="L", fill=True)
+                pdf.cell(35, 6, sanitize_text("CPF"), border=1, align="C", fill=True)
+                pdf.cell(65, 6, sanitize_text("Cargo"), border=1, align="L", fill=True)
+                pdf.cell(18, 6, sanitize_text("Cota"), border=1, align="C", fill=True)
+                pdf.cell(40, 6, sanitize_text("Situação de Provimento"), border=1, align="C", fill=True)
+                pdf.cell(28, 6, sanitize_text("Edital Chamada"), border=1, align="C", fill=True)
+                pdf.ln()
+
+                # Rows
+                pdf.set_font("Helvetica", "", 7.5)
+                for idx_c, cand in enumerate(gf["candidatos_filtrados"]):
+                    fill = (idx_c % 2 == 1)
+                    pdf.set_fill_color(248, 250, 252) if fill else pdf.set_fill_color(255, 255, 255)
+                    pdf.set_text_color(30, 41, 59)
+
+                    clas_str = f"#{cand.get('classificacao_original')}º"
+                    nome_str = cand.get('nome_completo', '')[:42]
+                    cpf_str = cand.get('cpf', '')
+                    cargo_str = gf.get('cargo_nome', '')[:38]
+                    cota_str = cand.get('tipo_cota', 'AMPLA')
+                    sit_str = cand.get('status_lbl', cand.get('status_atual', 'CONVOCADO'))
+                    ed_str = cand.get('edital_convocacao', 'Edital Oficial')
+
+                    pdf.cell(16, 5.5, sanitize_text(clas_str), border=1, align="C", fill=fill)
+                    pdf.cell(75, 5.5, sanitize_text(nome_str), border=1, align="L", fill=fill)
+                    pdf.cell(35, 5.5, sanitize_text(cpf_str), border=1, align="C", fill=fill)
+                    pdf.cell(65, 5.5, sanitize_text(cargo_str), border=1, align="L", fill=fill)
+                    pdf.cell(18, 5.5, sanitize_text(cota_str), border=1, align="C", fill=fill)
+
+                    # Destacar status em cor
+                    if cand.get('badge_tipo') == 'empossado':
+                        pdf.set_text_color(5, 150, 105)
+                    elif cand.get('badge_tipo') == 'desistente':
+                        pdf.set_text_color(225, 29, 72)
+                    elif cand.get('badge_tipo') == 'exonerado':
+                        pdf.set_text_color(100, 116, 139)
+                    else:
+                        pdf.set_text_color(30, 64, 175)
+
+                    pdf.cell(40, 5.5, sanitize_text(sit_str[:25]), border=1, align="C", fill=fill)
+                    pdf.set_text_color(71, 85, 105)
+                    pdf.cell(28, 5.5, sanitize_text(ed_str[:18]), border=1, align="C", fill=fill)
+                    pdf.ln()
+
+        # Footer
+        pdf.ln(6)
+        pdf.set_font("Helvetica", "I", 7.5)
+        pdf.set_text_color(100, 116, 139)
+        dt_str = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+        hash_val = hashlib.sha256(f"{certame.numero_certame}_{tot_cands_filt}_{dt_str}".encode('utf-8')).hexdigest()
+        pdf.cell(277, 4, sanitize_text(f"Documento gerado eletronicamente em {dt_str} pelo SIAP - Sistema Integrado de Auditoria de Pessoal | Chave de Autenticidade: {hash_val[:32]}..."), ln=True, align="C")
+        pdf.cell(277, 4, sanitize_text("Relatório analítico conforme Instrução Normativa TCE-MT - Destinado à prestação de contas de encerramento do certame."), ln=True, align="C")
+
+        pdf.output(caminho_arquivo)
+        tamanho_bytes = os.path.getsize(caminho_arquivo)
+        return {
+            "caminho_arquivo": caminho_arquivo,
+            "nome_arquivo": nome_arquivo,
+            "tamanho_bytes": tamanho_bytes
+        }
