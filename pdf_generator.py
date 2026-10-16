@@ -1,6 +1,7 @@
 import os
 import uuid
 import hashlib
+import re
 from datetime import datetime
 from fpdf import FPDF
 
@@ -259,29 +260,34 @@ class PDFTextGenerator:
 
         filtro_nome_slug = "geral"
         if filtro_cargo_cod:
-            filtro_nome_slug = filtro_cargo_cod.replace('/', '_').replace(' ', '_').lower()
+            slug_c = re.sub(r'[^a-zA-Z0-9]+', '_', filtro_cargo_cod.lower())[:35].strip('_')
+            filtro_nome_slug = slug_c or "cargos"
         if filtro_situacao:
             filtro_nome_slug += f"_{filtro_situacao}"
 
         nome_arquivo = f"rol_convocados_{certame.numero_certame.replace('/', '_')}_{filtro_nome_slug}_{uuid.uuid4().hex[:6]}.pdf"
         caminho_arquivo = os.path.join(pasta_upload, nome_arquivo)
 
-        # Filtrar grupos e candidatos
+        # Filtrar grupos e candidatos (suporte a seleção múltipla de cargos e situações por vírgula)
+        cargos_filtro_lista = [c.strip() for c in filtro_cargo_cod.split(",") if c.strip()] if filtro_cargo_cod else []
+        situacoes_filtro_lista = [s.strip() for s in filtro_situacao.split(",") if s.strip()] if filtro_situacao else []
+
         grupos_filtrados = []
         tot_cands_filt = 0
         tot_emp_filt = 0
         tot_des_filt = 0
         tot_exon_filt = 0
 
-        nome_cargo_filtrado = "Todos os Cargos Ofertados"
+        if cargos_filtro_lista:
+            nomes_c = [f"{g.get('codigo_cargo')} - {g.get('cargo_nome')}" for g in grupos_cargos if g.get("codigo_cargo") in cargos_filtro_lista]
+            nome_cargo_filtrado = "; ".join(nomes_c) if nomes_c else ", ".join(cargos_filtro_lista)
+        else:
+            nome_cargo_filtrado = "Todos os Cargos Ofertados"
 
         for g in grupos_cargos:
             cod_g = g.get("codigo_cargo", "")
-            if filtro_cargo_cod and cod_g != filtro_cargo_cod:
+            if cargos_filtro_lista and cod_g not in cargos_filtro_lista:
                 continue
-
-            if filtro_cargo_cod and cod_g == filtro_cargo_cod:
-                nome_cargo_filtrado = f"{cod_g} - {g.get('cargo_nome')}"
 
             cands_do_bloco = []
             for c in g.get("candidatos", []):
@@ -291,9 +297,9 @@ class PDFTextGenerator:
                     if tb not in c.get("nome_completo", "").lower() and tb not in c.get("cpf", "").lower():
                         continue
 
-                # Filtro situação
+                # Filtro situação (suporte a seleção múltipla por vírgula)
                 bt = c.get("badge_tipo", "")
-                if filtro_situacao and bt != filtro_situacao:
+                if situacoes_filtro_lista and bt not in situacoes_filtro_lista:
                     continue
 
                 cands_do_bloco.append(c)
@@ -312,12 +318,15 @@ class PDFTextGenerator:
 
         situacao_label_map = {
             "": "Todas as Situações",
-            "empossado": "Apenas Empossados (Exercício)",
-            "desistente": "Apenas Desistentes / Renúncias",
-            "exonerado": "Apenas Excluídos / Exonerados",
-            "convocado": "Apenas Convocados em Trâmite"
+            "empossado": "Empossados (Exercício)",
+            "desistente": "Desistentes / Renúncias",
+            "exonerado": "Excluídos / Exonerados",
+            "convocado": "Convocados em Trâmite"
         }
-        sit_label = situacao_label_map.get(filtro_situacao, filtro_situacao or "Todas as Situações")
+        if situacoes_filtro_lista:
+            sit_label = "; ".join(situacao_label_map.get(s, s) for s in situacoes_filtro_lista)
+        else:
+            sit_label = "Todas as Situações"
 
         pdf = FPDF(orientation='L', unit='mm', format='A4')
         pdf.set_auto_page_break(auto=True, margin=15)
@@ -351,7 +360,8 @@ class PDFTextGenerator:
         pdf.set_xy(12, 34)
         pdf.set_font("Helvetica", "B", 8.5)
         busca_lbl = termo_busca if termo_busca else "Nenhuma"
-        pdf.cell(273, 5, sanitize_text(f"FILTRO APLICADO: Cargo: {nome_cargo_filtrado} | Situação: {sit_label} | Termo de Busca: {busca_lbl}"), ln=True)
+        cargos_str = nome_cargo_filtrado if len(nome_cargo_filtrado) <= 120 else (nome_cargo_filtrado[:117] + "...")
+        pdf.cell(273, 5, sanitize_text(f"FILTRO APLICADO: Cargo(s): {cargos_str} | Situação: {sit_label} | Busca: {busca_lbl}"), ln=True)
 
         pdf.set_xy(12, 40)
         pdf.set_font("Helvetica", "", 8)

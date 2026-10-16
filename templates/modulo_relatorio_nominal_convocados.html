@@ -279,38 +279,106 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <!-- 1. Campo de Busca Textual -->
-                <div>
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 text-xs">
+                <!-- 1. Campo de Busca Textual (4 cols) -->
+                <div class="md:col-span-4">
                     <label class="block font-bold text-slate-300 mb-1">Buscar Candidato por Nome ou CPF</label>
                     <div class="relative">
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
-                        <input type="text" id="filtro_cand_busca" oninput="aplicarFiltrosNominal()" placeholder="Ex: Jaqueline, Matheus, 000.250..." class="w-full pl-8 pr-3 py-2 bg-slate-950 border border-slate-700 rounded-xl font-medium text-white placeholder-slate-500 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        <input type="text" id="filtro_cand_busca" oninput="aplicarFiltrosNominal()" placeholder="Ex: Rodrigo, Jaqueline, 000.250..." class="w-full pl-8 pr-3 py-2 bg-slate-950 border border-slate-700 rounded-xl font-medium text-white placeholder-slate-500 focus:ring-2 focus:ring-amber-500 focus:outline-none">
                     </div>
                 </div>
 
-                <!-- 2. Seleção de Cargo Específico -->
-                <div>
-                    <label class="block font-bold text-slate-300 mb-1">Filtrar Cargo</label>
-                    <select id="filtro_cand_cargo" onchange="aplicarFiltrosNominal()" class="w-full py-2 px-3 bg-slate-950 border border-slate-700 rounded-xl font-bold text-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
-                        <option value="">-- Todos os Cargos ({{ grupos_cargos|length }}) --</option>
-                        {% for g in grupos_cargos %}
-                        <option value="{{ g.codigo_cargo }}">{{ g.codigo_cargo }} - {{ g.cargo_nome }} ({{ g.total_convocados }} conv.)</option>
-                        {% endfor %}
-                    </select>
+                <!-- 2. Seleção Múltipla de Cargos com Checkboxes (4 cols) -->
+                <div class="md:col-span-4 relative" id="container_dropdown_cargos">
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block font-bold text-slate-300">
+                            Filtrar Cargo(s) <span class="text-[10px] text-amber-400 font-normal">(Caixas de Seleção)</span>
+                        </label>
+                        <span id="badge_qtd_cargos" class="hidden text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded font-bold font-mono">0 selecionados</span>
+                    </div>
+
+                    <!-- BOTÃO DROPDOWN QUE ABRE O PAINEL DE CHECKBOXES -->
+                    <button type="button" id="btn_toggle_cargos" onclick="togglePainelCargos(event)"
+                            class="w-full py-2 px-3 bg-slate-950 border border-slate-700 hover:border-amber-500 rounded-xl font-bold text-white flex items-center justify-between text-left focus:ring-2 focus:ring-amber-500 focus:outline-none transition shadow-sm">
+                        <span id="lbl_cargos_selecionados" class="truncate text-xs">-- Todos os Cargos ({{ grupos_cargos|length }}) --</span>
+                        <i class="fa-solid fa-chevron-down text-slate-400 text-xs ml-2 transition-transform duration-200" id="icon_chevron_cargos"></i>
+                    </button>
+
+                    <!-- PAINEL POPUP FLUTUANTE COM CHECKBOXES -->
+                    <div id="painel_dropdown_cargos" class="hidden absolute left-0 right-0 top-full mt-1.5 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl z-50 p-3 space-y-2.5 max-h-96 flex flex-col">
+                        <!-- Busca rápida dentro da lista de cargos -->
+                        <div class="relative flex-shrink-0">
+                            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-500 text-xs"></i>
+                            <input type="text" id="filtro_busca_cargo_lista" oninput="filtrarListaCargosCheckbox()" placeholder="Digitar nome para localizar cargo..." class="w-full pl-7 pr-2.5 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500">
+                        </div>
+
+                        <!-- Botões Rápidos Marcar Todos / Desmarcar -->
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-2 text-[11px] font-bold flex-shrink-0">
+                            <button type="button" onclick="marcarTodosCargos(true)" class="text-amber-400 hover:text-amber-300 hover:underline flex items-center">
+                                <i class="fa-solid fa-check-double mr-1"></i> Marcar Todos
+                            </button>
+                            <button type="button" onclick="marcarTodosCargos(false)" class="text-slate-400 hover:text-slate-200 hover:underline flex items-center">
+                                <i class="fa-solid fa-xmark mr-1"></i> Desmarcar Todos
+                            </button>
+                        </div>
+
+                        <!-- Lista com Scroll dos Checkboxes de cada cargo -->
+                        <div class="overflow-y-auto custom-scrollbar space-y-1 pr-1 flex-1 max-h-60" id="lista_checkboxes_cargos">
+                            {% for g in grupos_cargos %}
+                            <label class="flex items-center space-x-2.5 p-1.5 rounded-xl hover:bg-slate-800/80 cursor-pointer transition item-cargo-chk"
+                                   data-cargo-cod="{{ g.codigo_cargo }}"
+                                   data-cargo-nome="{{ g.cargo_nome.lower() }}">
+                                <input type="checkbox" name="filtro_cargo_check" value="{{ g.codigo_cargo }}" onchange="aplicarFiltrosNominal()"
+                                       class="w-4 h-4 rounded text-amber-500 bg-slate-950 border-slate-700 focus:ring-amber-500 focus:ring-offset-0 cursor-pointer">
+                                <span class="font-mono text-[10px] bg-slate-950 text-amber-400 px-1.5 py-0.5 rounded font-bold border border-slate-800 whitespace-nowrap">
+                                    {{ g.codigo_cargo }}
+                                </span>
+                                <span class="font-semibold text-slate-200 text-xs truncate flex-1" title="{{ g.cargo_nome }}">
+                                    {{ g.cargo_nome }}
+                                </span>
+                                <span class="text-[10px] text-slate-400 font-mono font-bold whitespace-nowrap">
+                                    {{ g.total_convocados }} conv.
+                                </span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
                 </div>
 
-                <!-- 3. Situação Final de Provimento -->
-                <div>
-                    <label class="block font-bold text-slate-300 mb-1">Situação Final de Provimento</label>
-                    <select id="filtro_cand_situacao" onchange="aplicarFiltrosNominal()" class="w-full py-2 px-3 bg-slate-950 border border-slate-700 rounded-xl font-bold text-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
-                        <option value="">-- Todas as Situações ({{ totais.total_convocados }}) --</option>
-                        <option value="empossado">Apenas Empossados (Exercício) ({{ totais.empossados_exercicio }})</option>
-                        <option value="desistente">Apenas Desistentes / Renúncias ({{ totais.desistencias }})</option>
-                        <option value="exonerado">Apenas Excluídos / Exonerados ({{ totais.exoneracoes }})</option>
-                        <option value="convocado">Apenas Convocados em Trâmite ({{ totais.convocados_tramite }})</option>
-                    </select>
+                <!-- 3. Situação Final de Provimento com Checkboxes Rápidos (4 cols) -->
+                <div class="md:col-span-4">
+                    <label class="block font-bold text-slate-300 mb-1">
+                        Situação Final de Provimento <span class="text-[10px] text-slate-400 font-normal">(Caixas de Seleção)</span>
+                    </label>
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <label class="flex items-center space-x-1.5 bg-slate-950 px-2.5 py-1.5 rounded-xl border border-slate-800 hover:border-emerald-500/60 cursor-pointer text-xs font-semibold transition">
+                            <input type="checkbox" name="filtro_situacao_check" value="empossado" onchange="aplicarFiltrosNominal()" class="w-3.5 h-3.5 rounded text-emerald-500 bg-slate-900 border-slate-700 focus:ring-emerald-500 cursor-pointer">
+                            <span class="text-emerald-400 truncate text-[11px]">Exercício ({{ totais.empossados_exercicio }})</span>
+                        </label>
+                        <label class="flex items-center space-x-1.5 bg-slate-950 px-2.5 py-1.5 rounded-xl border border-slate-800 hover:border-rose-500/60 cursor-pointer text-xs font-semibold transition">
+                            <input type="checkbox" name="filtro_situacao_check" value="desistente" onchange="aplicarFiltrosNominal()" class="w-3.5 h-3.5 rounded text-rose-500 bg-slate-900 border-slate-700 focus:ring-rose-500 cursor-pointer">
+                            <span class="text-rose-400 truncate text-[11px]">Desistências ({{ totais.desistencias }})</span>
+                        </label>
+                        <label class="flex items-center space-x-1.5 bg-slate-950 px-2.5 py-1.5 rounded-xl border border-slate-800 hover:border-slate-600 cursor-pointer text-xs font-semibold transition">
+                            <input type="checkbox" name="filtro_situacao_check" value="exonerado" onchange="aplicarFiltrosNominal()" class="w-3.5 h-3.5 rounded text-slate-400 bg-slate-900 border-slate-700 focus:ring-slate-400 cursor-pointer">
+                            <span class="text-slate-300 truncate text-[11px]">Exonerações ({{ totais.exoneracoes }})</span>
+                        </label>
+                        <label class="flex items-center space-x-1.5 bg-slate-950 px-2.5 py-1.5 rounded-xl border border-slate-800 hover:border-blue-500/60 cursor-pointer text-xs font-semibold transition">
+                            <input type="checkbox" name="filtro_situacao_check" value="convocado" onchange="aplicarFiltrosNominal()" class="w-3.5 h-3.5 rounded text-blue-500 bg-slate-900 border-slate-700 focus:ring-blue-500 cursor-pointer">
+                            <span class="text-blue-400 truncate text-[11px]">Em Trâmite ({{ totais.convocados_tramite }})</span>
+                        </label>
+                    </div>
                 </div>
+            </div>
+
+            <!-- CHIPS / BADGES VISUAIS DOS CARGOS SELECIONADOS -->
+            <div id="container_chips_cargos" class="hidden flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-800 text-xs">
+                <span class="text-[11px] text-slate-400 font-bold mr-1">Cargos Filtrados:</span>
+                <div id="chips_cargos_list" class="flex flex-wrap items-center gap-1.5"></div>
+                <button type="button" onclick="marcarTodosCargos(false)" class="text-[11px] text-rose-400 hover:text-rose-300 hover:underline font-bold ml-2">
+                    <i class="fa-solid fa-xmark mr-0.5"></i> Desmarcar todos os cargos
+                </button>
             </div>
 
             <!-- CONTADOR DINÂMICO -->
@@ -528,10 +596,74 @@
 
     <!-- SCRIPT DE FILTROS DINÂMICOS E EXPORTAÇÃO CSV / PDF -->
     <script>
+        // Alternar abertura do popup flutuante de cargos
+        function togglePainelCargos(e) {
+            if (e) e.stopPropagation();
+            const painel = document.getElementById('painel_dropdown_cargos');
+            const icon = document.getElementById('icon_chevron_cargos');
+            const isOpen = !painel.classList.contains('hidden');
+            if (isOpen) {
+                painel.classList.add('hidden');
+                if (icon) icon.classList.remove('rotate-180');
+            } else {
+                painel.classList.remove('hidden');
+                if (icon) icon.classList.add('rotate-180');
+                const inputBusca = document.getElementById('filtro_busca_cargo_lista');
+                if (inputBusca) setTimeout(() => inputBusca.focus(), 60);
+            }
+        }
+
+        // Fechar dropdown de cargos ao clicar fora dele
+        document.addEventListener('click', function(e) {
+            const container = document.getElementById('container_dropdown_cargos');
+            const painel = document.getElementById('painel_dropdown_cargos');
+            if (painel && !painel.classList.contains('hidden')) {
+                if (container && !container.contains(e.target)) {
+                    painel.classList.add('hidden');
+                    const icon = document.getElementById('icon_chevron_cargos');
+                    if (icon) icon.classList.remove('rotate-180');
+                }
+            }
+        });
+
+        // Filtrar lista de checkboxes dentro do dropdown
+        function filtrarListaCargosCheckbox() {
+            const termo = (document.getElementById('filtro_busca_cargo_lista').value || '').trim().toLowerCase();
+            const items = document.querySelectorAll('.item-cargo-chk');
+            items.forEach(item => {
+                const cod = (item.getAttribute('data-cargo-cod') || '').toLowerCase();
+                const nome = (item.getAttribute('data-cargo-nome') || '').toLowerCase();
+                if (!termo || cod.includes(termo) || nome.includes(termo)) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        }
+
+        // Marcar ou desmarcar todos os checkboxes de cargos
+        function marcarTodosCargos(marcar) {
+            const checkboxes = document.querySelectorAll('input[name="filtro_cargo_check"]');
+            checkboxes.forEach(cb => {
+                cb.checked = marcar;
+            });
+            aplicarFiltrosNominal();
+        }
+
+        // Desmarcar um cargo específico pelo código
+        function desmarcarCargo(codigoCargo) {
+            const cb = document.querySelector(`input[name="filtro_cargo_check"][value="${codigoCargo}"]`);
+            if (cb) {
+                cb.checked = false;
+                aplicarFiltrosNominal();
+            }
+        }
+
+        // Aplicação Geral dos Filtros (Nome, Cargos Múltiplos e Situações)
         function aplicarFiltrosNominal() {
             const busca = (document.getElementById('filtro_cand_busca').value || '').trim().toLowerCase();
-            const cargoFiltro = (document.getElementById('filtro_cand_cargo').value || '').trim();
-            const situacaoFiltro = (document.getElementById('filtro_cand_situacao').value || '').trim();
+            const cargosSelecionados = Array.from(document.querySelectorAll('input[name="filtro_cargo_check"]:checked')).map(cb => cb.value);
+            const situacoesSelecionadas = Array.from(document.querySelectorAll('input[name="filtro_situacao_check"]:checked')).map(cb => cb.value);
 
             const blocos = document.querySelectorAll('.bloco-cargo');
             let totalCandsVisiveis = 0;
@@ -545,16 +677,15 @@
                 const codCargo = bloco.getAttribute('data-codigo-cargo') || '';
                 const totalConv = parseInt(bloco.getAttribute('data-total-convocados')) || 0;
 
-                // Se o cargo foi filtrado especificamente
-                if (cargoFiltro && codCargo !== cargoFiltro) {
+                // Se houver seleção de cargos, filtra estritamente por eles
+                if (cargosSelecionados.length > 0 && !cargosSelecionados.includes(codCargo)) {
                     bloco.classList.add('hidden');
                     return;
                 }
 
                 // Se cargo tem 0 convocados
                 if (totalConv === 0) {
-                    // Só exibe se o usuário selecionou expressamente este cargo específico no filtro
-                    if (cargoFiltro && cargoFiltro === codCargo && !busca && !situacaoFiltro) {
+                    if (cargosSelecionados.includes(codCargo) && !busca && situacoesSelecionadas.length === 0) {
                         bloco.classList.remove('hidden');
                         blocosComResultados++;
                     } else {
@@ -571,7 +702,7 @@
                     const cpf = row.getAttribute('data-cpf') || '';
                     const badgeTipo = row.getAttribute('data-badge-tipo') || '';
 
-                    // 1. Busca textual
+                    // 1. Busca textual (nome ou CPF)
                     let matchBusca = true;
                     if (busca) {
                         matchBusca = nome.includes(busca) || cpf.includes(busca);
@@ -579,8 +710,8 @@
 
                     // 2. Situação de provimento
                     let matchSit = true;
-                    if (situacaoFiltro) {
-                        matchSit = (badgeTipo === situacaoFiltro);
+                    if (situacoesSelecionadas.length > 0) {
+                        matchSit = situacoesSelecionadas.includes(badgeTipo);
                     }
 
                     if (matchBusca && matchSit) {
@@ -624,24 +755,47 @@
                 document.getElementById('dyn_conv_count').textContent = totalConvVisiveis;
             }
 
+            // Atualização do Rótulo do Dropdown e Chips
+            const lblCargos = document.getElementById('lbl_cargos_selecionados');
+            const badgeQtd = document.getElementById('badge_qtd_cargos');
+            const containerChips = document.getElementById('container_chips_cargos');
+            const totalCargosTotal = document.querySelectorAll('input[name="filtro_cargo_check"]').length;
+
+            if (cargosSelecionados.length === 0) {
+                lblCargos.textContent = `-- Todos os Cargos (${totalCargosTotal}) --`;
+                badgeQtd.classList.add('hidden');
+                containerChips.classList.add('hidden');
+            } else if (cargosSelecionados.length === 1) {
+                lblCargos.textContent = `1 cargo: ${cargosSelecionados[0]}`;
+                badgeQtd.textContent = `1 selecionado`;
+                badgeQtd.classList.remove('hidden');
+                containerChips.classList.remove('hidden');
+                gerarChipsCargos(cargosSelecionados);
+            } else {
+                lblCargos.textContent = `${cargosSelecionados.length} cargos selecionados`;
+                badgeQtd.textContent = `${cargosSelecionados.length} selecionados`;
+                badgeQtd.classList.remove('hidden');
+                containerChips.classList.remove('hidden');
+                gerarChipsCargos(cargosSelecionados);
+            }
+
             // Atualização do Banner de Filtro Aplicado (Visual e Impressão)
             const bannerFiltro = document.getElementById('banner_filtro_impressao');
             const textoFiltro = document.getElementById('texto_filtro_impressao');
             if (bannerFiltro && textoFiltro) {
                 const filtrosDesc = [];
-                if (cargoFiltro) {
-                    const cargoSelect = document.getElementById('filtro_cand_cargo');
-                    const cargoTexto = cargoSelect.options[cargoSelect.selectedIndex].text;
-                    filtrosDesc.push(`Cargo: ${cargoTexto}`);
+                if (cargosSelecionados.length > 0) {
+                    filtrosDesc.push(`Cargos (${cargosSelecionados.length}): ${cargosSelecionados.join(', ')}`);
                 }
-                if (situacaoFiltro) {
+                if (situacoesSelecionadas.length > 0) {
                     const sitLabels = {
-                        'empossado': 'Apenas Empossados (Exercício Efetivo)',
-                        'desistente': 'Apenas Desistências / Renúncias Formais',
-                        'exonerado': 'Apenas Excluídos / Exonerados',
-                        'convocado': 'Apenas Convocados em Trâmite'
+                        'empossado': 'Exercício Efetivo',
+                        'desistente': 'Desistências / Renúncias',
+                        'exonerado': 'Exonerações / Excluídos',
+                        'convocado': 'Convocados em Trâmite'
                     };
-                    filtrosDesc.push(`Situação: ${sitLabels[situacaoFiltro] || situacaoFiltro}`);
+                    const nomesSit = situacoesSelecionadas.map(s => sitLabels[s] || s);
+                    filtrosDesc.push(`Situações: ${nomesSit.join(', ')}`);
                 }
                 if (busca) {
                     filtrosDesc.push(`Termo de busca: "${busca}"`);
@@ -657,28 +811,59 @@
             }
         }
 
+        // Renderizar tags (chips) com botões para remover cargos
+        function gerarChipsCargos(cargosSelecionados) {
+            const chipsList = document.getElementById('chips_cargos_list');
+            if (!chipsList) return;
+            chipsList.innerHTML = '';
+            cargosSelecionados.forEach(cod => {
+                const span = document.createElement('span');
+                span.className = 'bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-lg text-[11px] font-bold flex items-center shadow-sm';
+                span.innerHTML = `
+                    <span class="font-mono">${cod}</span>
+                    <button type="button" onclick="desmarcarCargo('${cod}')" title="Remover do filtro" class="ml-1.5 text-amber-400 hover:text-white transition font-black">
+                        &times;
+                    </button>
+                `;
+                chipsList.appendChild(span);
+            });
+        }
+
+        // Limpeza completa de todos os filtros
         function limparFiltrosNominal() {
             document.getElementById('filtro_cand_busca').value = '';
-            document.getElementById('filtro_cand_cargo').value = '';
-            document.getElementById('filtro_cand_situacao').value = '';
+            document.querySelectorAll('input[name="filtro_cargo_check"]').forEach(cb => cb.checked = false);
+            document.querySelectorAll('input[name="filtro_situacao_check"]').forEach(cb => cb.checked = false);
+            const buscaCargoInterna = document.getElementById('filtro_busca_cargo_lista');
+            if (buscaCargoInterna) {
+                buscaCargoInterna.value = '';
+                filtrarListaCargosCheckbox();
+            }
             aplicarFiltrosNominal();
         }
 
+        // Mostrar todos os cargos (desmarcar restrições de cargo)
         function expandirTodosCargos() {
-            document.getElementById('filtro_cand_cargo').value = '';
+            document.querySelectorAll('input[name="filtro_cargo_check"]').forEach(cb => cb.checked = false);
             aplicarFiltrosNominal();
         }
 
         // Geração Direta de Relatório em PDF do Filtro Específico Aplicado
         function gerarPDFdoFiltro() {
             const busca = (document.getElementById('filtro_cand_busca').value || '').trim();
-            const cargoFiltro = (document.getElementById('filtro_cand_cargo').value || '').trim();
-            const situacaoFiltro = (document.getElementById('filtro_cand_situacao').value || '').trim();
+            const cargosSelecionados = Array.from(document.querySelectorAll('input[name="filtro_cargo_check"]:checked')).map(cb => cb.value);
+            const situacoesSelecionadas = Array.from(document.querySelectorAll('input[name="filtro_situacao_check"]:checked')).map(cb => cb.value);
 
             const params = new URLSearchParams();
-            if (cargoFiltro) params.append('cargo', cargoFiltro);
-            if (situacaoFiltro) params.append('situacao', situacaoFiltro);
-            if (busca) params.append('busca', busca);
+            if (cargosSelecionados.length > 0) {
+                params.append('cargo', cargosSelecionados.join(','));
+            }
+            if (situacoesSelecionadas.length > 0) {
+                params.append('situacao', situacoesSelecionadas.join(','));
+            }
+            if (busca) {
+                params.append('busca', busca);
+            }
 
             const queryString = params.toString();
             const url = `/certames/{{ certame.id_certame }}/relatorios/rol-convocados/pdf${queryString ? '?' + queryString : ''}`;

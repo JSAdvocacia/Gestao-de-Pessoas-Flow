@@ -2175,6 +2175,7 @@ def certames_relatorio_rol_convocados(
 def certames_relatorio_rol_convocados_pdf(
     id_certame: int,
     cargo: str = "",
+    cargos: str = "",
     situacao: str = "",
     busca: str = "",
     db: Session = Depends(get_db),
@@ -2187,12 +2188,14 @@ def certames_relatorio_rol_convocados_pdf(
     if not certame:
         return RedirectResponse(url="/certames", status_code=303)
 
+    cargo_filtro = cargo or cargos or ""
+
     engine = AuditEngine(db)
     dados = engine.gerar_relatorio_nominal_convocados(certame.id_certame)
 
     res = PDFTextGenerator.gerar_pdf_rol_convocados_filtrado(
         certame=certame,
-        filtro_cargo_cod=cargo,
+        filtro_cargo_cod=cargo_filtro,
         filtro_situacao=situacao,
         termo_busca=busca,
         grupos_cargos=dados["grupos_cargos"],
@@ -2210,6 +2213,7 @@ def certames_relatorio_rol_convocados_pdf(
 def modulo_relatorio_rol_convocados_pdf(
     id_certame: int = 2,
     cargo: str = "",
+    cargos: str = "",
     situacao: str = "",
     busca: str = "",
     db: Session = Depends(get_db),
@@ -2218,6 +2222,7 @@ def modulo_relatorio_rol_convocados_pdf(
     return certames_relatorio_rol_convocados_pdf(
         id_certame=id_certame,
         cargo=cargo,
+        cargos=cargos,
         situacao=situacao,
         busca=busca,
         db=db,
