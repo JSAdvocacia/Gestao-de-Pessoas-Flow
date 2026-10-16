@@ -213,11 +213,11 @@ for ml in merged_lines:
             cargos_cands[c_norm] = []
     elif cur_cargo:
         c_norm, is_p = cur_cargo
-        m = re.match(r"^(\d{6,9})\s+([A-Z\s\.\'\-]+?)\s+(.*)$", ml)
+        m = re.match(r"^(\d{6,9})\s+(.*?)\s+(?:(\d+[,.]\d+|[-]{2,}|N/C)\s+(.*))$", ml)
         if m:
             insc = m.group(1)
-            nome = m.group(2).strip()
-            rest = m.group(3).strip()
+            nome = re.sub(r'\s+', ' ', m.group(2)).strip()
+            rest = m.group(4).strip()
             if "Desclassificado" not in rest and "Não aprovado" not in rest and "No aprovado" not in rest:
                 clas_m = re.search(r"(\d+)\s*[\.º°ª]*\s*$", rest)
                 clas = int(clas_m.group(1)) if clas_m else len(cargos_cands[c_norm]) + 1
