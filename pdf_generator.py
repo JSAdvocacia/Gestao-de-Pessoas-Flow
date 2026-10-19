@@ -392,37 +392,43 @@ class PDFTextGenerator:
                 pdf.set_fill_color(241, 245, 249)
                 pdf.set_draw_color(203, 213, 225)
                 pdf.set_text_color(15, 23, 42)
-                pdf.set_font("Helvetica", "B", 8)
+                pdf.set_font("Helvetica", "B", 7.5)
 
-                pdf.cell(16, 6, sanitize_text("Class."), border=1, align="C", fill=True)
-                pdf.cell(75, 6, sanitize_text("Nome do Candidato"), border=1, align="L", fill=True)
-                pdf.cell(35, 6, sanitize_text("CPF"), border=1, align="C", fill=True)
-                pdf.cell(65, 6, sanitize_text("Cargo"), border=1, align="L", fill=True)
-                pdf.cell(18, 6, sanitize_text("Cota"), border=1, align="C", fill=True)
-                pdf.cell(40, 6, sanitize_text("Situação de Provimento"), border=1, align="C", fill=True)
-                pdf.cell(28, 6, sanitize_text("Edital Chamada"), border=1, align="C", fill=True)
+                pdf.cell(12, 6, sanitize_text("Class."), border=1, align="C", fill=True)
+                pdf.cell(58, 6, sanitize_text("Nome do Candidato"), border=1, align="L", fill=True)
+                pdf.cell(28, 6, sanitize_text("CPF"), border=1, align="C", fill=True)
+                pdf.cell(48, 6, sanitize_text("Cargo"), border=1, align="L", fill=True)
+                pdf.cell(14, 6, sanitize_text("Cota"), border=1, align="C", fill=True)
+                pdf.cell(24, 6, sanitize_text("Início Vigência"), border=1, align="C", fill=True)
+                pdf.cell(24, 6, sanitize_text("Fim Vigência"), border=1, align="C", fill=True)
+                pdf.cell(44, 6, sanitize_text("Situação de Provimento"), border=1, align="C", fill=True)
+                pdf.cell(25, 6, sanitize_text("Edital Chamada"), border=1, align="C", fill=True)
                 pdf.ln()
 
                 # Rows
-                pdf.set_font("Helvetica", "", 7.5)
+                pdf.set_font("Helvetica", "", 7)
                 for idx_c, cand in enumerate(gf["candidatos_filtrados"]):
                     fill = (idx_c % 2 == 1)
                     pdf.set_fill_color(248, 250, 252) if fill else pdf.set_fill_color(255, 255, 255)
                     pdf.set_text_color(30, 41, 59)
 
                     clas_str = f"#{cand.get('classificacao_original')}º"
-                    nome_str = cand.get('nome_completo', '')[:42]
+                    nome_str = cand.get('nome_completo', '')[:35]
                     cpf_str = cand.get('cpf', '')
-                    cargo_str = gf.get('cargo_nome', '')[:38]
+                    cargo_str = gf.get('cargo_nome', '')[:28]
                     cota_str = cand.get('tipo_cota', 'AMPLA')
+                    dt_ini_str = str(cand.get('data_inicio_vigencia', '-'))
+                    dt_fim_str = str(cand.get('data_fim_vigencia', '-'))
                     sit_str = cand.get('status_lbl', cand.get('status_atual', 'CONVOCADO'))
                     ed_str = cand.get('edital_convocacao', 'Edital Oficial')
 
-                    pdf.cell(16, 5.5, sanitize_text(clas_str), border=1, align="C", fill=fill)
-                    pdf.cell(75, 5.5, sanitize_text(nome_str), border=1, align="L", fill=fill)
-                    pdf.cell(35, 5.5, sanitize_text(cpf_str), border=1, align="C", fill=fill)
-                    pdf.cell(65, 5.5, sanitize_text(cargo_str), border=1, align="L", fill=fill)
-                    pdf.cell(18, 5.5, sanitize_text(cota_str), border=1, align="C", fill=fill)
+                    pdf.cell(12, 5.2, sanitize_text(clas_str), border=1, align="C", fill=fill)
+                    pdf.cell(58, 5.2, sanitize_text(nome_str), border=1, align="L", fill=fill)
+                    pdf.cell(28, 5.2, sanitize_text(cpf_str), border=1, align="C", fill=fill)
+                    pdf.cell(48, 5.2, sanitize_text(cargo_str), border=1, align="L", fill=fill)
+                    pdf.cell(14, 5.2, sanitize_text(cota_str), border=1, align="C", fill=fill)
+                    pdf.cell(24, 5.2, sanitize_text(dt_ini_str), border=1, align="C", fill=fill)
+                    pdf.cell(24, 5.2, sanitize_text(dt_fim_str), border=1, align="C", fill=fill)
 
                     # Destacar status em cor
                     if cand.get('badge_tipo') == 'empossado':
@@ -434,9 +440,9 @@ class PDFTextGenerator:
                     else:
                         pdf.set_text_color(30, 64, 175)
 
-                    pdf.cell(40, 5.5, sanitize_text(sit_str[:25]), border=1, align="C", fill=fill)
+                    pdf.cell(44, 5.2, sanitize_text(sit_str[:26]), border=1, align="C", fill=fill)
                     pdf.set_text_color(71, 85, 105)
-                    pdf.cell(28, 5.5, sanitize_text(ed_str[:18]), border=1, align="C", fill=fill)
+                    pdf.cell(25, 5.2, sanitize_text(ed_str[:16]), border=1, align="C", fill=fill)
                     pdf.ln()
 
         # Footer

@@ -64,7 +64,7 @@ class Concurso(Base):
 
     id_concurso = Column(Integer, primary_key=True, index=True)
     id_certame = Column(Integer, ForeignKey("certames_abertura.id_certame"), nullable=True)
-    numero_edital = Column(String(50), unique=True, nullable=False)
+    numero_edital = Column(String(50), nullable=False)
     ano_edital = Column(Integer, nullable=False)
     data_homologacao = Column(Date, nullable=False)
     data_validade_final = Column(Date, nullable=False)

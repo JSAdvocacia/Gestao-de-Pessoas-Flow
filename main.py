@@ -1399,7 +1399,7 @@ def certames_acompanhamento(id_certame: int, request: Request, msg: str = None, 
     matriz_cargos = engine.consolidar_matriz_cargo_acompanhamento(id_certame)
     alertas_controle = engine.gerar_alertas_controle_interno_acompanhamento(id_certame)
 
-    candidatos = db.query(Candidato).filter((Candidato.id_certame == id_certame) | (Candidato.id_concurso == (concurso.id_concurso if concurso else 0))).order_by(Candidato.id_cargo, Candidato.classificacao_efetiva).all()
+    candidatos = db.query(Candidato).filter_by(id_certame=id_certame).order_by(Candidato.id_cargo, Candidato.classificacao_efetiva).all()
     atos_registrados = db.query(CertameAcompanhamentoAto).filter_by(id_certame=id_certame).order_by(CertameAcompanhamentoAto.data_registro.desc()).all()
 
     for cand in candidatos:
@@ -1547,7 +1547,11 @@ async def processar_ato_acompanhamento(
                     res_ia_done = True
 
             if not res_ia_done:
-                if "HOMOLOGA" in text_ext.upper() and ("APROVADO" in text_ext.upper() or "RESULTADO FINAL" in text_ext.upper()):
+                is_convoc = (
+                    tipo_ato in ["PORTARIA_CONVOCACAO", "CONVOCACAO"] or
+                    any(k in text_ext.upper() for k in ["EDITAL DE CONVOCA", "PORTARIA DE CONVOCA", "CONVOCAR O", "CONVOCAR", "CONVOCAÇÃO", "CONVOCACAO"])
+                )
+                if not is_convoc and "HOMOLOGA" in text_ext.upper() and ("APROVADO" in text_ext.upper() or "RESULTADO FINAL" in text_ext.upper()):
                     res_homol = DocumentParserAI.process_homologacao_resultado_final(text_ext, db, id_certame)
                     total_afetados_ia += res_homol.get("candidatos_injetados", 0)
                 else:
@@ -1929,7 +1933,7 @@ def certame_relatorio_analitico_acompanhamento(id_certame: int, request: Request
     matriz_cargos = engine.consolidar_matriz_cargo_acompanhamento(id_certame)
     alertas_controle = engine.gerar_alertas_controle_interno_acompanhamento(id_certame)
 
-    candidatos = db.query(Candidato).filter((Candidato.id_certame == id_certame) | (Candidato.id_concurso == (concurso.id_concurso if concurso else 0))).order_by(Candidato.id_cargo, Candidato.classificacao_efetiva).all()
+    candidatos = db.query(Candidato).filter_by(id_certame=id_certame).order_by(Candidato.id_cargo, Candidato.classificacao_efetiva).all()
     atos_registrados = db.query(CertameAcompanhamentoAto).filter_by(id_certame=id_certame).order_by(CertameAcompanhamentoAto.data_registro.desc()).all()
 
     return templates.TemplateResponse("relatorio_analitico_acompanhamento.html", {
@@ -2211,7 +2215,7 @@ def certames_relatorio_rol_convocados_pdf(
 
 @app.get("/modulo/relatorios/rol-convocados/pdf")
 def modulo_relatorio_rol_convocados_pdf(
-    id_certame: int = 2,
+    id_certame: int = None,
     cargo: str = "",
     cargos: str = "",
     situacao: str = "",
@@ -2219,6 +2223,9 @@ def modulo_relatorio_rol_convocados_pdf(
     db: Session = Depends(get_db),
     usuario = Depends(get_current_user)
 ):
+    if not id_certame:
+        todos = db.query(CertameAbertura).order_by(CertameAbertura.ano.desc(), CertameAbertura.numero_certame.asc()).all()
+        id_certame = todos[0].id_certame if todos else 1
     return certames_relatorio_rol_convocados_pdf(
         id_certame=id_certame,
         cargo=cargo,

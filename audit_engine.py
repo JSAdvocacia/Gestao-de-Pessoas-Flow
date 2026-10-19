@@ -754,9 +754,7 @@ class AuditEngine:
             return None
 
         # 1. Garantir registro de Concurso vinculado ao Certame
-        concurso = self.db.query(Concurso).filter(
-            (Concurso.id_certame == certame_id) | (Concurso.numero_edital == certame.numero_certame)
-        ).first()
+        concurso = self.db.query(Concurso).filter_by(id_certame=certame_id).first()
 
         data_homol = date.today()
         if certame.fase_oficial and certame.fase_oficial.data_homologacao_resultado_final:
@@ -816,7 +814,7 @@ class AuditEngine:
 
         # 3. Vincular Vagas do Edital ao Lotacionograma e verificar limites legais apenas para cargos ofertados
         cargos_certame = self.db.query(Cargo).join(Candidato).filter(
-            (Candidato.id_certame == certame_id) | (Candidato.id_concurso == concurso.id_concurso)
+            Candidato.id_certame == certame_id
         ).distinct().all()
 
         for cg in cargos_certame:
@@ -910,22 +908,23 @@ class AuditEngine:
         if not certame:
             return None
 
-        concurso = self.db.query(Concurso).filter((Concurso.id_certame == certame_id) | (Concurso.numero_edital == certame.numero_certame)).first()
+        concurso = self.db.query(Concurso).filter_by(id_certame=certame_id).first()
         if not concurso:
+            is_seletivo = 'SELETIVO' in (certame.modalidade or '').upper()
+            prazo_m = 12 if is_seletivo else 24
+            suf = "PSS" if is_seletivo else "CP"
             concurso = Concurso(
                 id_certame=certame_id,
-                numero_edital=certame.numero_certame,
+                numero_edital=f"{certame.numero_certame}-{suf}",
                 ano_edital=certame.ano,
                 data_homologacao=date.today() - timedelta(days=60),
-                data_validade_final=date.today() + timedelta(days=670),
+                data_validade_final=date.today() + timedelta(days=365 if is_seletivo else 730),
+                prazo_validade_meses=prazo_m,
                 status="VIGENTE"
             )
             self.db.add(concurso)
             self.db.commit()
             self.db.refresh(concurso)
-        elif not concurso.id_certame:
-            concurso.id_certame = certame_id
-            self.db.commit()
 
         return concurso
 
@@ -941,9 +940,35 @@ class AuditEngine:
         if not concurso:
             return []
 
-        candidatos = self.db.query(Candidato).filter((Candidato.id_certame == certame_id) | (Candidato.id_concurso == concurso.id_concurso)).all()
+        candidatos = self.db.query(Candidato).filter_by(id_certame=certame_id).all()
         
         mapa_cargos = {}
+        vagas_concurso = self.db.query(ConcursoVaga).filter_by(id_concurso=concurso.id_concurso).all()
+        for cv in vagas_concurso:
+            cid = cv.id_cargo
+            cargo_obj = cv.cargo
+            lot_rec = self.db.query(Lotacionograma).filter_by(id_cargo=cid).first()
+            v_edital = cv.vagas_imediatas_edital if cv.vagas_imediatas_edital is not None else 0
+            v_lei = lot_rec.vagas_criadas_lei if lot_rec else 10
+            v_oc = lot_rec.vagas_ocupadas_oficial if lot_rec else 0
+            v_livres = lot_rec.vagas_disponiveis_oficial if lot_rec else max(0, v_lei - v_oc)
+
+            mapa_cargos[cid] = {
+                "cargo_nome": cargo_obj.nome_cargo if cargo_obj else f"Cargo {cid}",
+                "codigo_cargo": cargo_obj.codigo_cargo if cargo_obj else "",
+                "vagas_edital": v_edital,
+                "vagas_lei": v_lei,
+                "vagas_ocupadas_oficial": v_oc,
+                "vagas_disponiveis_oficial": v_livres,
+                "convocados": 0,
+                "empossados": 0,
+                "desistencias": 0,
+                "fim_de_fila": 0,
+                "eliminados": 0,
+                "sub_judice": 0,
+                "saldo": v_edital
+            }
+
         for cand in candidatos:
             cid = cand.id_cargo
             if cid not in mapa_cargos:
@@ -1014,7 +1039,7 @@ class AuditEngine:
         if not concurso:
             return []
 
-        candidatos = self.db.query(Candidato).filter((Candidato.id_certame == certame_id) | (Candidato.id_concurso == concurso.id_concurso)).order_by(Candidato.id_cargo, Candidato.classificacao_original).all()
+        candidatos = self.db.query(Candidato).filter_by(id_certame=certame_id).order_by(Candidato.id_cargo, Candidato.classificacao_original).all()
 
         alertas = []
         by_cargo = {}
@@ -1096,7 +1121,7 @@ class AuditEngine:
             return []
 
         concurso = self.obter_ou_criar_dados_acompanhamento(certame_id)
-        candidatos = self.db.query(Candidato).filter((Candidato.id_certame == certame_id) | (Candidato.id_concurso == (concurso.id_concurso if concurso else 0))).order_by(Candidato.id_cargo, Candidato.classificacao_original).all()
+        candidatos = self.db.query(Candidato).filter_by(id_certame=certame_id).order_by(Candidato.id_cargo, Candidato.classificacao_original).all()
 
         atos_vig = self.db.query(CertameVigenciaAto).filter_by(id_certame=certame_id).order_by(CertameVigenciaAto.nova_data_fim_vigencia.desc()).all()
         data_limite_vigencia = None
@@ -1134,10 +1159,7 @@ class AuditEngine:
         if not certame:
             return {"status": "ERRO", "mensagem": "Certame não encontrado."}
 
-        concurso = self.db.query(Concurso).filter(
-            (Concurso.id_certame == certame_id) | (Concurso.numero_edital == certame.numero_certame)
-        ).first()
-
+        concurso = self.db.query(Concurso).filter_by(id_certame=certame_id).first()
         id_concurso = concurso.id_concurso if concurso else 0
 
         # 1. Remover atos de acompanhamento registrados (exceto o ato inicial de importação da homologação)
@@ -1147,9 +1169,7 @@ class AuditEngine:
                 self.db.delete(ato)
 
         # 2. Buscar candidatos do certame
-        candidatos = self.db.query(Candidato).filter(
-            (Candidato.id_certame == certame_id) | (Candidato.id_concurso == id_concurso)
-        ).all()
+        candidatos = self.db.query(Candidato).filter_by(id_certame=certame_id).all()
 
         total_zerados = len(candidatos)
 
@@ -1215,12 +1235,7 @@ class AuditEngine:
         certame = self.db.query(CertameAbertura).filter_by(id_certame=certame_id).first()
         concurso = self.db.query(Concurso).filter_by(id_certame=certame_id).first()
         
-        candidatos = self.db.query(Candidato).filter(
-            (Candidato.id_certame == certame_id) | 
-            (Candidato.id_concurso == (concurso.id_concurso if concurso else 0))
-        ).order_by(Candidato.id_cargo, Candidato.classificacao_efetiva).all()
-
-        cargos = self.db.query(Cargo).all()
+        candidatos = self.db.query(Candidato).filter_by(id_certame=certame_id).order_by(Candidato.id_cargo, Candidato.classificacao_efetiva).all()
 
         quadro_cargos = []
         totais = {
@@ -1238,6 +1253,31 @@ class AuditEngine:
         }
 
         mapa_cargos = {}
+        vagas_concurso = self.db.query(ConcursoVaga).filter_by(id_concurso=concurso.id_concurso).all() if concurso else []
+        for cv in vagas_concurso:
+            cid = cv.id_cargo
+            cargo_obj = cv.cargo
+            lot_rec = self.db.query(Lotacionograma).filter_by(id_cargo=cid).first()
+            v_edital = cv.vagas_imediatas_edital if (cv.vagas_imediatas_edital is not None) else 0
+            v_lei = lot_rec.vagas_criadas_lei if lot_rec else (cv.vagas_cr or 10)
+            nome_c = cargo_obj.nome_cargo if cargo_obj else f"Cargo {cid}"
+
+            mapa_cargos[cid] = {
+                "id_cargo": cid,
+                "cargo_nome": nome_c,
+                "codigo_cargo": cargo_obj.codigo_cargo if cargo_obj else f"CARGO-{cid}",
+                "vagas_lei": v_lei,
+                "vagas_edital": v_edital,
+                "aprovados_diretos": 0,
+                "cadastro_reserva": 0,
+                "convocados": 0,
+                "empossados_exercicio": 0,
+                "desistencias": 0,
+                "exoneracoes": 0,
+                "sub_judice": 0,
+                "saldo_livre": v_edital
+            }
+
         for cand in candidatos:
             cid = cand.id_cargo
             if cid not in mapa_cargos:
@@ -1341,10 +1381,7 @@ class AuditEngine:
         parecer_oficial = self.db.query(ParecerOficial).filter_by(id_certame=certame_id).first()
         atos_vigencia = self.db.query(CertameVigenciaAto).filter_by(id_certame=certame_id).order_by(CertameVigenciaAto.data_publicacao.asc()).all()
 
-        candidatos = self.db.query(Candidato).filter(
-            (Candidato.id_certame == certame_id) | 
-            (Candidato.id_concurso == (concurso.id_concurso if concurso else 0))
-        ).order_by(Candidato.id_cargo, Candidato.classificacao_efetiva).all()
+        candidatos = self.db.query(Candidato).filter_by(id_certame=certame_id).order_by(Candidato.id_cargo, Candidato.classificacao_efetiva).all()
 
         # Datas Relevantes do Certame (Linha do Tempo em Dashboard)
         dt_edital = fase_oficial.data_publicacao_edital if (fase_oficial and fase_oficial.data_publicacao_edital) else date(2022, 5, 25)
@@ -1456,6 +1493,33 @@ class AuditEngine:
         }
 
         mapa_cargos = {}
+        vagas_concurso = self.db.query(ConcursoVaga).filter_by(id_concurso=concurso.id_concurso).all() if concurso else []
+        for cv in vagas_concurso:
+            cid = cv.id_cargo
+            cargo_obj = cv.cargo
+            lot_rec = self.db.query(Lotacionograma).filter_by(id_cargo=cid).first()
+            v_edital = cv.vagas_imediatas_edital if (cv.vagas_imediatas_edital is not None) else 0
+            v_lei = lot_rec.vagas_criadas_lei if lot_rec else (cv.vagas_cr or 10)
+            nome_c = cargo_obj.nome_cargo if cargo_obj else f"Cargo {cid}"
+            nivel_raw = cargo_obj.nivel_escolaridade if (cargo_obj and cargo_obj.nivel_escolaridade) else "Médio"
+
+            mapa_cargos[cid] = {
+                "id_cargo": cid,
+                "cargo_nome": nome_c,
+                "codigo_cargo": cargo_obj.codigo_cargo if cargo_obj else f"CARGO-{cid}",
+                "nivel_escolaridade": nivel_raw,
+                "vagas_lei": v_lei,
+                "vagas_edital": v_edital,
+                "aprovados_diretos": 0,
+                "cadastro_reserva": 0,
+                "convocados": 0,
+                "empossados_exercicio": 0,
+                "desistencias": 0,
+                "exoneracoes": 0,
+                "sub_judice": 0,
+                "saldo_livre": v_edital
+            }
+
         for cand in candidatos:
             cid = cand.id_cargo
             if cid not in mapa_cargos:
@@ -1561,6 +1625,8 @@ class AuditEngine:
         totais["taxa_desistencia_geral"] = round((totais["desistencias"] / totais["convocados"]) * 100, 1) if totais["convocados"] > 0 else 0.0
         totais["taxa_aproveitamento_convocados"] = round((totais["empossados_exercicio"] / totais["convocados"]) * 100, 1) if totais["convocados"] > 0 else 0.0
 
+        quadro_cargos.sort(key=lambda x: x["cargo_nome"])
+
         return {
             "certame": certame,
             "concurso": concurso,
@@ -1591,10 +1657,7 @@ class AuditEngine:
         concurso = self.db.query(Concurso).filter_by(id_certame=certame_id).first()
         fase_oficial = self.db.query(CertameFaseOficial).filter_by(id_certame=certame_id).first()
 
-        todos_candidatos = self.db.query(Candidato).filter(
-            (Candidato.id_certame == certame_id) | 
-            (Candidato.id_concurso == (concurso.id_concurso if concurso else 0))
-        ).order_by(Candidato.id_cargo, Candidato.classificacao_original).all()
+        todos_candidatos = self.db.query(Candidato).filter_by(id_certame=certame_id).order_by(Candidato.id_cargo, Candidato.classificacao_original).all()
 
         # Filtrar apenas os que foram convocados (movimentações reais)
         # Exclui os que permaneceram apenas como cadastro de reserva não chamado
@@ -1604,18 +1667,15 @@ class AuditEngine:
             if any(k in st for k in ["EMPOSSADO", "CONVOCADO", "DESISTENTE", "RENÚNCIA", "EXCLUÍDO", "EXONERADO"]):
                 candidatos_convocados.append(cand)
 
-        # Buscar os cargos vinculados a este certame/concurso
-        cargos_certame_ids = [cv.id_cargo for cv in self.db.query(ConcursoVaga).filter_by(id_concurso=concurso.id_concurso).all()] if concurso else []
-        if not cargos_certame_ids:
-            cargos_certame_ids = [c[0] for c in self.db.query(Candidato.id_cargo).filter(
-                (Candidato.id_certame == certame_id) | 
-                (Candidato.id_concurso == (concurso.id_concurso if concurso else 0))
-            ).distinct().all()]
+        # Buscar os cargos vinculados especificamente a este certame/concurso
+        cargos_vagas_ids = [cv.id_cargo for cv in self.db.query(ConcursoVaga).filter_by(id_concurso=concurso.id_concurso).all()] if concurso else []
+        cargos_cands_ids = [c[0] for c in self.db.query(Candidato.id_cargo).filter_by(id_certame=certame_id).distinct().all()]
+        cargos_certame_ids = list(set(cargos_vagas_ids + cargos_cands_ids))
 
         if cargos_certame_ids:
             cargos_db = self.db.query(Cargo).filter(Cargo.id_cargo.in_(cargos_certame_ids)).order_by(Cargo.nome_cargo.asc()).all()
         else:
-            cargos_db = self.db.query(Cargo).order_by(Cargo.nome_cargo.asc()).all()
+            cargos_db = []
 
         grupos_cargos = []
         totais = {
@@ -1678,6 +1738,9 @@ class AuditEngine:
                     status_classe = "text-blue-800 font-bold bg-blue-50 border-blue-200"
                     badge_tipo = "convocado"
 
+                dt_ini_str = c.data_posse.strftime("%d/%m/%Y") if getattr(c, 'data_posse', None) else "-"
+                dt_fim_str = c.data_exoneracao.strftime("%d/%m/%Y") if getattr(c, 'data_exoneracao', None) else ("Vigente" if badge_tipo == "empossado" else "-")
+
                 cands_fmt.append({
                     "id_candidato": c.id_candidato,
                     "classificacao_original": c.classificacao_original,
@@ -1688,7 +1751,11 @@ class AuditEngine:
                     "status_atual": c.status_atual,
                     "status_lbl": status_lbl,
                     "status_classe": status_classe,
-                    "badge_tipo": badge_tipo
+                    "badge_tipo": badge_tipo,
+                    "data_inicio_vigencia": dt_ini_str,
+                    "data_fim_vigencia": dt_fim_str,
+                    "data_posse": c.data_posse,
+                    "data_exoneracao": c.data_exoneracao
                 })
 
             grupos_cargos.append({

@@ -111,7 +111,7 @@
             <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 Módulos de Auditoria
             </div>
-            <a href="/modulo/relatorios" class="flex items-center px-3 py-2.5 rounded-xl transition bg-amber-500/15 text-amber-300 font-extrabold border-r-2 border-amber-500">
+            <a href="/modulo/relatorios{% if certame %}?id_certame={{ certame.id_certame }}{% endif %}" class="flex items-center px-3 py-2.5 rounded-xl transition bg-amber-500/15 text-amber-300 font-extrabold border-r-2 border-amber-500">
                 <i class="fa-solid fa-file-invoice w-5 text-sm mr-2.5 text-amber-400"></i>
                 <div class="flex-1 flex items-center justify-between">
                     <span>Relatórios de Auditoria</span>
@@ -176,6 +176,19 @@
 
             <!-- BOTÕES DE AÇÃO E EXPORTAÇÃO -->
             <div class="flex flex-wrap items-center gap-2.5 botoes-acoes">
+                <!-- SELETOR DE CERTAME -->
+                {% if todos_certames and todos_certames|length > 1 %}
+                <form method="GET" action="/modulo/relatorios/rol-convocados" class="inline">
+                    <select name="id_certame" onchange="this.form.submit()" class="bg-slate-900 border border-slate-700 text-slate-200 text-xs font-bold rounded-xl px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        {% for c_item in todos_certames %}
+                        <option value="{{ c_item.id_certame }}" {% if c_item.id_certame == certame.id_certame %}selected{% endif %}>
+                            Certame #{{ c_item.numero_certame }} - {{ c_item.orgao_solicitante[:25] }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </form>
+                {% endif %}
+
                 <a href="/modulo/relatorios?id_certame={{ certame.id_certame }}" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-3.5 py-2 rounded-xl text-xs border border-slate-700 transition flex items-center shadow">
                     <i class="fa-solid fa-table-cells mr-1.5 text-amber-400"></i> Quadro Consolidado
                 </a>
@@ -503,12 +516,14 @@
                         <table class="w-full text-left text-xs border-collapse tbl-cargo-candidatos">
                             <thead class="bg-slate-950 text-white font-black uppercase text-[9.5px] tracking-wider border-b border-slate-800">
                                 <tr>
-                                    <th class="py-2.5 px-3 text-center border-r border-slate-800 w-16">Class.</th>
+                                    <th class="py-2.5 px-3 text-center border-r border-slate-800 w-14">Class.</th>
                                     <th class="py-2.5 px-3 border-r border-slate-800">Nome do Candidato</th>
-                                    <th class="py-2.5 px-3 border-r border-slate-800 w-36">CPF</th>
+                                    <th class="py-2.5 px-3 border-r border-slate-800 w-32">CPF</th>
                                     <th class="py-2.5 px-3 border-r border-slate-800">Cargo</th>
-                                    <th class="py-2.5 px-2 text-center border-r border-slate-800 w-20">Cota</th>
-                                    <th class="py-2.5 px-3 text-center w-56">Situação Final de Provimento</th>
+                                    <th class="py-2.5 px-2 text-center border-r border-slate-800 w-16">Cota</th>
+                                    <th class="py-2.5 px-2 text-center border-r border-slate-800 w-28">Início Vigência</th>
+                                    <th class="py-2.5 px-2 text-center border-r border-slate-800 w-28">Fim Vigência</th>
+                                    <th class="py-2.5 px-3 text-center w-52">Situação Final de Provimento</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-200 font-medium">
@@ -544,7 +559,33 @@
                                         {{ cand.tipo_cota }}
                                     </td>
 
-                                    <!-- 6. SITUAÇÃO FINAL (STYLING IDÊNTICO À IMAGEM DO USUÁRIO) -->
+                                    <!-- 6. INÍCIO VIGÊNCIA DO CONTRATO -->
+                                    <td class="py-2 px-2 text-center font-mono text-[11px] font-bold text-slate-700 border-r border-slate-200 whitespace-nowrap">
+                                        {% if cand.data_inicio_vigencia != '-' %}
+                                        <span class="bg-slate-100 text-slate-800 px-2 py-0.5 rounded border border-slate-200">
+                                            {{ cand.data_inicio_vigencia }}
+                                        </span>
+                                        {% else %}
+                                        <span class="text-slate-400 font-normal">-</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- 7. FIM VIGÊNCIA DO CONTRATO -->
+                                    <td class="py-2 px-2 text-center font-mono text-[11px] font-bold text-slate-700 border-r border-slate-200 whitespace-nowrap">
+                                        {% if cand.data_fim_vigencia == 'Vigente' %}
+                                        <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded border border-emerald-200 font-bold">
+                                            Vigente
+                                        </span>
+                                        {% elif cand.data_fim_vigencia != '-' %}
+                                        <span class="bg-amber-100 text-amber-900 px-2 py-0.5 rounded border border-amber-200">
+                                            {{ cand.data_fim_vigencia }}
+                                        </span>
+                                        {% else %}
+                                        <span class="text-slate-400 font-normal">-</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- 8. SITUAÇÃO FINAL (STYLING IDÊNTICO À IMAGEM DO USUÁRIO) -->
                                     <td class="py-2 px-3 text-center">
                                         {% if cand.badge_tipo == 'empossado' %}
                                         <span class="text-emerald-800 font-black">
@@ -879,7 +920,7 @@
         // Exportação Dinâmica do Rol Nominal para CSV
         function exportarRolNominalCSV() {
             let csv = [];
-            csv.push(['"CÓDIGO CARGO"', '"CARGO"', '"CLASSIFICAÇÃO"', '"NOME DO CANDIDATO"', '"CPF"', '"COTA"', '"SITUAÇÃO FINAL"'].join(';'));
+            csv.push(['"CÓDIGO CARGO"', '"CARGO"', '"CLASSIFICAÇÃO"', '"NOME DO CANDIDATO"', '"CPF"', '"COTA"', '"INÍCIO VIGÊNCIA"', '"FIM VIGÊNCIA"', '"SITUAÇÃO FINAL"'].join(';'));
 
             const blocos = document.querySelectorAll('.bloco-cargo');
             blocos.forEach(bloco => {
@@ -890,13 +931,15 @@
                 rows.forEach(row => {
                     if (row.classList.contains('hidden')) return;
                     const cols = row.querySelectorAll('td');
-                    if (cols.length >= 6) {
+                    if (cols.length >= 8) {
                         const classif = cols[0].innerText.trim();
                         const nome = cols[1].innerText.trim();
                         const cpf = cols[2].innerText.trim();
                         const cargo = cols[3].innerText.trim();
                         const cota = cols[4].innerText.trim();
-                        const situacao = cols[5].innerText.trim();
+                        const dtIni = cols[5].innerText.trim();
+                        const dtFim = cols[6].innerText.trim();
+                        const situacao = cols[7].innerText.trim();
 
                         csv.push([
                             `"${cod}"`,
@@ -905,6 +948,8 @@
                             `"${nome}"`,
                             `"${cpf}"`,
                             `"${cota}"`,
+                            `"${dtIni}"`,
+                            `"${dtFim}"`,
                             `"${situacao}"`
                         ].join(';'));
                     }
