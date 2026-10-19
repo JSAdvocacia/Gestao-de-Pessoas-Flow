@@ -214,13 +214,13 @@
             {% endif %}
 
             <!-- DASHBOARD EXECUTIVO DE PROVIMENTO EM TEMPO REAL -->
-            {% set cnt_total = candidatos|length %}
-            {% set cnt_empossados = candidatos|selectattr('status_atual', 'equalto', 'EMPOSSADO')|list|length %}
-            {% set cnt_convocados = candidatos|selectattr('status_atual', 'equalto', 'CONVOCADO')|list|length %}
-            {% set cnt_desistentes = candidatos|selectattr('status_atual', 'equalto', 'DESISTENTE / RENÚNCIA')|list|length %}
-            {% set cnt_exonerados = candidatos|selectattr('status_atual', 'equalto', 'EXCLUÍDO / EXONERADO')|list|length %}
-            {% set cnt_cr = candidatos|selectattr('status_atual', 'equalto', 'CADASTRO RESERVA (AGUARDANDO CONVOCAÇÃO)')|list|length %}
-            {% set cnt_aprovados = candidatos|selectattr('status_atual', 'equalto', 'APROVADO (AGUARDANDO CONVOCAÇÃO)')|list|length %}
+            {% set cnt_total = kpis.total if kpis else candidatos|length %}
+            {% set cnt_empossados = kpis.empossados if kpis else 0 %}
+            {% set cnt_convocados = kpis.convocados if kpis else 0 %}
+            {% set cnt_desistentes = kpis.desistentes if kpis else 0 %}
+            {% set cnt_exonerados = kpis.exonerados if kpis else 0 %}
+            {% set cnt_cr = kpis.cr if kpis else 0 %}
+            {% set cnt_aprovados = kpis.aprovados if kpis else 0 %}
             
             <div class="bg-slate-900 text-white p-6 rounded-3xl shadow-xl border border-slate-800 space-y-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-4">
@@ -307,7 +307,7 @@
                             <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">Cad. Reserva</span>
                             <i class="fa-solid fa-layer-group text-amber-400 text-sm"></i>
                         </div>
-                        <p class="text-2xl font-black text-amber-300 mt-1.5" id="dash_kpi_cr">{{ cnt_cr + cnt_aprovados }}</p>
+                        <p class="text-2xl font-black text-amber-300 mt-1.5" id="dash_kpi_cr">{{ cnt_cr }}</p>
                         <p class="text-[10px] text-amber-400/80 font-medium mt-0.5">Disponíveis</p>
                     </div>
                 </div>
@@ -316,15 +316,21 @@
                 <div class="space-y-1.5 pt-2 border-t border-slate-800">
                     <div class="flex items-center justify-between text-[11px] font-bold text-slate-300">
                         <span class="flex items-center"><i class="fa-solid fa-chart-pie mr-1 text-emerald-400"></i> Distribuição Percentual de Provimentos</span>
-                        <span id="dash_pct_summary" class="text-slate-400">Sincronizando estatísticas...</span>
+                        <span id="dash_pct_summary" class="text-slate-400">
+                            {% if kpis and kpis.summary %}
+                                {{ kpis.summary }}
+                            {% else %}
+                                Sincronizando estatísticas...
+                            {% endif %}
+                        </span>
                     </div>
                     
                     <div class="h-3.5 w-full bg-slate-800 rounded-full overflow-hidden flex shadow-inner border border-slate-700/50">
-                        <div id="bar_empossados" class="bg-emerald-500 h-full transition-all duration-500" title="Empossados"></div>
-                        <div id="bar_convocados" class="bg-blue-500 h-full transition-all duration-500" title="Convocados"></div>
-                        <div id="bar_desistentes" class="bg-rose-500 h-full transition-all duration-500" title="Desistentes"></div>
-                        <div id="bar_exonerados" class="bg-slate-400 h-full transition-all duration-500" title="Exonerados"></div>
-                        <div id="bar_cr" class="bg-amber-500/60 h-full transition-all duration-500" title="Cadastro de Reserva"></div>
+                        <div id="bar_empossados" style="width: {{ kpis.pct_empossados if kpis else 0 }}%;" class="bg-emerald-500 h-full transition-all duration-500" title="Empossados: {{ kpis.pct_empossados if kpis else 0 }}%"></div>
+                        <div id="bar_convocados" style="width: {{ kpis.pct_convocados if kpis else 0 }}%;" class="bg-blue-500 h-full transition-all duration-500" title="Convocados: {{ kpis.pct_convocados if kpis else 0 }}%"></div>
+                        <div id="bar_desistentes" style="width: {{ kpis.pct_desistentes if kpis else 0 }}%;" class="bg-rose-500 h-full transition-all duration-500" title="Desistentes: {{ kpis.pct_desistentes if kpis else 0 }}%"></div>
+                        <div id="bar_exonerados" style="width: {{ kpis.pct_exonerados if kpis else 0 }}%;" class="bg-slate-400 h-full transition-all duration-500" title="Exonerados: {{ kpis.pct_exonerados if kpis else 0 }}%"></div>
+                        <div id="bar_cr" style="width: {{ kpis.pct_cr if kpis else 0 }}%;" class="bg-amber-500/60 h-full transition-all duration-500" title="Cadastro de Reserva: {{ kpis.pct_cr if kpis else 0 }}%"></div>
                     </div>
                 </div>
             </div>

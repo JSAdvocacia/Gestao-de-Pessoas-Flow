@@ -996,18 +996,18 @@ class AuditEngine:
                     "saldo": v_edital
                 }
 
-            st = cand.status_atual.upper()
-            if any(k in st for k in ["CONVOCADO", "EMPOSSADO", "DESISTENTE", "FINAL DA FILA", "EXCLUÍDO", "SUB JÚDICE"]):
+            st = (cand.status_atual or "").upper()
+            if any(k in st for k in ["CONVOCADO", "EMPOSSADO", "DESISTENTE", "FINAL DA FILA", "EXCLUÍDO", "EXONERADO", "SUB JÚDICE"]):
                 mapa_cargos[cid]["convocados"] += 1
 
-            if "EMPOSSADO" in st:
+            if any(k in st for k in ["EXCLUÍDO", "EXONERADO", "NÃO COMPARECEU"]):
+                mapa_cargos[cid]["eliminados"] += 1
+            elif "EMPOSSADO" in st:
                 mapa_cargos[cid]["empossados"] += 1
             elif "DESISTENTE" in st or "RENÚNCIA" in st:
                 mapa_cargos[cid]["desistencias"] += 1
             elif "FINAL DA FILA" in st:
                 mapa_cargos[cid]["fim_de_fila"] += 1
-            elif "EXCLUÍDO" in st or "NÃO COMPARECEU" in st:
-                mapa_cargos[cid]["eliminados"] += 1
             elif "SUB JÚDICE" in st:
                 mapa_cargos[cid]["sub_judice"] += 1
 

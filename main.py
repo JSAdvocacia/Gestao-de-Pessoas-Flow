@@ -1452,6 +1452,50 @@ def certames_acompanhamento(id_certame: int, request: Request, msg: str = None, 
             cand.is_sub_judice = False
             cand.is_sub_judice_val = "NÃO"
 
+    cnt_total = len(candidatos)
+    cnt_exonerados = sum(1 for c in candidatos if any(k in (c.status_atual or "").upper() for k in ["EXCLUÍDO", "EXONERADO", "EXCLUIDO"]))
+    cnt_desistentes = sum(1 for c in candidatos if any(k in (c.status_atual or "").upper() for k in ["DESISTENTE", "RENÚNCIA", "RENUNCIA"]) and not any(k in (c.status_atual or "").upper() for k in ["EXCLUÍDO", "EXONERADO", "EXCLUIDO"]))
+    cnt_empossados = sum(1 for c in candidatos if "EMPOSSADO" in (c.status_atual or "").upper() and not any(k in (c.status_atual or "").upper() for k in ["EXCLUÍDO", "EXONERADO", "EXCLUIDO", "DESISTENTE", "RENÚNCIA"]))
+    cnt_convocados = sum(1 for c in candidatos if (c.status_atual or "").upper() == "CONVOCADO")
+    cnt_cr = sum(1 for c in candidatos if "CADASTRO RESERVA" in (c.status_atual or "").upper())
+    cnt_aprovados = sum(1 for c in candidatos if "APROVADO" in (c.status_atual or "").upper() and "CADASTRO" not in (c.status_atual or "").upper())
+    cnt_cr_total = cnt_cr + cnt_aprovados
+
+    tot_ref = cnt_total if cnt_total > 0 else 1
+    pct_empossados = round((cnt_empossados / tot_ref) * 100, 1)
+    pct_convocados = round((cnt_convocados / tot_ref) * 100, 1)
+    pct_desistentes = round((cnt_desistentes / tot_ref) * 100, 1)
+    pct_exonerados = round((cnt_exonerados / tot_ref) * 100, 1)
+    pct_cr = round((cnt_cr_total / tot_ref) * 100, 1)
+
+    summary_parts = []
+    if pct_empossados > 0:
+        summary_parts.append(f"{pct_empossados}% empossados")
+    if pct_convocados > 0:
+        summary_parts.append(f"{pct_convocados}% convocados")
+    if pct_desistentes > 0:
+        summary_parts.append(f"{pct_desistentes}% desistentes")
+    if pct_exonerados > 0:
+        summary_parts.append(f"{pct_exonerados}% exonerados")
+    if pct_cr > 0:
+        summary_parts.append(f"{pct_cr}% cadastro reserva")
+
+    kpis = {
+        "total": cnt_total,
+        "empossados": cnt_empossados,
+        "convocados": cnt_convocados,
+        "desistentes": cnt_desistentes,
+        "exonerados": cnt_exonerados,
+        "cr": cnt_cr_total,
+        "aprovados": cnt_aprovados,
+        "pct_empossados": pct_empossados,
+        "pct_convocados": pct_convocados,
+        "pct_desistentes": pct_desistentes,
+        "pct_exonerados": pct_exonerados,
+        "pct_cr": pct_cr,
+        "summary": " · ".join(summary_parts) if summary_parts else "100% atualizado"
+    }
+
     return templates.TemplateResponse("certame_acompanhamento.html", {
         "request": request,
         "usuario": usuario,
@@ -1461,6 +1505,7 @@ def certames_acompanhamento(id_certame: int, request: Request, msg: str = None, 
         "matriz_cargos": matriz_cargos,
         "alertas_controle": alertas_controle,
         "atos_registrados": atos_registrados,
+        "kpis": kpis,
         "mensagem": msg
     })
 
@@ -1547,16 +1592,33 @@ async def processar_ato_acompanhamento(
                     res_ia_done = True
 
             if not res_ia_done:
-                is_convoc = (
-                    tipo_ato in ["PORTARIA_CONVOCACAO", "CONVOCACAO"] or
-                    any(k in text_ext.upper() for k in ["EDITAL DE CONVOCA", "PORTARIA DE CONVOCA", "CONVOCAR O", "CONVOCAR", "CONVOCAÇÃO", "CONVOCACAO"])
+                text_lower = text_ext.lower()
+                is_relatorio_exonerados = (
+                    "relação de exonerados" in text_lower or "relacao de exonerados" in text_lower or
+                    ("exonerad" in text_lower and any(k in text_lower for k in ["matrícula", "matricula", "término do contrato", "termino do contrato", "valor recebido"]))
                 )
-                if not is_convoc and "HOMOLOGA" in text_ext.upper() and ("APROVADO" in text_ext.upper() or "RESULTADO FINAL" in text_ext.upper()):
-                    res_homol = DocumentParserAI.process_homologacao_resultado_final(text_ext, db, id_certame)
-                    total_afetados_ia += res_homol.get("candidatos_injetados", 0)
+                is_relatorio_afastados = (
+                    "relação de afastados" in text_lower or "relacao de afastados" in text_lower or
+                    ("afastamento" in text_lower and any(k in text_lower for k in ["carência", "carencia", "dias", "auxílio doença", "auxilio doenca"]))
+                )
+
+                if is_relatorio_exonerados:
+                    res_ex = DocumentParserAI.process_relatorio_exonerados_texto(text_ext, db, id_certame)
+                    total_afetados_ia += res_ex.get("afetados", 0)
+                elif is_relatorio_afastados:
+                    res_af = DocumentParserAI.process_relatorio_afastados_texto(text_ext, db, id_certame)
+                    total_afetados_ia += res_af.get("afetados", 0)
                 else:
-                    res_prov = DocumentParserAI.process_ato_provimento_texto(text_ext, db, id_certame, tipo_ato_default=tipo_ato)
-                    total_afetados_ia += res_prov.get("afetados", 0)
+                    is_convoc = (
+                        tipo_ato in ["PORTARIA_CONVOCACAO", "CONVOCACAO"] or
+                        any(k in text_ext.upper() for k in ["EDITAL DE CONVOCA", "PORTARIA DE CONVOCA", "CONVOCAR O", "CONVOCAR", "CONVOCAÇÃO", "CONVOCACAO"])
+                    )
+                    if not is_convoc and "HOMOLOGA" in text_ext.upper() and ("APROVADO" in text_ext.upper() or "RESULTADO FINAL" in text_ext.upper()):
+                        res_homol = DocumentParserAI.process_homologacao_resultado_final(text_ext, db, id_certame)
+                        total_afetados_ia += res_homol.get("candidatos_injetados", 0)
+                    else:
+                        res_prov = DocumentParserAI.process_ato_provimento_texto(text_ext, db, id_certame, tipo_ato_default=tipo_ato)
+                        total_afetados_ia += res_prov.get("afetados", 0)
 
         # Manter acervo unificado: Adicionar anexo e documento no repositório do certame
         tipo_anx = f"ACOMPANHAMENTO_{tipo_ato}"

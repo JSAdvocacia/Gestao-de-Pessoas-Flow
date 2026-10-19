@@ -1027,54 +1027,79 @@ class DocumentParserAI:
                 })
 
         for c in candidatos:
-            found_ex = None
+            cand_matches = []
             for ex in registros_exonerados:
                 ok, _ = DocumentParserAI.is_name_match(c.nome_completo, ex["nome"])
                 if ok:
-                    found_ex = ex
-                    break
+                    try:
+                        dt_fim_cand = datetime.strptime(ex["data_fim_str"], "%d/%m/%Y").date()
+                    except Exception:
+                        dt_fim_cand = date(2023, 12, 12) if c.id_certame == 3 else date(2024, 12, 6)
+                    cand_matches.append((ex, dt_fim_cand))
 
-            if found_ex:
-                try:
-                    dt_fim = datetime.strptime(found_ex["data_fim_str"], "%d/%m/%Y").date()
-                except Exception:
-                    dt_fim = date(2022, 12, 16) if c.id_certame == 3 else date(2024, 12, 6)
+            conv = convs.get(c.id_candidato)
+            dt_conv = conv.data_publicacao_doe if conv else None
 
-                conv = convs.get(c.id_candidato)
-                dt_conv = conv.data_publicacao_doe if conv else None
-                if dt_conv and dt_conv < dt_fim:
+            if cand_matches:
+                found_ex = None
+                dt_fim = None
+                if dt_conv:
+                    valid_after_conv = [m for m in cand_matches if m[1] >= dt_conv]
+                    if valid_after_conv:
+                        same_year = [m for m in valid_after_conv if m[1].year == dt_conv.year]
+                        if same_year:
+                            found_ex, dt_fim = same_year[0]
+                        else:
+                            found_ex, dt_fim = sorted(valid_after_conv, key=lambda m: abs((m[1] - dt_conv).days))[0]
+                    else:
+                        found_ex, dt_fim = cand_matches[-1]
+                else:
+                    found_ex, dt_fim = cand_matches[-1]
+
+                if dt_conv and dt_conv <= dt_fim:
                     dt_ini = dt_conv
                 elif dt_fim.year == 2022:
                     dt_ini = date(2022, 2, 1)
                 elif dt_fim.year == 2023:
                     dt_ini = date(2023, 2, 1)
-                else:
+                elif dt_fim.year == 2024:
                     dt_ini = date(2024, 2, 1)
+                elif dt_fim.year == 2025:
+                    dt_ini = date(2025, 2, 1)
+                else:
+                    dt_ini = date(dt_fim.year, 2, 1)
 
                 c.data_posse = dt_ini
                 c.data_exoneracao = dt_fim
-                c.status_atual = "EXONERADO"
+                c.status_atual = "EXCLUÍDO / EXONERADO"
 
                 mov = db.query(MovimentacaoCandidato).filter_by(
                     id_candidato=c.id_candidato,
                     tipo_evento="EXONERACAO"
                 ).first()
+                reg_dt = datetime.combine(dt_fim, datetime.min.time())
+                contrato_info = f"Contrato {found_ex['contrato']}" if found_ex.get('contrato') else f"Matrícula {found_ex['matricula']}"
                 if not mov:
                     mov = MovimentacaoCandidato(
                         id_candidato=c.id_candidato,
                         tipo_evento="EXONERACAO",
-                        numero_processo_sei=f"Folha/Contrato {found_ex['contrato'] or found_ex['matricula']}",
-                        data_registro=dt_fim,
-                        motivo_justificativa=f"{found_ex['tipo_desligamento']} em {found_ex['data_fim_str']} (Matrícula: {found_ex['matricula']})",
+                        numero_processo_sei=f"Folha/{contrato_info}",
+                        data_registro=reg_dt,
+                        motivo_justificativa=f"{found_ex['tipo_desligamento']} em {found_ex['data_fim_str']} ({contrato_info})",
                         classificacao_anterior=c.classificacao_original,
                         classificacao_nova=c.classificacao_efetiva
                     )
                     db.add(mov)
                 else:
-                    mov.data_registro = dt_fim
-                    mov.motivo_justificativa = f"{found_ex['tipo_desligamento']} em {found_ex['data_fim_str']} (Matrícula: {found_ex['matricula']})"
+                    mov.data_registro = reg_dt
+                    mov.motivo_justificativa = f"{found_ex['tipo_desligamento']} em {found_ex['data_fim_str']} ({contrato_info})"
 
                 afetados += 1
+            elif conv:
+                if not c.data_posse:
+                    c.data_posse = conv.data_publicacao_doe
+                c.data_exoneracao = None
+                c.status_atual = "EMPOSSADO (EXERCÍCIO)"
 
         db.commit()
         return {
