@@ -518,7 +518,6 @@
                                 <tr>
                                     <th class="py-2.5 px-3 text-center border-r border-slate-800 w-14">Class.</th>
                                     <th class="py-2.5 px-3 border-r border-slate-800">Nome do Candidato</th>
-                                    <th class="py-2.5 px-3 border-r border-slate-800 w-32">CPF</th>
                                     <th class="py-2.5 px-3 border-r border-slate-800">Cargo</th>
                                     <th class="py-2.5 px-2 text-center border-r border-slate-800 w-16">Cota</th>
                                     <th class="py-2.5 px-2 text-center border-r border-slate-800 w-28">Início Vigência</th>
@@ -544,22 +543,17 @@
                                         {{ cand.nome_completo }}
                                     </td>
 
-                                    <!-- 3. CPF -->
-                                    <td class="py-2 px-3 font-mono text-slate-600 border-r border-slate-200 whitespace-nowrap">
-                                        {{ cand.cpf }}
-                                    </td>
-
-                                    <!-- 4. CARGO -->
+                                    <!-- 3. CARGO -->
                                     <td class="py-2 px-3 text-slate-800 border-r border-slate-200 leading-snug">
                                         {{ g.cargo_nome }}
                                     </td>
 
-                                    <!-- 5. COTA -->
+                                    <!-- 4. COTA -->
                                     <td class="py-2 px-2 text-center font-bold text-slate-700 border-r border-slate-200 uppercase">
                                         {{ cand.tipo_cota }}
                                     </td>
 
-                                    <!-- 6. INÍCIO VIGÊNCIA DO CONTRATO -->
+                                    <!-- 5. INÍCIO VIGÊNCIA DO CONTRATO -->
                                     <td class="py-2 px-2 text-center font-mono text-[11px] font-bold text-slate-700 border-r border-slate-200 whitespace-nowrap">
                                         {% if cand.data_inicio_vigencia != '-' %}
                                         <span class="bg-slate-100 text-slate-800 px-2 py-0.5 rounded border border-slate-200">
@@ -920,7 +914,7 @@
         // Exportação Dinâmica do Rol Nominal para CSV
         function exportarRolNominalCSV() {
             let csv = [];
-            csv.push(['"CÓDIGO CARGO"', '"CARGO"', '"CLASSIFICAÇÃO"', '"NOME DO CANDIDATO"', '"CPF"', '"COTA"', '"INÍCIO VIGÊNCIA"', '"FIM VIGÊNCIA"', '"SITUAÇÃO FINAL"'].join(';'));
+            csv.push(['"CÓDIGO CARGO"', '"CARGO"', '"CLASSIFICAÇÃO"', '"NOME DO CANDIDATO"', '"COTA"', '"INÍCIO VIGÊNCIA"', '"FIM VIGÊNCIA"', '"SITUAÇÃO FINAL"'].join(';'));
 
             const blocos = document.querySelectorAll('.bloco-cargo');
             blocos.forEach(bloco => {
@@ -931,22 +925,20 @@
                 rows.forEach(row => {
                     if (row.classList.contains('hidden')) return;
                     const cols = row.querySelectorAll('td');
-                    if (cols.length >= 8) {
+                    if (cols.length >= 7) {
                         const classif = cols[0].innerText.trim();
                         const nome = cols[1].innerText.trim();
-                        const cpf = cols[2].innerText.trim();
-                        const cargo = cols[3].innerText.trim();
-                        const cota = cols[4].innerText.trim();
-                        const dtIni = cols[5].innerText.trim();
-                        const dtFim = cols[6].innerText.trim();
-                        const situacao = cols[7].innerText.trim();
+                        const cargo = cols[2].innerText.trim();
+                        const cota = cols[3].innerText.trim();
+                        const dtIni = cols[4].innerText.trim();
+                        const dtFim = cols[5].innerText.trim();
+                        const situacao = cols[6].innerText.trim();
 
                         csv.push([
                             `"${cod}"`,
                             `"${cargo}"`,
                             `"${classif}"`,
                             `"${nome}"`,
-                            `"${cpf}"`,
                             `"${cota}"`,
                             `"${dtIni}"`,
                             `"${dtFim}"`,

@@ -395,13 +395,12 @@ class PDFTextGenerator:
                 pdf.set_font("Helvetica", "B", 7.5)
 
                 pdf.cell(12, 6, sanitize_text("Class."), border=1, align="C", fill=True)
-                pdf.cell(58, 6, sanitize_text("Nome do Candidato"), border=1, align="L", fill=True)
-                pdf.cell(28, 6, sanitize_text("CPF"), border=1, align="C", fill=True)
-                pdf.cell(48, 6, sanitize_text("Cargo"), border=1, align="L", fill=True)
+                pdf.cell(72, 6, sanitize_text("Nome do Candidato"), border=1, align="L", fill=True)
+                pdf.cell(58, 6, sanitize_text("Cargo"), border=1, align="L", fill=True)
                 pdf.cell(14, 6, sanitize_text("Cota"), border=1, align="C", fill=True)
                 pdf.cell(24, 6, sanitize_text("Início Vigência"), border=1, align="C", fill=True)
                 pdf.cell(24, 6, sanitize_text("Fim Vigência"), border=1, align="C", fill=True)
-                pdf.cell(44, 6, sanitize_text("Situação de Provimento"), border=1, align="C", fill=True)
+                pdf.cell(48, 6, sanitize_text("Situação de Provimento"), border=1, align="C", fill=True)
                 pdf.cell(25, 6, sanitize_text("Edital Chamada"), border=1, align="C", fill=True)
                 pdf.ln()
 
@@ -423,9 +422,8 @@ class PDFTextGenerator:
                     ed_str = cand.get('edital_convocacao', 'Edital Oficial')
 
                     pdf.cell(12, 5.2, sanitize_text(clas_str), border=1, align="C", fill=fill)
-                    pdf.cell(58, 5.2, sanitize_text(nome_str), border=1, align="L", fill=fill)
-                    pdf.cell(28, 5.2, sanitize_text(cpf_str), border=1, align="C", fill=fill)
-                    pdf.cell(48, 5.2, sanitize_text(cargo_str), border=1, align="L", fill=fill)
+                    pdf.cell(72, 5.2, sanitize_text(nome_str), border=1, align="L", fill=fill)
+                    pdf.cell(58, 5.2, sanitize_text(cargo_str), border=1, align="L", fill=fill)
                     pdf.cell(14, 5.2, sanitize_text(cota_str), border=1, align="C", fill=fill)
                     pdf.cell(24, 5.2, sanitize_text(dt_ini_str), border=1, align="C", fill=fill)
                     pdf.cell(24, 5.2, sanitize_text(dt_fim_str), border=1, align="C", fill=fill)
