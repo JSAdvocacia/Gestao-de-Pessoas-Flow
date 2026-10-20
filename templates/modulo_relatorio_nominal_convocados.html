@@ -516,13 +516,13 @@
                         <table class="w-full text-left text-xs border-collapse tbl-cargo-candidatos">
                             <thead class="bg-slate-950 text-white font-black uppercase text-[9.5px] tracking-wider border-b border-slate-800">
                                 <tr>
-                                    <th class="py-2.5 px-3 text-center border-r border-slate-800 w-14">Class.</th>
-                                    <th class="py-2.5 px-3 border-r border-slate-800">Nome do Candidato</th>
-                                    <th class="py-2.5 px-3 border-r border-slate-800">Cargo</th>
-                                    <th class="py-2.5 px-2 text-center border-r border-slate-800 w-16">Cota</th>
-                                    <th class="py-2.5 px-2 text-center border-r border-slate-800 w-28">Início Vigência</th>
-                                    <th class="py-2.5 px-2 text-center border-r border-slate-800 w-28">Fim Vigência</th>
-                                    <th class="py-2.5 px-3 text-center w-52">Situação Final de Provimento</th>
+                                    <th class="py-2.5 px-3 text-center border-r border-slate-800 whitespace-nowrap w-14">Class.</th>
+                                    <th class="py-2.5 px-4 border-r border-slate-800 whitespace-nowrap">Nome do Candidato</th>
+                                    <th class="py-2.5 px-4 border-r border-slate-800 whitespace-nowrap">Cargo</th>
+                                    <th class="py-2.5 px-2 text-center border-r border-slate-800 whitespace-nowrap w-16">Cota</th>
+                                    <th class="py-2.5 px-3 text-center border-r border-slate-800 whitespace-nowrap w-28">Início Vigência</th>
+                                    <th class="py-2.5 px-3 text-center border-r border-slate-800 whitespace-nowrap w-28">Fim Vigência</th>
+                                    <th class="py-2.5 px-4 text-center whitespace-nowrap w-56">Situação Final de Provimento</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-200 font-medium">
@@ -534,29 +534,29 @@
                                     data-codigo-cargo="{{ g.codigo_cargo }}">
                                     
                                     <!-- 1. CLASSIFICAÇÃO -->
-                                    <td class="py-2 px-3 text-center font-black text-slate-900 border-r border-slate-200">
+                                    <td class="py-2 px-3 text-center font-black text-slate-900 border-r border-slate-200 whitespace-nowrap">
                                         #{{ cand.classificacao_original }}º
                                     </td>
 
                                     <!-- 2. NOME DO CANDIDATO -->
-                                    <td class="py-2 px-3 font-bold text-slate-900 border-r border-slate-200">
+                                    <td class="py-2 px-4 font-bold text-slate-900 border-r border-slate-200 whitespace-nowrap">
                                         {{ cand.nome_completo }}
                                     </td>
 
                                     <!-- 3. CARGO -->
-                                    <td class="py-2 px-3 text-slate-800 border-r border-slate-200 leading-snug">
+                                    <td class="py-2 px-4 text-slate-800 border-r border-slate-200 whitespace-nowrap">
                                         {{ g.cargo_nome }}
                                     </td>
 
                                     <!-- 4. COTA -->
-                                    <td class="py-2 px-2 text-center font-bold text-slate-700 border-r border-slate-200 uppercase">
+                                    <td class="py-2 px-2 text-center font-bold text-slate-700 border-r border-slate-200 uppercase whitespace-nowrap">
                                         {{ cand.tipo_cota }}
                                     </td>
 
                                     <!-- 5. INÍCIO VIGÊNCIA DO CONTRATO -->
-                                    <td class="py-2 px-2 text-center font-mono text-[11px] font-bold text-slate-700 border-r border-slate-200 whitespace-nowrap">
+                                    <td class="py-2 px-3 text-center font-mono text-[11px] font-bold text-slate-700 border-r border-slate-200 whitespace-nowrap">
                                         {% if cand.data_inicio_vigencia != '-' %}
-                                        <span class="bg-slate-100 text-slate-800 px-2 py-0.5 rounded border border-slate-200">
+                                        <span class="bg-slate-100 text-slate-800 px-2.5 py-0.5 rounded border border-slate-200">
                                             {{ cand.data_inicio_vigencia }}
                                         </span>
                                         {% else %}
@@ -564,14 +564,14 @@
                                         {% endif %}
                                     </td>
 
-                                    <!-- 7. FIM VIGÊNCIA DO CONTRATO -->
-                                    <td class="py-2 px-2 text-center font-mono text-[11px] font-bold text-slate-700 border-r border-slate-200 whitespace-nowrap">
+                                    <!-- 6. FIM VIGÊNCIA DO CONTRATO -->
+                                    <td class="py-2 px-3 text-center font-mono text-[11px] font-bold text-slate-700 border-r border-slate-200 whitespace-nowrap">
                                         {% if cand.data_fim_vigencia == 'Vigente' %}
-                                        <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded border border-emerald-200 font-bold">
+                                        <span class="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded border border-emerald-200 font-bold">
                                             Vigente
                                         </span>
                                         {% elif cand.data_fim_vigencia != '-' %}
-                                        <span class="bg-amber-100 text-amber-900 px-2 py-0.5 rounded border border-amber-200">
+                                        <span class="bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded border border-amber-200">
                                             {{ cand.data_fim_vigencia }}
                                         </span>
                                         {% else %}
@@ -579,8 +579,8 @@
                                         {% endif %}
                                     </td>
 
-                                    <!-- 8. SITUAÇÃO FINAL (STYLING IDÊNTICO À IMAGEM DO USUÁRIO) -->
-                                    <td class="py-2 px-3 text-center">
+                                    <!-- 7. SITUAÇÃO FINAL (STYLING IDÊNTICO À IMAGEM DO USUÁRIO) -->
+                                    <td class="py-2 px-4 text-center whitespace-nowrap">
                                         {% if cand.badge_tipo == 'empossado' %}
                                         <span class="text-emerald-800 font-black">
                                             EMPOSSADO (EXERCÍCIO)
