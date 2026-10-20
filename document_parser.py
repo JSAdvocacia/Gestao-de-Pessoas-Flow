@@ -525,6 +525,7 @@ class DocumentParserAI:
             db.commit()
             db.refresh(concurso)
 
+        text = text.replace('\xa0', ' ')
         lines = [l.strip() for l in text.split("\n") if l.strip()]
         
         current_cargo_name = None
@@ -536,6 +537,7 @@ class DocumentParserAI:
                 return None
             combined = " ".join(buf_lines)
             combined = re.sub(r'\s+', ' ', combined).strip()
+            combined = re.sub(r'ESTE DOCUMENTO FOI ASSINADO.*', '', combined).strip()
 
             # Padrão 1: Formato Completo com Cota e Situação Explícita
             match = re.search(
@@ -589,13 +591,45 @@ class DocumentParserAI:
                 candidatos_por_cargo.setdefault(cargo_str, []).append(cand_item)
                 return cand_item
 
+            # Padrão 3: Formato Cespro/Império 001/2024 (Classificação Inscrição Nome Notas... Total)
+            match3 = re.match(
+                r'^(\d+|---|\-\-\-|AUSENTE)\s+(\d{5})\s+(.+?)(?:\s+[\d\.\,]+|\s+AUSENTE)+[\s\-\–\—\.\,]*$',
+                combined
+            )
+            if match3:
+                classif_str = match3.group(1)
+                inscricao = match3.group(2)
+                nome = match3.group(3).strip()
+                nome = re.sub(r'\s+[\d\.\,]+$', '', nome).strip()
+                nome = re.sub(r'ESTE DOCUMENTO FOI ASSINADO.*', '', nome).strip()
+                class_g = int(classif_str) if classif_str.isdigit() else 999
+                situacao = "APROVADO" if classif_str.isdigit() else ("DESCLASSIFICADO" if "---" in classif_str else "AUSENTE")
+                cand_item = {
+                    "inscricao": inscricao,
+                    "nome": nome,
+                    "cota": "AMPLA",
+                    "class_geral": class_g,
+                    "class_ampla": str(class_g) if class_g != 999 else "-",
+                    "class_pcd": "-",
+                    "situacao": situacao
+                }
+                candidatos_por_cargo.setdefault(cargo_str, []).append(cand_item)
+                return cand_item
+
             return None
 
-        for line in lines:
+        for idx, line in enumerate(lines):
+            # Reconhecimento do padrão Cespro/Império 001/2024: Cargo na linha anterior a 'CLASS. INSCRIÇÃO'
+            if idx + 1 < len(lines) and 'CLASS.' in lines[idx+1] and 'INSCRIÇÃO' in lines[idx+1]:
+                flush_buf(current_buf, current_cargo_name)
+                current_buf = []
+                current_cargo_name = line.strip().upper()
+                continue
+
             cargo_match = re.search(r'N[ÍI]VEL\s*[\-\:]?\s*CARGO\s*:\s*(.+)', line, re.IGNORECASE)
             if not cargo_match:
                 # Reconhecimento alternativo de cabeçalho de cargo em caixa alta
-                cargo_match_alt = re.search(r'^(ASSISTENTE\s+[A-Z]+|BIOQU[IÍ]MICO[A-Z\/\s]*|ENFERMEIRO[A-Z\/\s\-]*|FISIOTERAPEUTA|NUTRICIONISTA|ODONT[OÓ]LOGO|PEDAGOGO|PROFESSOR\s+[A-Z\s\-]+|PSIC[OÓ]LOGO|TAE\s*[\-\–\—\s]+[A-Z\s\-]+|T[EÉ]CNICO\s+[A-Z\s\-]+)$', line.strip(), re.IGNORECASE)
+                cargo_match_alt = re.search(r'^(ASSISTENTE\s+[A-Z]+|AUXILIAR\s+DE\s+[A-Z\s]+|BIOQU[IÍ]MICO[A-Z\/\s]*|ENFERMEIRO[A-Z\/\s\-]*|FISIOTERAPEUTA|M[EÉ]DICO[A-Z\s\d]*|NUTRICIONISTA|ODONT[OÓ]LOGO|PEDAGOGO|PROFESSOR\s+[A-Z\s\-]+|PSIC[OÓ]LOGO[A-Z\s]*|TAE\s*[\-\–\—\s]+[A-Z\s\-]+|T[EÉ]CNICO\s+[A-Z\s\-]+)$', line.strip(), re.IGNORECASE)
                 if cargo_match_alt and 'INSCRI' not in line.upper() and 'RESULTADO' not in line.upper() and 'NOTA' not in line.upper():
                     flush_buf(current_buf, current_cargo_name)
                     current_buf = []
@@ -610,7 +644,8 @@ class DocumentParserAI:
                 current_cargo_name = c_clean
                 continue
 
-            if re.match(r'^\d{5,12}\b', line):
+            # Início de linha de candidato (5-12 dígitos ou Classificação + 5 dígitos)
+            if re.match(r'^(\d+|---|\-\-\-|AUSENTE)\s+\d{5}\b', line) or re.match(r'^\d{5,12}\b', line):
                 flush_buf(current_buf, current_cargo_name)
                 current_buf = [line]
             else:
@@ -1217,14 +1252,24 @@ class DocumentParserAI:
 
         afetados = 0
 
-        is_convoc_explicit = (
-            tipo_ato_default in ["PORTARIA_CONVOCACAO", "CONVOCACAO"] or
-            "edital de convocação" in text_lower or "edital de convocacao" in text_lower or
-            "portaria de convocação" in text_lower or "portaria de convocacao" in text_lower or
-            "convocar o" in text_lower or "convocamos" in text_lower
+        is_revogacao = (
+            tipo_ato_default in ["REVOGACAO_CONVOCACAO", "REVOGACAO"] or
+            "revoga" in text_lower or "cancelamento da convocação" in text_lower or "cancelamento de convocação" in text_lower or "sem efeito a convocação" in text_lower
         )
 
-        if is_convoc_explicit and not ("termo de posse" in text_lower or "declarou empossad" in text_lower or tipo_ato_default == "TERMO_POSSE"):
+        is_convoc_explicit = (
+            not is_revogacao and (
+                tipo_ato_default in ["PORTARIA_CONVOCACAO", "CONVOCACAO"] or
+                "edital de convocação" in text_lower or "edital de convocacao" in text_lower or
+                "portaria de convocação" in text_lower or "portaria de convocacao" in text_lower or
+                "convocar o" in text_lower or "convocamos" in text_lower
+            )
+        )
+
+        if is_revogacao:
+            novo_status = "APROVADO (AGUARDANDO CONVOCAÇÃO)"
+            tipo_evento = "REVOGACAO_CONVOCACAO"
+        elif is_convoc_explicit and not ("termo de posse" in text_lower or "declarou empossad" in text_lower or tipo_ato_default == "TERMO_POSSE"):
             novo_status = "CONVOCADO"
             tipo_evento = "PORTARIA_CONVOCACAO"
         elif "termo de posse" in text_lower or "declarou empossad" in text_lower or tipo_ato_default == "TERMO_POSSE":
@@ -1319,8 +1364,10 @@ class DocumentParserAI:
 
             if "CARGO:" in l_str.upper():
                 cur_cargo_str = re.sub(r'^CARGO:\s*', '', l_str, flags=re.IGNORECASE).strip()
+            elif any(k in l_str.upper() for k in ["PROFESSOR", "TAE", "ASSISTENTE", "ENFERMEIRO", "MÉDICO", "MEDICO", "ODONTÓLOGO", "PSICÓLOGO", "PSICOLOGO"]) and "EDITAL" not in l_str.upper() and "INSCRI" not in l_str.upper() and "PREFEITURA" not in l_str.upper():
+                cur_cargo_str = l_str.strip()
 
-            m_row = re.match(r'^\s*(\d{6})\s+(.+?)\s+(\d{1,3})\s*$', l_str)
+            m_row = re.search(r'^\s*(\d{5,8})\s+(.+?)\s+(\d{1,3})\.?\s*$', l_str)
             if m_row:
                 cands_extraidos_tabela.append({
                     "inscricao": m_row.group(1),
@@ -1360,7 +1407,9 @@ class DocumentParserAI:
                 dt_row = row["data"]
                 cg_row_str = row["cargo_str"]
 
-                cand = cands_map_cpf.get(f"PSS-{insc}") or cands_map_cpf.get(insc)
+                cand = cands_map_cpf.get(f"PSS-{insc}") or cands_map_cpf.get(insc) or cands_map_cpf.get(f"PSS24-{insc}")
+                if not cand:
+                    cand = next((c for c in candidatos_certame if insc in (c.cpf or "")), None)
                 if not cand:
                     cand = cands_map_nome.get(nome.upper())
 
@@ -1376,7 +1425,7 @@ class DocumentParserAI:
                         classificacao_efetiva=rk,
                         tipo_cota="AMPLA",
                         status_atual=novo_status,
-                        edital_convocacao=ed_row
+                        edital_convocacao=ed_row if not is_revogacao else None
                     )
                     db.add(cand)
                     db.commit()
@@ -1385,8 +1434,12 @@ class DocumentParserAI:
                     cands_map_nome[cand.nome_completo.strip().upper()] = cand
                     afetados += 1
                 else:
-                    cand.status_atual = novo_status
-                    cand.edital_convocacao = ed_row
+                    if is_revogacao:
+                        cand.status_atual = "APROVADO (AGUARDANDO CONVOCAÇÃO)"
+                        cand.edital_convocacao = None
+                    else:
+                        cand.status_atual = novo_status
+                        cand.edital_convocacao = ed_row
                     afetados += 1
 
                 # Movimentação e Convocação
@@ -1401,7 +1454,11 @@ class DocumentParserAI:
                 )
                 db.add(mov)
 
-                if "CONVOCADO" in novo_status or tipo_evento == "PORTARIA_CONVOCACAO":
+                if is_revogacao:
+                    conv = db.query(Convocacao).filter_by(id_candidato=cand.id_candidato).first()
+                    if conv:
+                        db.delete(conv)
+                elif "CONVOCADO" in novo_status or tipo_evento == "PORTARIA_CONVOCACAO":
                     conv = db.query(Convocacao).filter_by(id_candidato=cand.id_candidato).first()
                     if not conv:
                         conv = Convocacao(
