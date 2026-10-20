@@ -90,6 +90,10 @@
                                 <span class="truncate">Concurso Expirado</span>
                             </a>
                             {% endif %}
+                            <a href="/certames/{{ c.id_certame }}/relatorio-auditoria-final" class="flex items-center pl-4 text-[10.5px] text-amber-300/90 font-bold hover:text-amber-200 py-0.5 transition border-l-2 border-amber-500/50 ml-2">
+                                <i class="fa-solid fa-file-shield text-amber-400 text-[9px] w-3 mr-1.5"></i>
+                                <span class="truncate">Relatório de Auditoria</span>
+                            </a>
                         </div>
                     </div>
                     {% endfor %}
@@ -100,6 +104,10 @@
 <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                     Módulos de Auditoria
                 </div>
+                <a href="/modulo/relatorios{% if certame %}?id_certame={{ certame.id_certame }}{% endif %}" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive hover:bg-slate-800/60 hover:text-amber-300">
+                    <i class="fa-solid fa-file-invoice text-amber-400 w-5 text-sm mr-2.5"></i>
+                    <span>Relatórios de Auditoria</span>
+                </a>
 
                 <a href="/modulo/lotacionograma" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
                     <i class="fa-solid fa-sitemap w-5 text-sm mr-2.5"></i>
