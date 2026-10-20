@@ -1069,6 +1069,9 @@ class DocumentParserAI:
                 else:
                     dt_ini = date(dt_fim.year, 2, 1)
 
+                if dt_ini > dt_fim:
+                    dt_ini = date(dt_fim.year, 1, 1) if dt_fim.month == 1 else dt_fim
+
                 c.data_posse = dt_ini
                 c.data_exoneracao = dt_fim
                 c.status_atual = "EXCLUÍDO / EXONERADO"
