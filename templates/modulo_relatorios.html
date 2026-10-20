@@ -356,7 +356,7 @@
                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Total Convocados</span>
                 <div class="flex items-baseline justify-between">
                     <span class="text-2xl font-black text-amber-400">{{ totais.convocados }}</span>
-                    <span class="text-[10px] text-amber-400 font-mono font-bold">13.0x edital</span>
+                    <span class="text-[10px] text-amber-400 font-mono font-bold">{% if totais.vagas_edital > 0 %}{{ (totais.convocados / totais.vagas_edital)|round(1) }}x edital{% else %}CR{% endif %}</span>
                 </div>
                 <p class="text-[10px] text-slate-500 mt-1">Atos de chamamento</p>
             </div>
@@ -366,7 +366,7 @@
                 <span class="text-[10px] font-black uppercase tracking-wider text-emerald-400 block mb-1">Em Exercício Efetivo</span>
                 <div class="flex items-baseline justify-between">
                     <span class="text-2xl font-black text-emerald-300">{{ totais.empossados_exercicio }}</span>
-                    <span class="text-[10px] text-emerald-400 font-mono font-black">65.8% prov.</span>
+                    <span class="text-[10px] text-emerald-400 font-mono font-black">{{ totais.taxa_cobertura_geral }}% prov.</span>
                 </div>
                 <p class="text-[10px] text-emerald-400/80 mt-1">Servidores em atividade</p>
             </div>

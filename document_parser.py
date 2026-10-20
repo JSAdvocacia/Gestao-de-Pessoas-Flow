@@ -678,20 +678,18 @@ class DocumentParserAI:
             is_pure_cr = any(k in cargo.nome_cargo.upper() for k in ["HIGIENE DENTAL", "EDUCAÇÃO FÍSICA", "EDUCACAO FISICA"]) or (aprovados_cnt == 0)
             cv = db.query(ConcursoVaga).filter_by(id_concurso=concurso.id_concurso, id_cargo=cargo.id_cargo).first()
             if not cv:
-                vagas_imed = 0 if is_pure_cr else (aprovados_cnt or 1)
+                vagas_imed = 0 if is_pure_cr else 0
                 cv = ConcursoVaga(
                     id_concurso=concurso.id_concurso,
                     id_cargo=cargo.id_cargo,
                     vagas_imediatas_edital=vagas_imed,
-                    vagas_cr=cr_cnt
+                    vagas_cr=cr_cnt or 1
                 )
                 db.add(cv)
             else:
-                if is_pure_cr:
+                if cv.vagas_imediatas_edital is None:
                     cv.vagas_imediatas_edital = 0
-                elif aprovados_cnt > 0:
-                    cv.vagas_imediatas_edital = aprovados_cnt
-                cv.vagas_cr = cr_cnt
+                cv.vagas_cr = cr_cnt or 1
             db.commit()
 
             cargos_processados += 1
