@@ -23,3 +23,8 @@ uploads/certames/*
 .vscode/
 .idea/
 *.swp
+
+# Cloudflared
+cloudflared.exe
+cloudflared.log
+

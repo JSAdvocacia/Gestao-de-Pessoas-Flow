@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  sistema-auditoria:
+    build: .
+    container_name: sistema_auditoria_pessoal
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      # Persistência da base de dados SQLite e dos uploads
+      - ./auditoria_pessoal.db:/app/auditoria_pessoal.db
+      - ./uploads:/app/uploads
+    environment:
+      - PYTHONUNBUFFERED=1
