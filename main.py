@@ -531,10 +531,197 @@ def normativos(request: Request, usuario = Depends(get_current_user)):
     if not usuario: return RedirectResponse(url="/login", status_code=303)
     return RedirectResponse(url="/certames", status_code=303)
 
+# --- GESTÃO DE ACESSO & USUÁRIOS ---
+
 @app.get("/usuarios", response_class=HTMLResponse)
-def gestao_usuarios(request: Request, db: Session = Depends(get_db), usuario = Depends(get_current_user)):
-    if not usuario: return RedirectResponse(url="/login", status_code=303)
-    return RedirectResponse(url="/", status_code=303)
+def gestao_usuarios(
+    request: Request,
+    db: Session = Depends(get_db),
+    usuario = Depends(get_current_user)
+):
+    if not usuario:
+        return RedirectResponse(url="/login", status_code=303)
+    
+    usuarios_list = db.query(Usuario).order_by(Usuario.id_usuario.asc()).all()
+    
+    total_usuarios = len(usuarios_list)
+    total_admins = sum(1 for u in usuarios_list if u.perfil == "ADMIN_MASTER")
+    total_auditores = sum(1 for u in usuarios_list if u.perfil == "AUDITOR_CONTROLE_INTERNO")
+    total_consultores = total_usuarios - total_admins - total_auditores
+    
+    msg = request.query_params.get("msg")
+    erro = request.query_params.get("erro")
+    
+    return templates.TemplateResponse("gestao_usuarios.html", {
+        "request": request,
+        "usuario": usuario,
+        "usuarios": usuarios_list,
+        "total_usuarios": total_usuarios,
+        "total_admins": total_admins,
+        "total_auditores": total_auditores,
+        "total_consultores": total_consultores,
+        "msg": msg,
+        "erro": erro,
+        "active_page": "usuarios"
+    })
+
+@app.post("/usuarios/criar")
+def usuarios_criar(
+    nome: str = Form(...),
+    email: str = Form(...),
+    perfil: str = Form("AUDITOR_CONTROLE_INTERNO"),
+    senha: str = Form(...),
+    confirmar_senha: str = Form(...),
+    db: Session = Depends(get_db),
+    usuario = Depends(get_current_user)
+):
+    if not usuario:
+        return RedirectResponse(url="/login", status_code=303)
+    
+    email_clean = email.strip().lower()
+    nome_clean = nome.strip()
+    
+    if len(senha) < 6:
+        return RedirectResponse(url="/usuarios?erro=A senha deve conter no mínimo 6 caracteres.", status_code=303)
+    
+    if senha != confirmar_senha:
+        return RedirectResponse(url="/usuarios?erro=As senhas digitadas não coincidem.", status_code=303)
+        
+    existente = db.query(Usuario).filter_by(email=email_clean).first()
+    if existente:
+        return RedirectResponse(url=f"/usuarios?erro=O e-mail {email_clean} já está cadastrado no sistema.", status_code=303)
+        
+    novo_user = Usuario(
+        nome=nome_clean,
+        email=email_clean,
+        senha_hash=hash_senha(senha),
+        perfil=perfil,
+        primeiro_acesso=False,
+        data_criacao=datetime.now()
+    )
+    db.add(novo_user)
+    db.commit()
+    
+    return RedirectResponse(url=f"/usuarios?msg=Usuário {nome_clean} cadastrado com sucesso!", status_code=303)
+
+@app.post("/usuarios/{id_usuario}/editar")
+def usuarios_editar(
+    id_usuario: int,
+    nome: str = Form(...),
+    perfil: str = Form(...),
+    db: Session = Depends(get_db),
+    usuario = Depends(get_current_user)
+):
+    if not usuario:
+        return RedirectResponse(url="/login", status_code=303)
+        
+    user_target = db.query(Usuario).filter_by(id_usuario=id_usuario).first()
+    if not user_target:
+        return RedirectResponse(url="/usuarios?erro=Usuário não localizado.", status_code=303)
+        
+    user_target.nome = nome.strip()
+    user_target.perfil = perfil
+    db.commit()
+    
+    return RedirectResponse(url="/usuarios?msg=Dados do operador atualizados com sucesso!", status_code=303)
+
+@app.post("/usuarios/{id_usuario}/redefinir-senha")
+def usuarios_redefinir_senha(
+    id_usuario: int,
+    nova_senha: str = Form(...),
+    confirmar_senha: str = Form(...),
+    db: Session = Depends(get_db),
+    usuario = Depends(get_current_user)
+):
+    if not usuario:
+        return RedirectResponse(url="/login", status_code=303)
+        
+    user_target = db.query(Usuario).filter_by(id_usuario=id_usuario).first()
+    if not user_target:
+        return RedirectResponse(url="/usuarios?erro=Usuário não localizado.", status_code=303)
+        
+    if len(nova_senha) < 6:
+        return RedirectResponse(url="/usuarios?erro=A nova senha deve conter no mínimo 6 caracteres.", status_code=303)
+        
+    if nova_senha != confirmar_senha:
+        return RedirectResponse(url="/usuarios?erro=A confirmação de senha não confere.", status_code=303)
+        
+    user_target.senha_hash = hash_senha(nova_senha)
+    db.commit()
+    
+    return RedirectResponse(url=f"/usuarios?msg=Senha do usuário {user_target.nome} redefinida com sucesso!", status_code=303)
+
+@app.post("/usuarios/{id_usuario}/excluir")
+def usuarios_excluir(
+    id_usuario: int,
+    db: Session = Depends(get_db),
+    usuario = Depends(get_current_user)
+):
+    if not usuario:
+        return RedirectResponse(url="/login", status_code=303)
+        
+    if usuario.id_usuario == id_usuario:
+        return RedirectResponse(url="/usuarios?erro=Não é permitido excluir o seu próprio usuário ativo.", status_code=303)
+        
+    user_target = db.query(Usuario).filter_by(id_usuario=id_usuario).first()
+    if not user_target:
+        return RedirectResponse(url="/usuarios?erro=Usuário não localizado.", status_code=303)
+        
+    db.delete(user_target)
+    db.commit()
+    
+    return RedirectResponse(url=f"/usuarios?msg=Usuário {user_target.nome} removido do sistema.", status_code=303)
+
+# --- TROCA DE SENHA DO USUÁRIO LOGADO ---
+
+@app.get("/perfil/trocar-senha", response_class=HTMLResponse)
+def perfil_trocar_senha_tela(
+    request: Request,
+    usuario = Depends(get_current_user)
+):
+    if not usuario:
+        return RedirectResponse(url="/login", status_code=303)
+        
+    msg = request.query_params.get("msg")
+    erro = request.query_params.get("erro")
+    
+    return templates.TemplateResponse("trocar_senha.html", {
+        "request": request,
+        "usuario": usuario,
+        "msg": msg,
+        "erro": erro
+    })
+
+@app.post("/perfil/trocar-senha")
+def perfil_trocar_senha_executar(
+    senha_atual: str = Form(...),
+    nova_senha: str = Form(...),
+    confirmar_nova_senha: str = Form(...),
+    db: Session = Depends(get_db),
+    usuario = Depends(get_current_user)
+):
+    if not usuario:
+        return RedirectResponse(url="/login", status_code=303)
+        
+    # Validar senha atual
+    if usuario.senha_hash != hash_senha(senha_atual):
+        return RedirectResponse(url="/perfil/trocar-senha?erro=A senha atual digitada está incorreta.", status_code=303)
+        
+    if len(nova_senha) < 6:
+        return RedirectResponse(url="/perfil/trocar-senha?erro=A nova senha deve ter no mínimo 6 caracteres.", status_code=303)
+        
+    if nova_senha != confirmar_nova_senha:
+        return RedirectResponse(url="/perfil/trocar-senha?erro=A nova senha e a confirmação não coincidem.", status_code=303)
+        
+    # Atualizar hash
+    usuario_db = db.query(Usuario).filter_by(id_usuario=usuario.id_usuario).first()
+    if usuario_db:
+        usuario_db.senha_hash = hash_senha(nova_senha)
+        usuario_db.primeiro_acesso = False
+        db.commit()
+        
+    return RedirectResponse(url="/usuarios?msg=Sua senha foi alterada com sucesso!", status_code=303)
+
 
 # --- FLUXO DE ABERTURA DE CERTAMES & PARECER PRÉVIO TCE-MT ---
 

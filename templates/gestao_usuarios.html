@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Acesso & Usuários | SIAP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar-bg { background-color: #050a18; }
+        .nav-item-active { background-color: #00965e; color: #ffffff; font-weight: 600; }
+        .nav-item-inactive { color: #94a3b8; }
+        .nav-item-inactive:hover { background-color: #0f172a; color: #f1f5f9; }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans min-h-screen flex text-slate-800 antialiased">
+
+    <!-- Sidebar Lateral -->
+    <aside class="w-64 sidebar-bg shrink-0 flex flex-col justify-between border-r border-slate-800 h-screen sticky top-0 z-40">
+        <div class="p-4 space-y-6 overflow-y-auto flex-1">
+            <!-- Logo no Topo do Menu -->
+            <div class="flex items-center space-x-3 px-2 py-2">
+                <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md">
+                    <i class="fa-solid fa-shield-halved text-emerald-600 text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-white font-extrabold text-sm tracking-tight">AUDIT-FLOW</h2>
+                    <p class="text-[10px] text-emerald-400 font-bold uppercase">Auditoria de Pessoal</p>
+                </div>
+            </div>
+
+            <!-- Navegação / Itens do Menu -->
+            <nav class="space-y-1 text-xs">
+                <a href="/" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-table-cells-large w-5 text-sm mr-2.5"></i>
+                    <span>Dashboard Geral</span>
+                </a>
+
+                <a href="/certames/novo" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-plus-circle w-5 text-sm mr-2.5 text-emerald-400"></i>
+                    <span>Novo Certame / Modalidade</span>
+                </a>
+
+                <a href="/certames" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-list-check w-5 text-sm mr-2.5 text-emerald-400"></i>
+                    <span>Certames</span>
+                </a>
+
+                {% set certames_menu = get_certames_menu() %}
+                {% if certames_menu %}
+                <div class="mt-1 mb-2 pl-2 space-y-2 border-l-2 border-emerald-800/60 ml-3">
+                    {% for c in certames_menu %}
+                    {% set nome_lbl = "Concurso " ~ c.numero_certame if 'CONCURSO' in c.modalidade.upper() else "Seletivo " ~ c.numero_certame %}
+                    <div class="space-y-1">
+                        <div class="text-[11px] font-extrabold text-slate-200 flex items-center px-2 py-1 bg-slate-900/90 rounded-lg border border-slate-800">
+                            <i class="fa-solid fa-file-signature text-emerald-400 mr-1.5 text-[10px]"></i>
+                            <span class="truncate">{{ nome_lbl }}</span>
+                        </div>
+                        <div class="pl-2 space-y-1 text-[11px]">
+                            <a href="/certames/{{ c.id_certame }}/wizard" class="flex items-center text-slate-300 hover:text-emerald-300 py-0.5 transition">
+                                <i class="fa-solid fa-folder-open text-emerald-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Pré-Edital</span>
+                            </a>
+                            <a href="/certames/{{ c.id_certame }}/fase-oficial" class="flex items-center text-slate-300 hover:text-indigo-300 py-0.5 transition">
+                                <i class="fa-solid fa-unlock text-indigo-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Fase Oficial</span>
+                            </a>
+                            <a href="/certames/{{ c.id_certame }}/acompanhamento" class="flex items-center text-slate-300 hover:text-amber-300 py-0.5 transition">
+                                <i class="fa-solid fa-user-check text-amber-400 text-[9px] w-3.5 mr-1.5"></i>
+                                <span class="truncate">Acompanhamento</span>
+                            </a>
+                            <a href="/certames/{{ c.id_certame }}/relatorio-auditoria-final" class="flex items-center pl-4 text-[10.5px] text-amber-300/90 font-bold hover:text-amber-200 py-0.5 transition border-l-2 border-amber-500/50 ml-2">
+                                <i class="fa-solid fa-file-shield text-amber-400 text-[9px] w-3 mr-1.5"></i>
+                                <span class="truncate">Relatório de Auditoria</span>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <a href="/modulo/relatorios" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-file-shield w-5 text-sm mr-2.5 text-amber-400"></i>
+                    <span>Relatórios de Auditoria</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Controle & Rastreabilidade
+                </div>
+
+                <a href="/usuarios" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-active">
+                    <i class="fa-solid fa-user-shield w-5 text-sm mr-2.5"></i>
+                    <span>Gestão de Acesso</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Repositório & IA
+                </div>
+
+                <a href="/repositorio" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-folder-open w-5 text-sm mr-2.5"></i>
+                    <span>Repositório Documental</span>
+                </a>
+
+                <a href="/importar" class="flex items-center px-3 py-2.5 rounded-xl transition nav-item-inactive">
+                    <i class="fa-solid fa-wand-magic-sparkles w-5 text-sm mr-2.5 text-indigo-400"></i>
+                    <span>Ingestão & Leitura IA</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Perfil do Usuário / Rodapé da Sidebar -->
+        <div class="p-4 border-t border-slate-800 bg-[#070e20] shrink-0">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2.5 overflow-hidden">
+                    <div class="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center text-white font-bold text-xs shrink-0">
+                        {{ (usuario.nome[:2] if usuario and usuario.nome else 'US') | upper }}
+                    </div>
+                    <div class="truncate">
+                        <p class="text-xs font-bold text-white truncate">{{ usuario.nome if usuario and usuario.nome else (usuario.email if usuario else 'prof.jan100@gmail.com') }}</p>
+                        <p class="text-[10px] text-emerald-400 font-semibold">{{ usuario.perfil if usuario and usuario.perfil else 'Administrador Master' }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <button onclick="openModal('modalTrocarMinhaSenha')" title="Alterar Minha Senha" class="text-slate-400 hover:text-amber-400 p-1.5 transition">
+                        <i class="fa-solid fa-key text-sm"></i>
+                    </button>
+                    <a href="/logout" title="Sair do Sistema" class="text-slate-400 hover:text-rose-400 p-1.5 transition">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Conteúdo Principal -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
+        <!-- Topbar -->
+        <header class="bg-white border-b border-slate-200 px-8 py-5 shrink-0 flex items-center justify-between shadow-sm">
+            <div>
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 bg-emerald-100 text-emerald-700 rounded-lg flex items-center justify-center">
+                        <i class="fa-solid fa-user-shield text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-black text-slate-900 tracking-tight">Gestão de Acesso & Segurança</h1>
+                        <p class="text-xs text-slate-500 font-medium">Controle de credenciais, perfis de usuários e permissões do sistema</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <button onclick="openModal('modalTrocarMinhaSenha')" class="inline-flex items-center px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl shadow-sm transition space-x-2">
+                    <i class="fa-solid fa-key text-xs"></i>
+                    <span>Alterar Minha Senha</span>
+                </button>
+                <button onclick="openModal('modalNovoUsuario')" class="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm transition space-x-2">
+                    <i class="fa-solid fa-user-plus text-xs"></i>
+                    <span>Novo Usuário</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Mensagens de Feedback -->
+        <div class="px-8 pt-6">
+            {% if msg %}
+            <div class="mb-4 bg-emerald-50 border border-emerald-300 text-emerald-900 px-4 py-3 rounded-xl flex items-center space-x-3 shadow-sm">
+                <i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>
+                <span class="text-xs font-bold">{{ msg }}</span>
+            </div>
+            {% endif %}
+
+            {% if erro %}
+            <div class="mb-4 bg-rose-50 border border-rose-300 text-rose-900 px-4 py-3 rounded-xl flex items-center space-x-3 shadow-sm">
+                <i class="fa-solid fa-triangle-exclamation text-rose-600 text-lg"></i>
+                <span class="text-xs font-bold">{{ erro }}</span>
+            </div>
+            {% endif %}
+
+            <!-- KPIs de Usuários -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-black uppercase text-slate-400 tracking-wider">Total de Usuários</p>
+                        <h3 class="text-2xl font-black text-slate-900 mt-1">{{ total_usuarios }}</h3>
+                    </div>
+                    <div class="w-11 h-11 bg-slate-100 text-slate-700 rounded-xl flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-black uppercase text-indigo-400 tracking-wider">Admin Master</p>
+                        <h3 class="text-2xl font-black text-indigo-700 mt-1">{{ total_admins }}</h3>
+                    </div>
+                    <div class="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-black uppercase text-emerald-400 tracking-wider">Auditores</p>
+                        <h3 class="text-2xl font-black text-emerald-700 mt-1">{{ total_auditores }}</h3>
+                    </div>
+                    <div class="w-11 h-11 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-user-check"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-black uppercase text-blue-400 tracking-wider">Consultores</p>
+                        <h3 class="text-2xl font-black text-blue-700 mt-1">{{ total_consultores }}</h3>
+                    </div>
+                    <div class="w-11 h-11 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-eye"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela de Usuários Cadastrados -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-12">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-list-ul text-slate-500 text-sm"></i>
+                        <h3 class="text-sm font-black text-slate-800">Relação Nominal de Operadores do Sistema</h3>
+                    </div>
+                    <span class="text-xs text-slate-400 font-medium">Controle de Acesso Baseado em Perfis (RBAC)</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead class="bg-slate-900 text-white font-bold uppercase text-[10px] tracking-wider border-b border-slate-800">
+                            <tr>
+                                <th class="py-3 px-4 w-12 text-center">ID</th>
+                                <th class="py-3 px-4">Operador / Nome</th>
+                                <th class="py-3 px-4">E-mail Institucional</th>
+                                <th class="py-3 px-4 text-center">Perfil de Acesso</th>
+                                <th class="py-3 px-4 text-center">Data Cadastro</th>
+                                <th class="py-3 px-4 text-center w-48">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-medium">
+                            {% for u in usuarios %}
+                            <tr class="hover:bg-slate-50/80 transition {{ 'bg-emerald-50/20' if usuario and usuario.id_usuario == u.id_usuario else '' }}">
+                                <td class="py-3 px-4 text-center font-bold text-slate-400">#{{ u.id_usuario }}</td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs uppercase shrink-0">
+                                            {{ (u.nome[:2] if u.nome else 'US') }}
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-900">{{ u.nome }}</p>
+                                            {% if usuario and usuario.id_usuario == u.id_usuario %}
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9.5px] font-black bg-emerald-100 text-emerald-800">
+                                                (Você)
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4 font-mono text-[11px] text-slate-600">{{ u.email }}</td>
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
+                                    {% if u.perfil == 'ADMIN_MASTER' %}
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10.5px] font-black bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                        <i class="fa-solid fa-crown mr-1.5 text-[9px]"></i> Administrador Master
+                                    </span>
+                                    {% elif u.perfil == 'AUDITOR_CONTROLE_INTERNO' %}
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10.5px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                        <i class="fa-solid fa-user-shield mr-1.5 text-[9px]"></i> Auditor de Controle
+                                    </span>
+                                    {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                        <i class="fa-solid fa-eye mr-1.5 text-[9px]"></i> Consultor Leitura
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 px-4 text-center font-mono text-[11px] text-slate-500 whitespace-nowrap">
+                                    {{ u.data_criacao.strftime('%d/%m/%Y %H:%M') if u.data_criacao else '-' }}
+                                </td>
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
+                                    <div class="flex items-center justify-center space-x-1.5">
+                                        <!-- Redefinir Senha do Usuário -->
+                                        <button onclick="openRedefinirSenha({{ u.id_usuario }}, '{{ u.nome }}')" title="Redefinir Senha" class="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition">
+                                            <i class="fa-solid fa-key text-xs"></i>
+                                        </button>
+                                        <!-- Editar Perfil -->
+                                        <button onclick="openEditarUsuario({{ u.id_usuario }}, '{{ u.nome }}', '{{ u.perfil }}')" title="Editar Dados" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition">
+                                            <i class="fa-solid fa-pen-to-square text-xs"></i>
+                                        </button>
+                                        <!-- Excluir Usuário -->
+                                        {% if usuario and usuario.id_usuario != u.id_usuario %}
+                                        <form method="POST" action="/usuarios/{{ u.id_usuario }}/excluir" onsubmit="return confirm('Deseja realmente remover o acesso deste operador?')" class="inline">
+                                            <button type="submit" title="Excluir Usuário" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition">
+                                                <i class="fa-solid fa-trash-can text-xs"></i>
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                        <span class="p-1.5 text-slate-300 cursor-not-allowed" title="Você não pode excluir o seu próprio usuário ativo">
+                                            <i class="fa-solid fa-lock text-xs"></i>
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL 1: NOVO USUÁRIO -->
+    <div id="modalNovoUsuario" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in duration-200">
+            <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+                <div class="flex items-center space-x-2.5">
+                    <i class="fa-solid fa-user-plus text-emerald-400 text-base"></i>
+                    <h3 class="text-sm font-black tracking-tight">Cadastrar Novo Usuário</h3>
+                </div>
+                <button onclick="closeModal('modalNovoUsuario')" class="text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form method="POST" action="/usuarios/criar" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nome Completo *</label>
+                    <input type="text" name="nome" required placeholder="Ex: Dr. Carlos Eduardo" class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">E-mail Institucional *</label>
+                    <input type="email" name="email" required placeholder="Ex: carlos@prefeitura.gov.br" class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Perfil de Acesso *</label>
+                    <select name="perfil" required class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white">
+                        <option value="AUDITOR_CONTROLE_INTERNO">Auditor de Controle Interno</option>
+                        <option value="ADMIN_MASTER">Administrador Master</option>
+                        <option value="CONSULTOR_LEITURA">Consultor Somente Leitura</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Senha Inicial *</label>
+                        <input type="password" name="senha" required minlength="6" placeholder="Mínimo 6 dígitos" class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Confirmar Senha *</label>
+                        <input type="password" name="confirmar_senha" required minlength="6" placeholder="Repita a senha" class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+                <div class="pt-3 flex items-center justify-end space-x-2 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('modalNovoUsuario')" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition">Salvar Usuário</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: ALTERAR MINHA SENHA -->
+    <div id="modalTrocarMinhaSenha" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in duration-200">
+            <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+                <div class="flex items-center space-x-2.5">
+                    <i class="fa-solid fa-key text-amber-400 text-base"></i>
+                    <h3 class="text-sm font-black tracking-tight">Alterar Minha Senha</h3>
+                </div>
+                <button onclick="closeModal('modalTrocarMinhaSenha')" class="text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form method="POST" action="/perfil/trocar-senha" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Senha Atual *</label>
+                    <input type="password" name="senha_atual" required placeholder="Digite sua senha atual" class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nova Senha * (Mínimo 6 caracteres)</label>
+                    <input type="password" name="nova_senha" required minlength="6" placeholder="Digite sua nova senha" class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Confirme a Nova Senha *</label>
+                    <input type="password" name="confirmar_nova_senha" required minlength="6" placeholder="Confirme a nova senha" class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                </div>
+                <div class="pt-3 flex items-center justify-end space-x-2 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('modalTrocarMinhaSenha')" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-bold text-slate-950 bg-amber-500 hover:bg-amber-600 rounded-xl shadow-sm transition">Atualizar Senha</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: REDEFINIR SENHA DE OUTRO USUÁRIO (ADMIN) -->
+    <div id="modalRedefinirSenha" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in duration-200">
+            <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+                <div class="flex items-center space-x-2.5">
+                    <i class="fa-solid fa-unlock-keyhole text-amber-400 text-base"></i>
+                    <h3 class="text-sm font-black tracking-tight">Redefinir Senha do Usuário</h3>
+                </div>
+                <button onclick="closeModal('modalRedefinirSenha')" class="text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="formRedefinirSenha" method="POST" action="" class="p-6 space-y-4">
+                <div>
+                    <p class="text-xs text-slate-500 mb-2">Redefinindo credencial de acesso para: <strong id="redefinirNomeUsuario" class="text-slate-800"></strong></p>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nova Senha * (Mínimo 6 caracteres)</label>
+                    <input type="password" name="nova_senha" required minlength="6" placeholder="Digite a nova senha" class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Confirme a Nova Senha *</label>
+                    <input type="password" name="confirmar_senha" required minlength="6" placeholder="Confirme a nova senha" class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                </div>
+                <div class="pt-3 flex items-center justify-end space-x-2 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('modalRedefinirSenha')" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-sm transition">Redefinir Senha</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 4: EDITAR DADOS DO USUÁRIO -->
+    <div id="modalEditarUsuario" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in duration-200">
+            <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+                <div class="flex items-center space-x-2.5">
+                    <i class="fa-solid fa-user-pen text-blue-400 text-base"></i>
+                    <h3 class="text-sm font-black tracking-tight">Editar Operador</h3>
+                </div>
+                <button onclick="closeModal('modalEditarUsuario')" class="text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="formEditarUsuario" method="POST" action="" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nome Completo *</label>
+                    <input type="text" id="editNome" name="nome" required class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Perfil de Acesso *</label>
+                    <select id="editPerfil" name="perfil" required class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
+                        <option value="AUDITOR_CONTROLE_INTERNO">Auditor de Controle Interno</option>
+                        <option value="ADMIN_MASTER">Administrador Master</option>
+                        <option value="CONSULTOR_LEITURA">Consultor Somente Leitura</option>
+                    </select>
+                </div>
+                <div class="pt-3 flex items-center justify-end space-x-2 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('modalEditarUsuario')" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm transition">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts de Abertura/Fechamento de Modais -->
+    <script>
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function openRedefinirSenha(id, nome) {
+            document.getElementById('redefinirNomeUsuario').innerText = nome;
+            document.getElementById('formRedefinirSenha').action = '/usuarios/' + id + '/redefinir-senha';
+            openModal('modalRedefinirSenha');
+        }
+
+        function openEditarUsuario(id, nome, perfil) {
+            document.getElementById('editNome').value = nome;
+            document.getElementById('editPerfil').value = perfil;
+            document.getElementById('formEditarUsuario').action = '/usuarios/' + id + '/editar';
+            openModal('modalEditarUsuario');
+        }
+
+        // Fechar ao pressionar ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                document.querySelectorAll('[id^="modal"]').forEach(m => m.classList.add('hidden'));
+            }
+        });
+    </script>
+</body>
+</html>
