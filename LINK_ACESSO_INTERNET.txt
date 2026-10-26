@@ -1,1 +1,20 @@
-https://bulletin-estimates-ministries-symbol.trycloudflare.com
+================================================================================
+LINKS DE ACESSO ONLINE - SISTEMA DE AUDITORIA DE PESSOAL (SIAP)
+================================================================================
+
+1. LINK FIXO/PERMANENTE (Localtunnel - Não muda de nome):
+   https://siap-auditoria-pessoal.loca.lt
+   (Nota: No primeiro acesso pelo navegador, clique em 'Click to Submit' com o IP indicado na tela)
+
+2. LINK CLOUDFLARE ATIVO (HTTPS Direto sem telas intermediárias):
+   https://bulletin-estimates-ministries-symbol.trycloudflare.com
+
+3. NUVEM DEFINITIVA 24/7 (Render - Link Permanente que funciona com PC desligado):
+   Repositório no GitHub pronto para 1 clique no Render:
+   https://github.com/JSAdvocacia/Gestao-de-Pessoas-Flow
+   Link padrão gerado no Render: https://siap-gestao-de-pessoas.onrender.com
+
+Credenciais:
+E-mail: prof.jan100@gmail.com
+Senha: Sua senha cadastrada
+================================================================================
