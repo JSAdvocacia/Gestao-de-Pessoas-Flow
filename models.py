@@ -189,6 +189,9 @@ class Usuario(Base):
 
     id_usuario = Column(Integer, primary_key=True, index=True)
     email = Column(String(150), unique=True, nullable=False)
+    email_recuperacao = Column(String(150), nullable=True)
+    codigo_recuperacao = Column(String(20), nullable=True)
+    codigo_expiracao = Column(DateTime, nullable=True)
     nome = Column(String(150), nullable=False)
     senha_hash = Column(String(255), nullable=True) # None no primeiro acesso
     perfil = Column(String(50), default="ADMIN_MASTER") # ADMIN_MASTER, AUDITOR

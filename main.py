@@ -206,6 +206,149 @@ def logout():
     resp.delete_cookie(key="user_session")
     return resp
 
+# ==============================================================================
+# ROTAS DE RECUPERAÇÃO DE SENHA POR E-MAIL CADASTRADO
+# ==============================================================================
+@app.get("/recuperar-senha", response_class=HTMLResponse)
+def tela_recuperar_senha(request: Request, erro: str = None, msg: str = None):
+    return templates.TemplateResponse("recuperar_senha.html", {
+        "request": request,
+        "erro": erro,
+        "msg": msg,
+        "etapa": "solicitar"
+    })
+
+@app.post("/recuperar-senha/solicitar", response_class=HTMLResponse)
+def solicitar_codigo_recuperacao(
+    request: Request,
+    email: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    import random
+    email_clean = email.strip().lower()
+    
+    # Busca o usuário pelo e-mail institucional ou pelo e-mail de recuperação cadastrado
+    user = db.query(Usuario).filter(
+        (Usuario.email == email_clean) | (Usuario.email_recuperacao == email_clean)
+    ).first()
+    
+    if not user:
+        return templates.TemplateResponse("recuperar_senha.html", {
+            "request": request,
+            "erro": f"Nenhum usuário localizado com o e-mail '{email_clean}'. Verifique os dados digitados ou contate a administração.",
+            "etapa": "solicitar"
+        })
+        
+    email_destino = user.email_recuperacao or user.email
+    
+    # Gerar código de 6 dígitos numéricos
+    codigo = f"{random.randint(100000, 999999)}"
+    user.codigo_recuperacao = codigo
+    user.codigo_expiracao = datetime.now() + timedelta(minutes=15)
+    db.commit()
+    
+    # Mascarar o e-mail de recuperação para segurança na exibição (ex: jo***o@gmail.com)
+    partes = email_destino.split("@")
+    if len(partes) == 2:
+        user_part, domain_part = partes
+        if len(user_part) > 2:
+            mascarado = user_part[:2] + "***" + user_part[-1] + "@" + domain_part
+        else:
+            mascarado = user_part[0] + "***@" + domain_part
+    else:
+        mascarado = email_destino[:2] + "***"
+        
+    msg_sucesso = f"Código de verificação gerado para o e-mail de recuperação cadastrado ({mascarado})."
+    
+    return templates.TemplateResponse("recuperar_senha.html", {
+        "request": request,
+        "msg": msg_sucesso,
+        "etapa": "confirmar",
+        "email": user.email,
+        "email_recuperacao_mascarado": mascarado,
+        "codigo_dev": codigo
+    })
+
+@app.post("/recuperar-senha/confirmar", response_class=HTMLResponse)
+def confirmar_recuperacao_senha(
+    request: Request,
+    email: str = Form(...),
+    codigo: str = Form(...),
+    nova_senha: str = Form(...),
+    confirmar_nova_senha: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    email_clean = email.strip().lower()
+    codigo_clean = codigo.strip()
+    
+    user = db.query(Usuario).filter_by(email=email_clean).first()
+    if not user:
+        return templates.TemplateResponse("recuperar_senha.html", {
+            "request": request,
+            "erro": "Usuário não localizado no sistema.",
+            "etapa": "solicitar"
+        })
+        
+    recup_email = user.email_recuperacao or user.email
+    partes = recup_email.split("@")
+    if len(partes) == 2:
+        user_part, domain_part = partes
+        if len(user_part) > 2:
+            mascarado = user_part[:2] + "***" + user_part[-1] + "@" + domain_part
+        else:
+            mascarado = user_part[0] + "***@" + domain_part
+    else:
+        mascarado = recup_email[:2] + "***"
+        
+    if not user.codigo_recuperacao or user.codigo_recuperacao != codigo_clean:
+        return templates.TemplateResponse("recuperar_senha.html", {
+            "request": request,
+            "erro": "Código de verificação incorreto ou inválido.",
+            "etapa": "confirmar",
+            "email": user.email,
+            "email_recuperacao_mascarado": mascarado,
+            "codigo_dev": user.codigo_recuperacao
+        })
+        
+    if not user.codigo_expiracao or datetime.now() > user.codigo_expiracao:
+        return templates.TemplateResponse("recuperar_senha.html", {
+            "request": request,
+            "erro": "O código de verificação expirou (validade: 15 minutos). Solicite um novo código.",
+            "etapa": "solicitar"
+        })
+        
+    if len(nova_senha) < 6:
+        return templates.TemplateResponse("recuperar_senha.html", {
+            "request": request,
+            "erro": "A nova senha deve possuir no mínimo 6 caracteres.",
+            "etapa": "confirmar",
+            "email": user.email,
+            "email_recuperacao_mascarado": mascarado,
+            "codigo_dev": user.codigo_recuperacao
+        })
+        
+    if nova_senha != confirmar_nova_senha:
+        return templates.TemplateResponse("recuperar_senha.html", {
+            "request": request,
+            "erro": "A confirmação de senha não confere com a nova senha digitada.",
+            "etapa": "confirmar",
+            "email": user.email,
+            "email_recuperacao_mascarado": mascarado,
+            "codigo_dev": user.codigo_recuperacao
+        })
+        
+    user.senha_hash = hash_senha(nova_senha)
+    user.codigo_recuperacao = None
+    user.codigo_expiracao = None
+    user.primeiro_acesso = False
+    db.commit()
+    
+    return templates.TemplateResponse("login.html", {
+        "request": request,
+        "info": f"Senha redefinida com sucesso para o usuário {user.nome}! Faça login com sua nova credencial.",
+        "email_digitado": user.email
+    })
+
 # Dashboard Principal
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request, db: Session = Depends(get_db), usuario = Depends(get_current_user)):
@@ -556,6 +699,7 @@ def gestao_usuarios(
 def usuarios_criar(
     nome: str = Form(...),
     email: str = Form(...),
+    email_recuperacao: Optional[str] = Form(None),
     perfil: str = Form("AUDITOR_CONTROLE_INTERNO"),
     senha: str = Form(...),
     confirmar_senha: str = Form(...),
@@ -566,6 +710,7 @@ def usuarios_criar(
         return RedirectResponse(url="/login", status_code=303)
     
     email_clean = email.strip().lower()
+    email_recup_clean = email_recuperacao.strip().lower() if email_recuperacao and email_recuperacao.strip() else email_clean
     nome_clean = nome.strip()
     
     if len(senha) < 6:
@@ -581,6 +726,7 @@ def usuarios_criar(
     novo_user = Usuario(
         nome=nome_clean,
         email=email_clean,
+        email_recuperacao=email_recup_clean,
         senha_hash=hash_senha(senha),
         perfil=perfil,
         primeiro_acesso=False,
@@ -596,6 +742,7 @@ def usuarios_editar(
     id_usuario: int,
     nome: str = Form(...),
     perfil: str = Form(...),
+    email_recuperacao: Optional[str] = Form(None),
     db: Session = Depends(get_db),
     usuario = Depends(get_current_user)
 ):
@@ -608,6 +755,10 @@ def usuarios_editar(
         
     user_target.nome = nome.strip()
     user_target.perfil = perfil
+    if email_recuperacao and email_recuperacao.strip():
+        user_target.email_recuperacao = email_recuperacao.strip().lower()
+    else:
+        user_target.email_recuperacao = user_target.email
     db.commit()
     
     return RedirectResponse(url="/usuarios?msg=Dados do operador atualizados com sucesso!", status_code=303)

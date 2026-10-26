@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Senha | SIAP Controle Interno</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .login-bg { background-color: #0c1222; }
+        .btn-green { background-color: #00965e; }
+        .btn-green:hover { background-color: #007a4d; }
+    </style>
+</head>
+<body class="login-bg min-h-screen flex flex-col items-center justify-center p-4 font-sans antialiased text-slate-800">
+
+    <!-- Logo / Identidade do Sistema -->
+    <div class="flex flex-col items-center mb-6 text-center">
+        <div class="w-20 h-20 bg-white rounded-2xl shadow-xl p-3 flex flex-col items-center justify-center border-2 border-slate-100 mb-2">
+            <i class="fa-solid fa-key text-3xl text-amber-500 mb-1"></i>
+            <span class="text-[10px] font-extrabold uppercase text-slate-900 tracking-wider">AUDIT-FLOW</span>
+            <span class="text-[7.5px] font-bold text-emerald-600 uppercase">Segurança</span>
+        </div>
+        <h2 class="text-white font-extrabold text-base tracking-wide">Recuperação de Credencial de Acesso</h2>
+        <p class="text-xs text-slate-400">Atrelada ao e-mail de recuperação previamente cadastrado</p>
+    </div>
+
+    <!-- Card Principal -->
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-8 border border-slate-100 space-y-5 animate-in fade-in zoom-in duration-200">
+
+        <!-- Mensagens de Feedback -->
+        {% if erro %}
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-xl text-xs text-red-700 flex items-start space-x-2.5 shadow-sm">
+            <i class="fa-solid fa-circle-exclamation text-base text-red-600 shrink-0 mt-0.5"></i>
+            <span class="font-bold">{{ erro }}</span>
+        </div>
+        {% endif %}
+
+        {% if msg %}
+        <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-xl text-xs text-emerald-800 flex items-start space-x-2.5 shadow-sm">
+            <i class="fa-solid fa-circle-check text-base text-emerald-600 shrink-0 mt-0.5"></i>
+            <span class="font-bold">{{ msg }}</span>
+        </div>
+        {% endif %}
+
+        {% if etapa == 'confirmar' %}
+        <!-- ETAPA 2: DIGITAR CÓDIGO RECEBIDO E DEFINIR NOVA SENHA -->
+        <div class="text-center pb-2">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 uppercase tracking-wide">
+                Etapa 2 de 2 • Redefinição
+            </span>
+            <h3 class="text-lg font-black text-slate-900 mt-2">Defina sua Nova Senha</h3>
+            <p class="text-xs text-slate-500 mt-1">
+                Código gerado para o e-mail de recuperação: <strong class="text-slate-800">{{ email_recuperacao_mascarado }}</strong>
+            </p>
+        </div>
+
+        {% if codigo_dev %}
+        <!-- Box Informativo do Código Gerado para Teste/Auditoria -->
+        <div class="bg-amber-50/80 border border-amber-300 p-3.5 rounded-xl text-xs text-amber-900 flex items-center justify-between">
+            <div>
+                <p class="text-[10px] font-bold uppercase text-amber-700 tracking-wider">Código de Validação:</p>
+                <p class="text-base font-mono font-black text-amber-950 tracking-widest mt-0.5">{{ codigo_dev }}</p>
+            </div>
+            <span class="text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded font-bold">Válido por 15 min</span>
+        </div>
+        {% endif %}
+
+        <form method="POST" action="/recuperar-senha/confirmar" class="space-y-4">
+            <input type="hidden" name="email" value="{{ email }}">
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Código de Verificação (6 dígitos) *</label>
+                <div class="relative">
+                    <input 
+                        type="text" 
+                        name="codigo" 
+                        required 
+                        maxlength="6"
+                        placeholder="Ex: 123456" 
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono font-bold tracking-widest text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
+                    >
+                    <i class="fa-solid fa-shield absolute right-3.5 top-3.5 text-slate-400 text-xs"></i>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Nova Senha * (Mínimo 6 dígitos)</label>
+                <div class="relative">
+                    <input 
+                        type="password" 
+                        name="nova_senha" 
+                        required 
+                        minlength="6"
+                        placeholder="••••••••" 
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
+                    >
+                    <i class="fa-solid fa-lock absolute right-3.5 top-3.5 text-slate-400 text-xs"></i>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Confirme a Nova Senha *</label>
+                <div class="relative">
+                    <input 
+                        type="password" 
+                        name="confirmar_nova_senha" 
+                        required 
+                        minlength="6"
+                        placeholder="••••••••" 
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
+                    >
+                    <i class="fa-solid fa-check-double absolute right-3.5 top-3.5 text-slate-400 text-xs"></i>
+                </div>
+            </div>
+
+            <button 
+                type="submit" 
+                class="w-full btn-green text-white font-bold py-3 px-4 rounded-xl text-sm shadow-lg hover:shadow-emerald-500/20 active:scale-[0.99] transition flex items-center justify-center mt-3"
+            >
+                <i class="fa-solid fa-shield-halved mr-2"></i> Concluir Redefinição de Senha
+            </button>
+        </form>
+
+        {% else %}
+        <!-- ETAPA 1: SOLICITAR CÓDIGO POR EMAIL CADASTRADO -->
+        <div class="text-center pb-2">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 uppercase tracking-wide">
+                Etapa 1 de 2 • Identificação
+            </span>
+            <h3 class="text-lg font-black text-slate-900 mt-2">Recuperar Minha Senha</h3>
+            <p class="text-xs text-slate-500 mt-1">
+                Informe o seu e-mail de acesso ou o e-mail de recuperação cadastrado previamente.
+            </p>
+        </div>
+
+        <form method="POST" action="/recuperar-senha/solicitar" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">E-mail Cadastrado no Sistema *</label>
+                <div class="relative">
+                    <input 
+                        type="email" 
+                        name="email" 
+                        required 
+                        placeholder="seu.email@orgao.gov.br"
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
+                    >
+                    <i class="fa-solid fa-envelope absolute right-3.5 top-3.5 text-slate-400 text-xs"></i>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-1">
+                    Um código de validação será gerado para o e-mail de recuperação atrelado à sua conta.
+                </p>
+            </div>
+
+            <button 
+                type="submit" 
+                class="w-full btn-green text-white font-bold py-3 px-4 rounded-xl text-sm shadow-lg hover:shadow-emerald-500/20 active:scale-[0.99] transition flex items-center justify-center mt-3"
+            >
+                <i class="fa-solid fa-paper-plane mr-2"></i> Enviar Código de Recuperação
+            </button>
+        </form>
+        {% endif %}
+
+        <div class="pt-3 border-t border-slate-100 text-center">
+            <a href="/login" class="inline-flex items-center text-xs font-bold text-slate-500 hover:text-slate-800 transition">
+                <i class="fa-solid fa-arrow-left mr-1.5"></i> Voltar para o Login
+            </a>
+        </div>
+    </div>
+</body>
+</html>
