@@ -23,6 +23,12 @@ UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 app = FastAPI(title="SIAP - Sistema Integrado de Auditoria de Pessoal", version="3.1.0")
+
+from fastapi.staticfiles import StaticFiles
+STATIC_DIR = "static"
+os.makedirs(STATIC_DIR, exist_ok=True)
+os.makedirs(os.path.join(STATIC_DIR, "img"), exist_ok=True)
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 templates = Jinja2Templates(directory="templates")
 
 def sha256_filter(val):

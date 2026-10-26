@@ -35,18 +35,13 @@
     <!-- Documento Oficial do Parecer Técnico -->
     <article class="max-w-4xl mx-auto bg-white p-10 md:p-14 shadow-2xl rounded-sm border border-slate-300 space-y-6 text-sm leading-relaxed font-serif text-justify print-shadow-none">
 
-        <!-- Cabeçalho Oficial -->
-        <header class="text-center space-y-1 pb-4 border-b-2 border-slate-900">
-            <div class="w-16 h-16 mx-auto mb-2 flex items-center justify-center">
-                <svg viewBox="0 0 100 100" class="w-14 h-14 text-emerald-700">
-                    <rect width="100" height="100" fill="#00965e" rx="10"/>
-                    <path d="M50 15 L80 40 L50 90 L20 40 Z" fill="#ffffff"/>
-                    <circle cx="50" cy="45" r="12" fill="#ffcb05"/>
-                </svg>
+        <!-- Cabeçalho Oficial com Logotipo -->
+        <header class="pb-4 border-b-2 border-slate-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <img src="/static/img/logo_relatorio.png" alt="Estado de Mato Grosso - Prefeitura de Pontes e Lacerda - CAM" class="h-16 md:h-20 w-auto object-contain">
+            <div class="text-right text-[10px] text-slate-600 font-mono hidden sm:block">
+                <p class="font-bold text-slate-900 uppercase">{{ certame.orgao_solicitante }}</p>
+                <p class="text-emerald-800 font-bold">CONTROLE INTERNO MUNICIPAL</p>
             </div>
-            <p class="font-bold text-xs uppercase tracking-widest text-slate-700">Estado de Mato Grosso</p>
-            <h1 class="font-extrabold text-base uppercase text-slate-900">{{ certame.orgao_solicitante }}</h1>
-            <p class="font-bold text-xs uppercase text-emerald-800 tracking-wider">Controladoria e Auditoria Municipal - CAM</p>
         </header>
 
         <!-- Faixa de Título do Parecer -->

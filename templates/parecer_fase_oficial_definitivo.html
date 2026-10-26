@@ -34,18 +34,14 @@
     <!-- DOCUMENTO DO PARECER IMPRESSO / FORMATADO -->
     <main class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-3xl shadow-xl border border-slate-200 space-y-8 print-container">
         
-        <!-- CABEÇALHO INSTITUCIONAL DA AUDITORIA -->
-        <header class="border-b-2 border-slate-900 pb-6 text-center space-y-2">
-            <div class="flex items-center justify-center space-x-3 mb-2">
-                <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center font-black text-lg">
-                    <i class="fa-solid fa-shield-halved"></i>
-                </div>
-                <div class="text-left">
-                    <h2 class="text-xs font-black tracking-widest text-slate-900 uppercase">ESTADO DE MATO GROSSO</h2>
-                    <p class="text-[11px] font-extrabold text-emerald-700 uppercase">PREFEITURA MUNICIPAL DE {{ certame.municipio.upper() }}</p>
-                </div>
+        <!-- CABEÇALHO INSTITUCIONAL DA AUDITORIA COM LOGOTIPO -->
+        <header class="border-b-2 border-slate-900 pb-4 mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <img src="/static/img/logo_relatorio.png" alt="Estado de Mato Grosso - Prefeitura de Pontes e Lacerda - CAM" class="h-16 md:h-20 w-auto object-contain">
+            <div class="text-right text-[10px] text-slate-600 font-mono hidden sm:block">
+                <p class="font-bold text-slate-900">FASE OFICIAL DO CERTAME</p>
+                <p class="text-emerald-800 font-bold">CONTROLE INTERNO MUNICIPAL</p>
             </div>
-            <h1 class="text-base font-black text-slate-900 tracking-tight uppercase">CONTROLADORIA E AUDITORIA GERAL DO MUNICÍPIO</h1>
+        </header>
             <p class="text-xs font-bold text-indigo-900 bg-indigo-50 py-1.5 px-4 rounded-full w-fit mx-auto border border-indigo-200">
                 {{ parecer.numero_parecer }}
             </p>

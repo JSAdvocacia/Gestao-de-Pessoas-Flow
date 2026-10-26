@@ -11,6 +11,50 @@ def sanitize_text(s: str) -> str:
     s = s.replace("—", "-").replace("–", "-").replace("“", '"').replace("”", '"').replace("’", "'").replace("‘", "'").replace("•", "*")
     return s.encode('latin-1', 'replace').decode('latin-1')
 
+LOGO_PATH = os.path.join(os.path.dirname(__file__), "static", "img", "logo_relatorio.png")
+if not os.path.exists(LOGO_PATH):
+    LOGO_PATH = os.path.join(os.path.dirname(__file__), "uploads", "logo_relatorio.png")
+
+def aplicar_cabecalho_oficial_logo(pdf, orientacao='P', titulo_complementar=None, subtitulo=None):
+    if os.path.exists(LOGO_PATH):
+        if orientacao == 'L':
+            # Paisagem (A4 297mm)
+            pdf.image(LOGO_PATH, x=10, y=5, w=150)
+            if titulo_complementar:
+                pdf.set_xy(165, 7)
+                pdf.set_font("Helvetica", "B", 8.5)
+                pdf.set_text_color(15, 23, 42)
+                pdf.cell(122, 4.5, sanitize_text(titulo_complementar), ln=True, align="R")
+            if subtitulo:
+                pdf.set_xy(165, 12)
+                pdf.set_font("Helvetica", "B", 7.5)
+                pdf.set_text_color(0, 150, 94)
+                pdf.cell(122, 4.5, sanitize_text(subtitulo), ln=True, align="R")
+            pdf.set_xy(10, 28)
+        else:
+            # Retrato (A4 210mm)
+            pdf.image(LOGO_PATH, x=10, y=6, w=145)
+            if titulo_complementar:
+                pdf.set_xy(10, 26)
+                pdf.set_font("Helvetica", "B", 8)
+                pdf.set_text_color(100, 116, 139)
+                pdf.cell(190, 4, sanitize_text(titulo_complementar), ln=True, align="R")
+                pdf.set_xy(10, 31)
+            else:
+                pdf.set_xy(10, 28)
+    else:
+        w_page = 277 if orientacao == 'L' else 190
+        pdf.set_fill_color(5, 10, 24)
+        pdf.rect(0, 0, 297 if orientacao == 'L' else 210, 28, 'F')
+        pdf.set_font("Helvetica", "B", 11)
+        pdf.set_text_color(255, 255, 255)
+        pdf.set_xy(10, 4)
+        pdf.cell(w_page, 5, sanitize_text("ESTADO DE MATO GROSSO - PREFEITURA DE PONTES E LACERDA"), ln=True, align="C")
+        pdf.set_font("Helvetica", "B", 9)
+        pdf.set_text_color(0, 150, 94)
+        pdf.cell(w_page, 5, sanitize_text("CONTROLADORIA E AUDITORIA MUNICIPAL - CAM"), ln=True, align="C")
+        pdf.ln(10)
+
 class PDFTextGenerator:
     @staticmethod
     def gerar_pdf_de_texto(id_certame: int, numero_certame: str, tipo_documento: str, conteudo_texto: str, pasta_upload: str) -> dict:
@@ -24,24 +68,13 @@ class PDFTextGenerator:
         pdf.add_page()
         pdf.set_auto_page_break(auto=True, margin=15)
         
-        # Header Bar
-        pdf.set_fill_color(5, 10, 24)
-        pdf.rect(0, 0, 210, 30, 'F')
-
-        pdf.set_font("Helvetica", "B", 12)
-        pdf.set_text_color(255, 255, 255)
-        pdf.set_xy(10, 6)
-        pdf.cell(190, 5, sanitize_text("ESTADO DE MATO GROSSO"), ln=True, align="C")
-        
-        pdf.set_font("Helvetica", "B", 9)
-        pdf.set_text_color(0, 150, 94)
-        pdf.cell(190, 5, sanitize_text("SISTEMA INTEGRADO DE AUDITORIA DE PESSOAL - CONTROLADORIA MUNICIPAL"), ln=True, align="C")
-
-        pdf.set_font("Helvetica", "", 8)
-        pdf.set_text_color(200, 200, 200)
-        pdf.cell(190, 5, sanitize_text(f"DOCUMENTO TRANSCRITO * PROCESSO DE CERTAME Nº {numero_certame}"), ln=True, align="C")
-
-        pdf.ln(10)
+        # Header Oficial com Logotipo
+        aplicar_cabecalho_oficial_logo(
+            pdf,
+            orientacao='P',
+            titulo_complementar=f"CERTAME Nº {numero_certame} - TRANSCRIÇÃO DE DOCUMENTO",
+            subtitulo="SISTEMA INTEGRADO DE AUDITORIA DE PESSOAL - SIAP"
+        )
 
         # Document Title Box
         pdf.set_fill_color(240, 253, 244)
@@ -91,24 +124,13 @@ class PDFTextGenerator:
         pdf.add_page()
         pdf.set_auto_page_break(auto=True, margin=15)
         
-        # Header
-        pdf.set_fill_color(5, 10, 24)
-        pdf.rect(0, 0, 210, 32, 'F')
-
-        pdf.set_font("Helvetica", "B", 11)
-        pdf.set_text_color(255, 255, 255)
-        pdf.set_xy(10, 5)
-        pdf.cell(190, 5, sanitize_text(f"ESTADO DE MATO GROSSO - {certame.municipio.upper()}"), ln=True, align="C")
-        
-        pdf.set_font("Helvetica", "B", 9)
-        pdf.set_text_color(0, 150, 94)
-        pdf.cell(190, 5, sanitize_text("CONTROLADORIA E AUDITORIA GERAL DO MUNICÍPIO"), ln=True, align="C")
-
-        pdf.set_font("Helvetica", "", 8)
-        pdf.set_text_color(200, 200, 200)
-        pdf.cell(190, 5, sanitize_text(f"PARECER TÉCNICO DEFINITIVO DO CONTROLE INTERNO * {parecer.numero_parecer}"), ln=True, align="C")
-
-        pdf.ln(10)
+        # Header Oficial com Logotipo
+        aplicar_cabecalho_oficial_logo(
+            pdf,
+            orientacao='P',
+            titulo_complementar=f"PARECER TÉCNICO DEFINITIVO * {parecer.numero_parecer}",
+            subtitulo=f"CERTAME Nº {certame.numero_certame} - FASE PRÉ-EDITAL"
+        )
 
         # Title Box
         pdf.set_fill_color(240, 253, 244)
@@ -176,24 +198,13 @@ class PDFTextGenerator:
         pdf.add_page()
         pdf.set_auto_page_break(auto=True, margin=15)
         
-        # Header
-        pdf.set_fill_color(5, 10, 24)
-        pdf.rect(0, 0, 210, 32, 'F')
-
-        pdf.set_font("Helvetica", "B", 11)
-        pdf.set_text_color(255, 255, 255)
-        pdf.set_xy(10, 5)
-        pdf.cell(190, 5, sanitize_text(f"ESTADO DE MATO GROSSO - {certame.municipio.upper()}"), ln=True, align="C")
-        
-        pdf.set_font("Helvetica", "B", 9)
-        pdf.set_text_color(0, 150, 94)
-        pdf.cell(190, 5, sanitize_text("CONTROLADORIA E AUDITORIA GERAL DO MUNICÍPIO"), ln=True, align="C")
-
-        pdf.set_font("Helvetica", "", 8)
-        pdf.set_text_color(200, 200, 200)
-        pdf.cell(190, 5, sanitize_text(f"PARECER TÉCNICO DE CONFORMIDADE E LEGALIDADE * FASE OFICIAL * {parecer_oficial.numero_parecer}"), ln=True, align="C")
-
-        pdf.ln(10)
+        # Header Oficial com Logotipo
+        aplicar_cabecalho_oficial_logo(
+            pdf,
+            orientacao='P',
+            titulo_complementar=f"PARECER TÉCNICO FASE OFICIAL * {parecer_oficial.numero_parecer}",
+            subtitulo=f"CERTAME Nº {certame.numero_certame} - FASE OFICIAL"
+        )
 
         # Title Box
         pdf.set_fill_color(240, 253, 244)
@@ -332,24 +343,13 @@ class PDFTextGenerator:
         pdf.set_auto_page_break(auto=True, margin=15)
         pdf.add_page()
 
-        # Header Bar
-        pdf.set_fill_color(5, 10, 24)
-        pdf.rect(0, 0, 297, 28, 'F')
-
-        pdf.set_font("Helvetica", "B", 12)
-        pdf.set_text_color(255, 255, 255)
-        pdf.set_xy(10, 4)
-        pdf.cell(277, 5, sanitize_text(f"ESTADO DE MATO GROSSO - PREFEITURA MUNICIPAL DE {certame.municipio.upper()}"), ln=True, align="C")
-
-        pdf.set_font("Helvetica", "B", 9)
-        pdf.set_text_color(0, 150, 94)
-        pdf.cell(277, 5, sanitize_text("SISTEMA INTEGRADO DE AUDITORIA DE PESSOAL (SIAP) - CONTROLADORIA MUNICIPAL"), ln=True, align="C")
-
-        pdf.set_font("Helvetica", "", 8)
-        pdf.set_text_color(200, 200, 200)
-        pdf.cell(277, 5, sanitize_text(f"ROL NOMINAL DE CANDIDATOS CONVOCADOS POR CARGO * CERTAME Nº {certame.numero_certame} ({certame.ano})"), ln=True, align="C")
-
-        pdf.ln(12)
+        # Header Oficial com Logotipo
+        aplicar_cabecalho_oficial_logo(
+            pdf,
+            orientacao='L',
+            titulo_complementar="SISTEMA INTEGRADO DE AUDITORIA DE PESSOAL (SIAP)",
+            subtitulo=f"ROL NOMINAL DE CONVOCADOS * CERTAME Nº {certame.numero_certame} ({certame.ano})"
+        )
 
         # Filter Box
         pdf.set_fill_color(248, 250, 252)
