@@ -169,34 +169,23 @@ def processar_login(
     response: Response,
     email: str = Form(...),
     senha: str = Form(...),
-    redefinir: str = Form(None),
     db: Session = Depends(get_db)
 ):
     email = email.strip().lower()
     user = db.query(Usuario).filter_by(email=email).first()
 
     if not user:
-        if email == "prof.jan100@gmail.com" or "@" in email:
-            user = Usuario(
-                email=email,
-                nome="Prof. Jansen Pinho" if email == "prof.jan100@gmail.com" else email.split("@")[0].capitalize(),
-                senha_hash=hash_senha(senha),
-                perfil="ADMIN_MASTER",
-                primeiro_acesso=False
-            )
-            db.add(user)
-            db.commit()
-            resp = RedirectResponse(url="/", status_code=303)
-            resp.set_cookie(key="user_session", value=user.email, httponly=True)
-            return resp
-        else:
-            return RedirectResponse(url="/login?erro=Usuário não cadastrado.", status_code=303)
+        return templates.TemplateResponse("login.html", {
+            "request": request,
+            "erro": "Usuário não cadastrado no sistema.",
+            "email_digitado": email
+        })
 
-    if user.primeiro_acesso or user.senha_hash is None or redefinir == "true":
+    if user.primeiro_acesso or user.senha_hash is None:
         user.senha_hash = hash_senha(senha)
         user.primeiro_acesso = False
         db.commit()
-        resp = RedirectResponse(url="/?msg=Senha cadastrada/redefinida com sucesso!", status_code=303)
+        resp = RedirectResponse(url="/?msg=Senha cadastrada com sucesso!", status_code=303)
         resp.set_cookie(key="user_session", value=user.email, httponly=True)
         return resp
 
@@ -204,9 +193,7 @@ def processar_login(
         return templates.TemplateResponse("login.html", {
             "request": request,
             "erro": "Senha incorreta para o e-mail informado.",
-            "permite_redefinir": True,
-            "email_digitado": email,
-            "senha_digitada": senha
+            "email_digitado": email
         })
 
     resp = RedirectResponse(url="/", status_code=303)

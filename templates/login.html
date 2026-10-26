@@ -25,7 +25,7 @@
     </div>
 
     <!-- Card de Acesso ao Sistema -->
-    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-8 border border-slate-100 space-y-4">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-8 border border-slate-100 space-y-5">
         
         <div class="text-center">
             <h1 class="text-2xl font-black text-slate-900 tracking-tight">Acesso ao Sistema</h1>
@@ -33,32 +33,16 @@
         </div>
 
         {% if erro %}
-        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-xl text-xs text-red-700 space-y-3">
-            <div class="flex items-center">
-                <i class="fa-solid fa-circle-exclamation mr-2 text-sm text-red-600"></i>
-                <span class="font-bold">{{ erro }}</span>
-            </div>
-
-            {% if permite_redefinir %}
-            <div class="pt-2 border-t border-red-200/60">
-                <p class="text-[11px] text-red-800 mb-2 font-medium">Esqueceu sua senha ou deseja atualizar para a senha digitada?</p>
-                <form action="/login" method="post">
-                    <input type="hidden" name="email" value="{{ email_digitado }}">
-                    <input type="hidden" name="senha" value="{{ senha_digitada }}">
-                    <input type="hidden" name="redefinir" value="true">
-                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-2.5 px-3 rounded-xl text-xs shadow transition flex items-center justify-center">
-                        <i class="fa-solid fa-key mr-2 text-yellow-300"></i> Redefinir Senha para a Nova Senha e Entrar
-                    </button>
-                </form>
-            </div>
-            {% endif %}
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-xl text-xs text-red-700 flex items-center shadow-sm">
+            <i class="fa-solid fa-circle-exclamation mr-2.5 text-base text-red-600 shrink-0"></i>
+            <span class="font-bold">{{ erro }}</span>
         </div>
         {% endif %}
 
         {% if info %}
-        <div class="bg-blue-50 border-l-4 border-blue-500 p-3 rounded-xl text-xs text-blue-700 flex items-center">
-            <i class="fa-solid fa-info-circle mr-2 text-sm"></i>
-            <span>{{ info }}</span>
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-3.5 rounded-xl text-xs text-blue-700 flex items-center shadow-sm">
+            <i class="fa-solid fa-info-circle mr-2.5 text-base text-blue-600 shrink-0"></i>
+            <span class="font-bold">{{ info }}</span>
         </div>
         {% endif %}
 
@@ -90,7 +74,7 @@
                         name="senha" 
                         id="senhaInput"
                         required 
-                        placeholder="••••••••••••"
+                        placeholder="••••••••"
                         class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition pr-10"
                     >
                     <button type="button" onclick="togglePassword()" class="absolute right-3 top-3 text-slate-400 hover:text-slate-600 focus:outline-none">
@@ -99,18 +83,10 @@
                 </div>
             </div>
 
-            <!-- Opção Checkbox de Redefinição -->
-            <div class="flex items-center space-x-2 pt-1">
-                <input type="checkbox" id="chk_redefinir" name="redefinir" value="true" class="w-4 h-4 text-emerald-600 rounded border-slate-300">
-                <label for="chk_redefinir" class="text-[11px] font-bold text-slate-600 cursor-pointer">
-                    Desejo atualizar/redefinir minha senha com o texto digitado acima
-                </label>
-            </div>
-
             <!-- Botão Entrar -->
             <button 
                 type="submit" 
-                class="w-full btn-green text-white font-bold py-3 px-4 rounded-xl text-sm shadow-lg hover:shadow-emerald-500/20 active:scale-[0.99] transition duration-150 flex items-center justify-center mt-2"
+                class="w-full btn-green text-white font-bold py-3 px-4 rounded-xl text-sm shadow-lg hover:shadow-emerald-500/20 active:scale-[0.99] transition duration-150 flex items-center justify-center mt-3"
             >
                 <i class="fa-solid fa-arrow-right-to-bracket mr-2"></i> Entrar no Sistema
             </button>
