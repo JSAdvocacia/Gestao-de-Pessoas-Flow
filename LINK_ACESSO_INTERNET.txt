@@ -2,18 +2,19 @@
 LINKS DE ACESSO ONLINE - SISTEMA DE AUDITORIA DE PESSOAL (SIAP)
 ================================================================================
 
-1. LINK DIRETO E RÁPIDO (Cloudflare - Acesso Imediato sem confirmações):
-   https://media-slow-pipes-standing.trycloudflare.com
+1. LINK FIXO E PERMANENTE (Endereço Reservado que NÃO muda de nome):
+   👉 https://siap-auditoria-pessoal.loca.lt
+   (Nota: Na primeira vez que abrir no navegador, se solicitar, basta clicar em 'Click to Submit')
 
-2. LINK FIXO/PERMANENTE LOCAL (Localtunnel - Não muda de endereço):
-   https://siap-auditoria-pessoal.loca.lt
-   (Nota: No 1º acesso no navegador, clique em 'Click to Submit' se solicitado)
+2. LINK DIRETO E RÁPIDO (Cloudflare - Acesso Imediato sem confirmações):
+   👉 https://foo-fort-turning-subscriptions.trycloudflare.com
 
-3. LINK PERMANENTE EM NUVEM 24/7 (Render - Não depende do seu computador):
+3. NUVEM 24/7 DEFINITIVA (Render - Link Permanente que funciona com PC desligado):
    Repositório pronto: https://github.com/JSAdvocacia/Gestao-de-Pessoas-Flow
    Deploy 1-clique: https://siap-gestao-de-pessoas.onrender.com
 
-Credenciais:
+--------------------------------------------------------------------------------
+CREDENCIAS DE ACESSO:
 E-mail: prof.jan100@gmail.com
 Senha: Sua senha cadastrada
 ================================================================================

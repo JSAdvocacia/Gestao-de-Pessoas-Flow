@@ -1,8 +1,8 @@
 @echo off
 chcp 65001 > nul
-title Sistema de Auditoria de Pessoal - Publicação Online
+title Sistema de Auditoria de Pessoal - Publicação Online Permanente
 echo =========================================================================
-echo  INICIANDO SISTEMA DE AUDITORIA DE PESSOAL E PUBLICACAO NA INTERNET
+echo  INICIANDO SISTEMA DE AUDITORIA DE PESSOAL (SIAP) - LINKS ONLINE
 echo =========================================================================
 echo.
 
@@ -19,50 +19,32 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo [2/3] Iniciando túnel seguro HTTPS na Internet (Cloudflare Tunnel)...
-if exist cloudflared.log del /f /q cloudflared.log
+echo [2/3] Iniciando Link Fixo Permanente (siap-auditoria-pessoal.loca.lt)...
+start /b "" cmd /c npx --yes localtunnel --port 8000 --subdomain siap-auditoria-pessoal
 
+echo.
+echo [3/3] Iniciando Link Direto Cloudflare...
+if exist cloudflared.log del /f /q cloudflared.log
 start /b "" "%~dp0cloudflared.exe" tunnel --url http://127.0.0.1:8000 --logfile cloudflared.log
 
-echo Aguardando geração do link público...
-set /a tentativas=0
+echo Aguardando inicialização dos túneis...
+timeout /t 5 /nobreak > nul
 
-:LOOP_BUSCA_URL
-timeout /t 2 /nobreak > nul
-set /a tentativas+=1
-
-powershell -Command "$m = Select-String -Path 'cloudflared.log' -Pattern 'https://[a-zA-Z0-9-]+\.trycloudflare\.com' -ErrorAction SilentlyContinue | Select-Object -First 1; if ($m) { $url = [regex]::Match($m.Line, 'https://[a-zA-Z0-9-]+\.trycloudflare\.com').Value; Set-Content -Path 'LINK_ACESSO_INTERNET.txt' -Value $url; Write-Host $url; exit 0 } else { exit 1 }" > temp_url.txt
-
-if %errorlevel% equ 0 (
-    set /p PUBLIC_URL=<temp_url.txt
-    del temp_url.txt
-    goto SUCESSO
-)
-
-if %tentativas% geq 15 (
-    echo [ERRO] Tempo limite para obter o link público. Verifique o arquivo cloudflared.log.
-    pause
-    exit /b 1
-)
-goto LOOP_BUSCA_URL
-
-:SUCESSO
 echo.
 echo =========================================================================
 echo  [SUCESSO] SISTEMA PUBLICADO NA INTERNET!
 echo =========================================================================
 echo.
-echo  Link de Acesso Público Seguro (HTTPS):
-echo  %PUBLIC_URL%
+echo  1. LINK FIXO PERMANENTE (Não muda de nome):
+echo     https://siap-auditoria-pessoal.loca.lt
 echo.
-echo  O link acima foi salvo em: LINK_ACESSO_INTERNET.txt
-echo  Compartilhe esse link com qualquer usuário em qualquer dispositivo!
+echo  2. LINK DIRETO CLOUDFLARE:
+powershell -Command "$m = Select-String -Path 'cloudflared.log' -Pattern 'https://[a-zA-Z0-9-]+\.trycloudflare\.com' -ErrorAction SilentlyContinue | Select-Object -First 1; if ($m) { Write-Host '    ' ([regex]::Match($m.Line, 'https://[a-zA-Z0-9-]+\.trycloudflare\.com').Value) }"
+echo.
 echo =========================================================================
-echo.
-echo Abrindo o sistema no seu navegador padrão...
-start "" "%PUBLIC_URL%"
+echo Abrindo o link fixo no seu navegador...
+start "" "https://siap-auditoria-pessoal.loca.lt"
 
 echo.
 echo Mantenha esta janela aberta para manter o sistema online.
-echo Pressione Ctrl+C para encerrar o túnel.
 pause > nul
