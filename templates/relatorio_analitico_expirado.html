@@ -8,8 +8,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @media print {
+            @page {
+                size: A4 landscape;
+                margin: 6mm 6mm;
+            }
             .no-print { display: none !important; }
-            body { background: white !important; font-size: 9.5pt !important; color: black !important; padding: 0 !important; }
+            body { background: white !important; font-size: 8pt !important; color: black !important; padding: 0 !important; margin: 0 !important; }
             .page-break { page-break-before: always; }
             .shadow-xl, .shadow-2xl, .shadow-md, .shadow-sm { box-shadow: none !important; }
             .border { border-color: #cbd5e1 !important; }
@@ -17,6 +21,8 @@
             .bg-slate-950 { background-color: #020617 !important; color: white !important; }
             .bg-slate-50 { background-color: #f8fafc !important; }
             .bg-rose-950 { background-color: #881337 !important; color: white !important; }
+            table { width: 100% !important; table-layout: fixed !important; font-size: 7pt !important; }
+            th, td { padding: 2px 2px !important; word-break: break-word !important; }
             tr { page-break-inside: avoid; }
             thead { display: table-header-group; }
         }

@@ -438,7 +438,7 @@ class PDFTextGenerator:
                     else:
                         pdf.set_text_color(30, 64, 175)
 
-                    pdf.cell(44, 5.2, sanitize_text(sit_str[:26]), border=1, align="C", fill=fill)
+                    pdf.cell(48, 5.2, sanitize_text(sit_str[:26]), border=1, align="C", fill=fill)
                     pdf.set_text_color(71, 85, 105)
                     pdf.cell(25, 5.2, sanitize_text(ed_str[:16]), border=1, align="C", fill=fill)
                     pdf.ln()

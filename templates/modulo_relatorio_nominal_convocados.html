@@ -16,6 +16,10 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
 
         @media print {
+            @page {
+                size: A4 landscape;
+                margin: 6mm 6mm;
+            }
             .no-print, header, nav, .sidebar-container, .filtro-container, .botoes-acoes {
                 display: none !important;
             }
@@ -23,23 +27,34 @@
                 background: white !important;
                 color: black !important;
                 padding: 0 !important;
+                margin: 0 !important;
+            }
+            main {
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
             }
             .print-card {
                 border: none !important;
                 box-shadow: none !important;
                 background: white !important;
                 padding: 0 !important;
-            }
-            table {
-                font-size: 8pt !important;
                 width: 100% !important;
             }
+            table {
+                font-size: 7.5pt !important;
+                width: 100% !important;
+                table-layout: fixed !important;
+            }
             th, td {
-                padding: 3px 5px !important;
+                padding: 2px 3px !important;
+                word-break: break-word !important;
             }
             .bloco-cargo {
                 page-break-inside: avoid;
-                margin-bottom: 20px !important;
+                margin-bottom: 15px !important;
+                border: 1px solid #cbd5e1 !important;
             }
             .page-break {
                 page-break-before: always;
@@ -537,13 +552,13 @@
                         <table class="w-full text-left text-xs border-collapse tbl-cargo-candidatos">
                             <thead class="bg-slate-950 text-white font-black uppercase text-[9.5px] tracking-wider border-b border-slate-800">
                                 <tr>
-                                    <th class="py-2.5 px-3 text-center border-r border-slate-800 whitespace-nowrap w-14">Class.</th>
-                                    <th class="py-2.5 px-4 border-r border-slate-800 whitespace-nowrap">Nome do Candidato</th>
-                                    <th class="py-2.5 px-4 border-r border-slate-800 whitespace-nowrap">Cargo</th>
-                                    <th class="py-2.5 px-2 text-center border-r border-slate-800 whitespace-nowrap w-16">Cota</th>
-                                    <th class="py-2.5 px-3 text-center border-r border-slate-800 whitespace-nowrap w-28">Início Vigência</th>
-                                    <th class="py-2.5 px-3 text-center border-r border-slate-800 whitespace-nowrap w-28">Fim Vigência</th>
-                                    <th class="py-2.5 px-4 text-center whitespace-nowrap w-56">Situação Final de Provimento</th>
+                                    <th class="py-2 px-2 text-center border-r border-slate-800 w-[7%]">Class.</th>
+                                    <th class="py-2 px-3 border-r border-slate-800 text-left w-[32%]">Nome do Candidato</th>
+                                    <th class="py-2 px-3 border-r border-slate-800 text-left w-[24%]">Cargo</th>
+                                    <th class="py-2 px-1 text-center border-r border-slate-800 w-[7%]">Cota</th>
+                                    <th class="py-2 px-2 text-center border-r border-slate-800 w-[10%]">Início Vigência</th>
+                                    <th class="py-2 px-2 text-center border-r border-slate-800 w-[10%]">Fim Vigência</th>
+                                    <th class="py-2 px-2 text-center w-[10%]">Situação Final</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-200 font-medium">
@@ -555,17 +570,17 @@
                                     data-codigo-cargo="{{ g.codigo_cargo }}">
                                     
                                     <!-- 1. CLASSIFICAÇÃO -->
-                                    <td class="py-2 px-3 text-center font-black text-slate-900 border-r border-slate-200 whitespace-nowrap">
+                                    <td class="py-1.5 px-2 text-center font-black text-slate-900 border-r border-slate-200 whitespace-nowrap">
                                         #{{ cand.classificacao_original }}º
                                     </td>
 
                                     <!-- 2. NOME DO CANDIDATO -->
-                                    <td class="py-2 px-4 font-bold text-slate-900 border-r border-slate-200 whitespace-nowrap">
+                                    <td class="py-1.5 px-3 font-bold text-slate-900 border-r border-slate-200 break-words">
                                         {{ cand.nome_completo }}
                                     </td>
 
                                     <!-- 3. CARGO -->
-                                    <td class="py-2 px-4 text-slate-800 border-r border-slate-200 whitespace-nowrap">
+                                    <td class="py-1.5 px-3 text-slate-800 border-r border-slate-200 break-words">
                                         {{ g.cargo_nome }}
                                     </td>
 

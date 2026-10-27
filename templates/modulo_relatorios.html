@@ -17,6 +17,10 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
 
         @media print {
+            @page {
+                size: A4 landscape;
+                margin: 6mm 6mm;
+            }
             .no-print, header, nav, .sidebar-container, .filtro-container, .botoes-acoes {
                 display: none !important;
             }
@@ -24,19 +28,30 @@
                 background: white !important;
                 color: black !important;
                 padding: 0 !important;
+                margin: 0 !important;
+            }
+            main {
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
             }
             .print-card {
                 border: none !important;
                 box-shadow: none !important;
                 background: white !important;
                 padding: 0 !important;
-            }
-            table {
-                font-size: 8.5pt !important;
                 width: 100% !important;
             }
-            th, td {
-                padding: 3px 5px !important;
+            #tbl_relatorio_gerencial {
+                font-size: 7.5pt !important;
+                width: 100% !important;
+                min-width: 100% !important;
+                table-layout: fixed !important;
+            }
+            #tbl_relatorio_gerencial th, #tbl_relatorio_gerencial td {
+                padding: 2px 1.5px !important;
+                word-break: break-word !important;
             }
             .page-break {
                 page-break-before: always;
@@ -529,23 +544,22 @@
             </div>
 
             <!-- TABELA DO QUADRO QUANTITATIVO CONSOLIDADO (SEM A COLUNA VAGAS LEI) -->
-            <div class="overflow-x-auto custom-scrollbar">
-                <table class="w-full text-left text-xs border border-slate-300 min-w-[950px]" id="tbl_relatorio_gerencial">
-                    <!-- CABEÇALHO DA TABELA (CONFORME IMAGEM DO USUÁRIO, SEM VAGAS LEI) -->
-                    <thead class="bg-slate-950 text-white font-black uppercase text-[10px] tracking-wider border-b-2 border-slate-800">
+            <div class="overflow-x-auto custom-scrollbar w-full">
+                <table class="w-full text-left text-xs border border-slate-300 table-auto md:table-fixed" id="tbl_relatorio_gerencial">
+                    <!-- CABEÇALHO DA TABELA RESPONSIVO E COMPACTO (100% VISÍVEL SEM CORTES) -->
+                    <thead class="bg-slate-950 text-white font-black uppercase text-[9.5px] tracking-wider border-b-2 border-slate-800">
                         <tr>
-                            <th class="py-3 px-3 border-r border-slate-800 text-left">Código</th>
-                            <th class="py-3 px-3 border-r border-slate-800 text-left min-w-[240px]">Cargo Ofertado</th>
-                            <!-- A PRIMEIRA COLUNA "VAGAS LEI (LOTACIONOGRAMA)" FOI RETIRADA A PEDIDO DO AUDITOR -->
-                            <th class="py-3 px-2 border-r border-slate-800 text-center">Vagas Edital</th>
-                            <th class="py-3 px-2 border-r border-slate-800 text-center">Aprovados Diretos</th>
-                            <th class="py-3 px-2 border-r border-slate-800 text-center">Cadastro Reserva</th>
-                            <th class="py-3 px-2 border-r border-slate-800 text-center">Total Convocados</th>
-                            <th class="py-3 px-2 border-r border-slate-800 text-center bg-emerald-900 text-emerald-200 font-black">Em Exercício</th>
-                            <th class="py-3 px-2 border-r border-slate-800 text-center">Desistências</th>
-                            <th class="py-3 px-2 border-r border-slate-800 text-center">Exonerações</th>
-                            <th class="py-3 px-2 border-r border-slate-800 text-center">Saldo Livre</th>
-                            <th class="py-3 px-3 text-center">Cobertura %</th>
+                            <th class="py-2 px-1.5 border-r border-slate-800 text-center w-[7%]">Código</th>
+                            <th class="py-2 px-2.5 border-r border-slate-800 text-left w-[24%]">Cargo Ofertado</th>
+                            <th class="py-2 px-1 border-r border-slate-800 text-center w-[7%] leading-tight">Vagas<br>Edital</th>
+                            <th class="py-2 px-1 border-r border-slate-800 text-center w-[7%] leading-tight">Aprov.<br>Diretos</th>
+                            <th class="py-2 px-1 border-r border-slate-800 text-center w-[7%] leading-tight">Cad.<br>Reserva</th>
+                            <th class="py-2 px-1 border-r border-slate-800 text-center w-[7%] leading-tight">Total<br>Convoc.</th>
+                            <th class="py-2 px-1 border-r border-slate-800 text-center bg-emerald-900 text-emerald-200 font-black w-[8%] leading-tight">Em<br>Exercício</th>
+                            <th class="py-2 px-1 border-r border-slate-800 text-center w-[8%] leading-tight">Desistên-<br>cias</th>
+                            <th class="py-2 px-1 border-r border-slate-800 text-center w-[7%] leading-tight">Exonera-<br>ções</th>
+                            <th class="py-2 px-1 border-r border-slate-800 text-center w-[8%] leading-tight">Saldo<br>Livre</th>
+                            <th class="py-2 px-1.5 text-center w-[10%] leading-tight">Cober-<br>tura %</th>
                         </tr>
                     </thead>
                     <!-- LINHAS DOS 24 CARGOS -->
@@ -576,17 +590,17 @@
                             data-saldo="{{ q.saldo_livre }}">
                             
                             <!-- 1. CÓDIGO -->
-                            <td class="py-2.5 px-3 border-r border-slate-200 font-mono font-bold text-slate-700 whitespace-nowrap">
+                            <td class="py-2 px-1.5 border-r border-slate-200 font-mono font-bold text-slate-700 text-center whitespace-nowrap text-[10.5px]">
                                 {{ q.codigo_cargo }}
                             </td>
 
                             <!-- 2. CARGO OFERTADO -->
-                            <td class="py-2.5 px-3 border-r border-slate-200 font-bold text-slate-900 leading-snug">
+                            <td class="py-2 px-2.5 border-r border-slate-200 font-bold text-slate-900 leading-snug break-words text-[11px]">
                                 {{ q.cargo_nome }}
                             </td>
 
                             <!-- 3. VAGAS EDITAL -->
-                            <td class="py-2.5 px-2 border-r border-slate-200 text-center font-extrabold text-slate-900">
+                            <td class="py-2 px-1 border-r border-slate-200 text-center font-extrabold text-slate-900 text-[11px]">
                                 {% if q.vagas_edital == 0 %}
                                 <span class="text-slate-500 font-bold" title="Cargo exclusivo Cadastro de Reserva">0 (CR)</span>
                                 {% else %}
@@ -595,42 +609,42 @@
                             </td>
 
                             <!-- 4. APROVADOS DIRETOS -->
-                            <td class="py-2.5 px-2 border-r border-slate-200 text-center font-bold text-slate-800">
+                            <td class="py-2 px-1 border-r border-slate-200 text-center font-bold text-slate-800 text-[11px]">
                                 {{ q.aprovados_diretos }}
                             </td>
 
                             <!-- 5. CADASTRO RESERVA -->
-                            <td class="py-2.5 px-2 border-r border-slate-200 text-center font-semibold text-slate-700">
+                            <td class="py-2 px-1 border-r border-slate-200 text-center font-semibold text-slate-700 text-[11px]">
                                 {{ q.cadastro_reserva }}
                             </td>
 
                             <!-- 6. TOTAL CONVOCADOS -->
-                            <td class="py-2.5 px-2 border-r border-slate-200 text-center font-extrabold text-slate-900">
+                            <td class="py-2 px-1 border-r border-slate-200 text-center font-extrabold text-slate-900 text-[11px]">
                                 {{ q.convocados }}
                             </td>
 
-                            <!-- 7. EM EXERCÍCIO (COLUNA EM DESTAQUE VERDE CLARO CONFORME IMAGEM DO USUÁRIO) -->
-                            <td class="py-2.5 px-2 border-r border-emerald-200 text-center font-black text-emerald-900 bg-emerald-50 text-sm">
+                            <!-- 7. EM EXERCÍCIO (COLUNA EM DESTAQUE VERDE CLARO) -->
+                            <td class="py-2 px-1 border-r border-emerald-200 text-center font-black text-emerald-900 bg-emerald-50 text-xs">
                                 {{ q.empossados_exercicio }}
                             </td>
 
                             <!-- 8. DESISTÊNCIAS (EM DESTAQUE VERMELHO SUAVE) -->
-                            <td class="py-2.5 px-2 border-r border-slate-200 text-center font-bold {{ 'text-rose-600' if q.desistencias > 0 else 'text-slate-400' }}">
+                            <td class="py-2 px-1 border-r border-slate-200 text-center font-bold text-[11px] {{ 'text-rose-600' if q.desistencias > 0 else 'text-slate-400' }}">
                                 {{ q.desistencias }}
                             </td>
 
                             <!-- 9. EXONERAÇÕES -->
-                            <td class="py-2.5 px-2 border-r border-slate-200 text-center font-bold {{ 'text-rose-600' if q.exoneracoes > 0 else 'text-slate-400' }}">
+                            <td class="py-2 px-1 border-r border-slate-200 text-center font-bold text-[11px] {{ 'text-rose-600' if q.exoneracoes > 0 else 'text-slate-400' }}">
                                 {{ q.exoneracoes }}
                             </td>
 
                             <!-- 10. SALDO LIVRE / RESIDUAL -->
-                            <td class="py-2.5 px-2 border-r border-slate-200 text-center font-black {{ 'text-rose-600 bg-rose-50' if q.saldo_livre > 0 else 'text-slate-400' }}">
+                            <td class="py-2 px-1 border-r border-slate-200 text-center font-black text-[11px] {{ 'text-rose-600 bg-rose-50' if q.saldo_livre > 0 else 'text-slate-400' }}">
                                 {{ q.saldo_livre }}
                             </td>
 
                             <!-- 11. COBERTURA % -->
-                            <td class="py-2.5 px-3 text-center font-extrabold {{ 'text-emerald-700' if q.taxa_cobertura >= 100 else ('text-amber-600' if q.taxa_cobertura > 0 else 'text-slate-400') }}">
+                            <td class="py-2 px-1.5 text-center font-extrabold text-[11px] {{ 'text-emerald-700' if q.taxa_cobertura >= 100 else ('text-amber-600' if q.taxa_cobertura > 0 else 'text-slate-400') }}">
                                 {% if q.vagas_edital == 0 %}
                                 <span class="text-slate-400 font-bold" title="Exclusivo Cadastro de Reserva">CR</span>
                                 {% else %}
@@ -641,46 +655,37 @@
                         {% endfor %}
                     </tbody>
 
-                    <!-- RODAPÉ TOTALIZADOR DO QUADRO CONSOLIDADO -->
-                    <tfoot class="bg-slate-950 text-white font-black text-xs border-t-2 border-slate-800">
+                    <!-- RODAPÉ TOTALIZADOR DO QUADRO CONSOLIDADO (100% ALINHADO E PROPORCIONAL) -->
+                    <tfoot class="bg-slate-950 text-white font-black text-[10.5px] border-t-2 border-slate-800">
                         <tr>
-                            <td colspan="2" class="py-3 px-3 border-r border-slate-800 uppercase tracking-wider text-right pr-4">
+                            <td colspan="2" class="py-2.5 px-3 border-r border-slate-800 uppercase tracking-wider text-right pr-3 text-[10px]">
                                 TOTAL CONSOLIDADO DO MUNICÍPIO:
                             </td>
-                            <!-- VAGAS EDITAL -->
-                            <td class="py-3 px-2 border-r border-slate-800 text-center text-sm font-black text-indigo-300" id="foot_vagas_edital">
+                            <td class="py-2 px-1 border-r border-slate-800 text-center text-xs font-black text-indigo-300" id="foot_vagas_edital">
                                 {{ totais.vagas_edital }}
                             </td>
-                            <!-- APROVADOS DIRETOS -->
-                            <td class="py-3 px-2 border-r border-slate-800 text-center text-sm font-black text-sky-300" id="foot_aprovados_diretos">
+                            <td class="py-2 px-1 border-r border-slate-800 text-center text-xs font-black text-sky-300" id="foot_aprovados_diretos">
                                 {{ totais.aprovados_diretos }}
                             </td>
-                            <!-- CADASTRO RESERVA -->
-                            <td class="py-3 px-2 border-r border-slate-800 text-center text-sm font-bold text-slate-300" id="foot_cadastro_reserva">
+                            <td class="py-2 px-1 border-r border-slate-800 text-center text-xs font-bold text-slate-300" id="foot_cadastro_reserva">
                                 {{ totais.cadastro_reserva }}
                             </td>
-                            <!-- TOTAL CONVOCADOS -->
-                            <td class="py-3 px-2 border-r border-slate-800 text-center text-sm font-black text-amber-300" id="foot_total_convocados">
+                            <td class="py-2 px-1 border-r border-slate-800 text-center text-xs font-black text-amber-300" id="foot_total_convocados">
                                 {{ totais.convocados }}
                             </td>
-                            <!-- EM EXERCÍCIO (DESTAQUE VERDE ESCURO NO FOOTER) -->
-                            <td class="py-3 px-2 border-r border-emerald-700 text-center text-base font-black text-emerald-200 bg-emerald-900" id="foot_em_exercicio">
+                            <td class="py-2 px-1 border-r border-emerald-700 text-center text-xs font-black text-emerald-200 bg-emerald-900" id="foot_em_exercicio">
                                 {{ totais.empossados_exercicio }}
                             </td>
-                            <!-- DESISTÊNCIAS -->
-                            <td class="py-3 px-2 border-r border-slate-800 text-center text-sm font-black text-rose-300" id="foot_desistencias">
+                            <td class="py-2 px-1 border-r border-slate-800 text-center text-xs font-black text-rose-300" id="foot_desistencias">
                                 {{ totais.desistencias }}
                             </td>
-                            <!-- EXONERAÇÕES -->
-                            <td class="py-3 px-2 border-r border-slate-800 text-center text-sm font-black text-rose-300" id="foot_exoneracoes">
+                            <td class="py-2 px-1 border-r border-slate-800 text-center text-xs font-black text-rose-300" id="foot_exoneracoes">
                                 {{ totais.exoneracoes }}
                             </td>
-                            <!-- SALDO LIVRE -->
-                            <td class="py-3 px-2 border-r border-slate-800 text-center text-sm font-black text-rose-400" id="foot_saldo_livre">
+                            <td class="py-2 px-1 border-r border-slate-800 text-center text-xs font-black text-rose-400" id="foot_saldo_livre">
                                 {{ totais.saldo_livre }}
                             </td>
-                            <!-- COBERTURA GERAL -->
-                            <td class="py-3 px-3 text-center text-sm font-black text-emerald-400" id="foot_cobertura_geral">
+                            <td class="py-2 px-1.5 text-center text-xs font-black text-emerald-400" id="foot_cobertura_geral">
                                 {{ "%.1f"|format(totais.taxa_cobertura_geral) }}%
                             </td>
                         </tr>
