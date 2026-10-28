@@ -1786,3 +1786,338 @@ class AuditEngine:
             "is_expirado": True
         }
 
+
+    # --- 3º RELATÓRIO GERENCIAL: CONFRONTO CONCURSOS VS. SELETIVOS (APURAÇÃO DE PRETERIÇÃO) ---
+    def gerar_relatorio_auditoria_pretericao(
+        self,
+        tipo_cargo_filtro: str = None,
+        origem_filtro: str = None,
+        status_filtro: str = None,
+        apenas_pretericao: bool = False,
+        termo_busca: str = None,
+        id_certame_base: int = 1
+    ) -> dict:
+        import unicodedata
+        import re
+        from datetime import datetime, date
+
+        def canonical_cargo_type(raw_name):
+            if not raw_name:
+                return "OUTROS"
+            nfkd = unicodedata.normalize('NFKD', raw_name)
+            s = "".join([c for c in nfkd if not unicodedata.combining(c)]).upper()
+            
+            if "DESENVOLVIMENTO INFANTIL" in s:
+                return "TÉCNICO EM DESENVOLVIMENTO INFANTIL (TAE)"
+            if "ASSISTENTE ADMINISTRATIVO" in s:
+                return "ASSISTENTE ADMINISTRATIVO"
+            if "ASSISTENTE SOCIAL EDUCACIONAL" in s:
+                return "ASSISTENTE SOCIAL EDUCACIONAL"
+            if "ASSISTENTE SOCIAL" in s:
+                return "ASSISTENTE SOCIAL"
+            if "AUXILIAR DE CONSULTORIO DENTARIO" in s:
+                return "AUXILIAR DE CONSULTÓRIO DENTÁRIO"
+            if "BIOQUIMICO" in s or "FARMACEUTICO" in s:
+                return "BIOQUÍMICO / FARMACÊUTICO"
+            if "ENFERMEIRO" in s and "TECNICO" not in s:
+                return "ENFERMEIRO"
+            if "TECNICO EM ENFERMAGEM" in s or ("ENFERMAGEM" in s and "TECNICO" in s):
+                return "TÉCNICO EM ENFERMAGEM"
+            if "FISIOTERAPEUTA" in s:
+                return "FISIOTERAPEUTA"
+            if "FISCAL DE TRANSITO" in s:
+                return "FISCAL DE TRÂNSITO"
+            if "FISCAL MUNICIPAL" in s:
+                return "FISCAL MUNICIPAL"
+            if "MEDICO" in s:
+                return "MÉDICO"
+            if "MULTIMEIOS" in s:
+                return "TÉCNICO EM MULTIMEIOS DIDÁTICOS (TAE)"
+            if "ADMINISTRACAO ESCOLAR" in s or "ADMINSTRA" in s:
+                return "TÉCNICO EM ADMINISTRAÇÃO ESCOLAR (TAE)"
+            if "NUTRICIONISTA" in s:
+                return "NUTRICIONISTA"
+            if "ODONTOLOGO" in s:
+                return "ODONTÓLOGO"
+            if "EDUCACAO FISICA" in s:
+                return "PROFESSOR DE EDUCAÇÃO FÍSICA"
+            if "EDUCACAO INFANTIL" in s:
+                return "PROFESSOR DE EDUCAÇÃO INFANTIL"
+            if "ANOS INICIAIS" in s or "ENSINO FUNDAMENTAL" in s:
+                return "PROFESSOR ENSINO FUNDAMENTAL - ANOS INICIAIS"
+            if "LINGUA INGLESA" in s or "INGLES" in s:
+                return "PROFESSOR DE LÍNGUA INGLESA"
+            if "PSICOLOGO EDUCACIONAL" in s:
+                return "PSICÓLOGO EDUCACIONAL"
+            if "PSICOLOGO" in s:
+                return "PSICÓLOGO"
+            if "HIGIENE DENTAL" in s:
+                return "TÉCNICO EM HIGIENE DENTAL"
+            if "PROCESSAMENTO DE DADOS" in s:
+                return "TÉCNICO EM PROCESSAMENTO DE DADOS"
+            if "SISTEMAS DE INFORMACAO" in s:
+                return "ADMINISTRADOR DE SISTEMAS DE INFORMAÇÃO"
+            if "RAIO-X" in s or "RAIO X" in s:
+                return "TÉCNICO OPERACIONAL EM RAIO-X"
+
+            clean = re.sub(r'^NIVEL\s+(MEDIO|SUPERIOR|FUNDAMENTAL)(\s+TECNICO)?\s*-\s*', '', s)
+            clean = re.sub(r'^(TAE|PROFESSOR|DOCENTE)\s*-\s*', '', clean)
+            clean = re.sub(r'\s*-\s*ZONA\s+(URBANA|RURAL).*$', '', clean)
+            return clean.strip()
+
+        def parse_iso_date(val):
+            if not val:
+                return None
+            try:
+                if isinstance(val, (datetime, date)):
+                    return val if isinstance(val, date) else val.date()
+                s = str(val).split(" ")[0].strip()
+                parts = s.split("-")
+                if len(parts) == 3:
+                    return date(int(parts[0]), int(parts[1]), int(parts[2]))
+                parts_br = s.split("/")
+                if len(parts_br) == 3:
+                    return date(int(parts_br[2]), int(parts_br[1]), int(parts_br[0]))
+            except Exception:
+                pass
+            return None
+
+        # 1. Obter vigência do Concurso Público de Referência
+        certame_base = self.db.query(CertameAbertura).filter_by(id_certame=id_certame_base).first()
+        concurso_base = self.db.query(Concurso).filter_by(id_certame=id_certame_base).first() if certame_base else None
+        
+        concurso_inicio = parse_iso_date(concurso_base.data_homologacao) if concurso_base and concurso_base.data_homologacao else date(2022, 10, 14)
+        concurso_fim = parse_iso_date(concurso_base.data_validade_final) if concurso_base and concurso_base.data_validade_final else date(2024, 10, 14)
+
+        # 2. Carregar todos os candidatos com certames e vagas
+        todos_certames = self.db.query(CertameAbertura).order_by(CertameAbertura.ano.asc(), CertameAbertura.numero_certame.asc()).all()
+        candidatos_query = self.db.query(Candidato).all()
+
+        # Cache de vagas por (id_concurso, id_cargo)
+        vagas_cache = {}
+        for cv in self.db.query(ConcursoVaga).all():
+            vagas_cache[(cv.id_concurso, cv.id_cargo)] = cv.vagas_imediatas_edital
+
+        cargos_cache = {cg.id_cargo: cg for cg in self.db.query(Cargo).all()}
+        certames_cache = {c.id_certame: c for c in todos_certames}
+
+        # 3. Processar registros individuais
+        lista_completa = []
+        cargos_contagem = {}
+        origens_set = set()
+
+        for c in candidatos_query:
+            cg = cargos_cache.get(c.id_cargo)
+            ca = certames_cache.get(c.id_certame)
+            
+            cargo_nome_raw = cg.nome_cargo if cg else "Cargo Não Informado"
+            canon_cargo = canonical_cargo_type(cargo_nome_raw)
+            
+            is_concurso = True if (ca and "CONCURSO" in (ca.modalidade or "").upper()) else (c.id_concurso == 3 or c.id_certame == 1)
+            origem_tipo = "Concurso" if is_concurso else "Seletivo"
+            ano_cert = ca.ano if ca else (2022 if is_concurso else 2024)
+            num_cert = ca.numero_certame if ca else ("001/2022" if is_concurso else "")
+            
+            origem_label = f"{origem_tipo} {ano_cert}"
+            origem_detalhe = f"{origem_tipo} {ano_cert} (Ed. {num_cert})" if num_cert else origem_label
+            origens_set.add(origem_label)
+
+            vagas_ed = vagas_cache.get((c.id_concurso, c.id_cargo), 1 if is_concurso else 0)
+            classif = c.classificacao_original or 1
+            if vagas_ed > 0 and classif <= vagas_ed:
+                classif_cr_str = f"{classif}º"
+                is_cr = False
+            elif vagas_ed > 0:
+                classif_cr_str = f"{classif - vagas_ed}º CR"
+                is_cr = True
+            else:
+                classif_cr_str = f"{classif}º CR"
+                is_cr = True
+
+            posse_date = parse_iso_date(c.data_posse)
+            exon_date = parse_iso_date(c.data_exoneracao)
+
+            st = (c.status_atual or "").upper()
+            has_posse = posse_date is not None
+            has_exon = exon_date is not None or any(k in st for k in ["EXCLUÍDO", "EXONERADO"])
+            has_desist = bool(c.edital_desistencia) or any(k in st for k in ["DESISTENTE", "RENÚNCIA"])
+
+            if has_exon:
+                status_label = "Exonerado"
+                status_badge = "exonerado"
+                status_classe = "bg-slate-100 text-slate-800 border-slate-300"
+            elif has_desist:
+                status_label = "Desistente/Renúncia"
+                status_badge = "desistente"
+                status_classe = "bg-rose-50 text-rose-800 border-rose-300"
+            elif has_posse or "EMPOSSADO" in st or "EXERCÍCIO" in st:
+                status_label = "Em exercício"
+                status_badge = "empossado"
+                status_classe = "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold"
+            elif "CONVOCADO" in st:
+                status_label = "Convocado"
+                status_badge = "convocado"
+                status_classe = "bg-blue-50 text-blue-800 border-blue-300"
+            else:
+                status_label = "Aguardando Convocação"
+                status_badge = "aguardando"
+                status_classe = "bg-amber-50 text-amber-800 border-amber-300"
+
+            # Apuração de Preterição
+            is_pretericao = False
+            motivo_pretericao = ""
+            if not is_concurso:
+                if posse_date and concurso_inicio <= posse_date <= concurso_fim:
+                    is_pretericao = True
+                    motivo_pretericao = f"Contratação no Seletivo em {posse_date.strftime('%d/%m/%Y')} durante vigência do Concurso 001/2022 ({concurso_inicio.strftime('%d/%m/%Y')} a {concurso_fim.strftime('%d/%m/%Y')})"
+                elif has_posse and not posse_date:
+                    is_pretericao = True
+                    motivo_pretericao = "Contratação no Seletivo durante vigência presumida do concurso"
+            else:
+                if is_cr and status_badge == "aguardando":
+                    motivo_pretericao = "Candidato em Cadastro de Reserva do Concurso aguardando convocação"
+
+            reg = {
+                "id_candidato": c.id_candidato,
+                "nome_candidato": c.nome_completo,
+                "cpf": c.cpf,
+                "origem": origem_label,
+                "origem_detalhe": origem_detalhe,
+                "is_concurso": is_concurso,
+                "ano_certame": ano_cert,
+                "numero_certame": num_cert,
+                "cargo_nome_original": cargo_nome_raw,
+                "tipo_cargo": canon_cargo,
+                "classificacao_original": classif,
+                "classificacao_cr_str": classif_cr_str,
+                "is_cr": is_cr,
+                "data_posse": posse_date,
+                "data_posse_str": posse_date.strftime("%d/%m/%Y") if posse_date else "",
+                "data_exoneracao": exon_date,
+                "data_exoneracao_str": exon_date.strftime("%d/%m/%Y") if exon_date else "",
+                "status_label": status_label,
+                "status_badge": status_badge,
+                "status_classe": status_classe,
+                "is_pretericao": is_pretericao,
+                "motivo_pretericao": motivo_pretericao
+            }
+
+            lista_completa.append(reg)
+
+            # Acumulador para estatísticas por tipo de cargo
+            if canon_cargo not in cargos_contagem:
+                cargos_contagem[canon_cargo] = {
+                    "tipo_cargo": canon_cargo,
+                    "total": 0,
+                    "concurso": 0,
+                    "seletivo": 0,
+                    "pretericoes": 0
+                }
+            cargos_contagem[canon_cargo]["total"] += 1
+            if is_concurso:
+                cargos_contagem[canon_cargo]["concurso"] += 1
+            else:
+                cargos_contagem[canon_cargo]["seletivo"] += 1
+                if is_pretericao:
+                    cargos_contagem[canon_cargo]["pretericoes"] += 1
+
+        # Lista de tipos de cargo ordenada por relevância
+        tipos_cargos_lista = sorted(
+            cargos_contagem.values(),
+            key=lambda x: (x["concurso"] > 0 and x["seletivo"] > 0, x["pretericoes"], x["total"]),
+            reverse=True
+        )
+
+        # Se nenhum cargo foi selecionado, definir default para o com maior preterição
+        if not tipo_cargo_filtro and tipos_cargos_lista:
+            # Seleciona o primeiro que tenha tanto concurso quanto seletivo com preterições
+            cargos_com_ambos = [tc["tipo_cargo"] for tc in tipos_cargos_lista if tc["concurso"] > 0 and tc["seletivo"] > 0]
+            cargo_ativo = cargos_com_ambos[0] if cargos_com_ambos else tipos_cargos_lista[0]["tipo_cargo"]
+        else:
+            cargo_ativo = tipo_cargo_filtro
+
+        # 4. Aplicar filtros aos registros
+        registros_filtrados = []
+        for r in lista_completa:
+            # Filtro tipo cargo
+            if cargo_ativo and cargo_ativo != "TODOS" and r["tipo_cargo"] != cargo_ativo:
+                continue
+
+            # Filtro origem
+            if origem_filtro and origem_filtro != "TODAS":
+                if origem_filtro == "CONCURSO" and not r["is_concurso"]:
+                    continue
+                elif origem_filtro == "SELETIVO" and r["is_concurso"]:
+                    continue
+                elif origem_filtro not in ["CONCURSO", "SELETIVO"] and r["origem"] != origem_filtro:
+                    continue
+
+            # Filtro status
+            if status_filtro and status_filtro != "TODOS":
+                if status_filtro == "EM_EXERCICIO" and r["status_badge"] != "empossado":
+                    continue
+                elif status_filtro == "EXONERADO" and r["status_badge"] != "exonerado":
+                    continue
+                elif status_filtro == "DESISTENTE" and r["status_badge"] != "desistente":
+                    continue
+                elif status_filtro == "AGUARDANDO" and r["status_badge"] != "aguardando":
+                    continue
+
+            # Filtro apenas com alerta de preterição
+            if apenas_pretericao and not r["is_pretericao"]:
+                continue
+
+            # Filtro busca por texto
+            if termo_busca:
+                tb = termo_busca.lower().strip()
+                if (tb not in r["nome_candidato"].lower() and 
+                    tb not in (r["cpf"] or "").lower() and 
+                    tb not in r["origem"].lower() and 
+                    tb not in r["status_label"].lower()):
+                    continue
+
+            registros_filtrados.append(r)
+
+        # 5. Ordenação: por Data de Posse ascendente (com posse primeiro), depois sem posse por classificação
+        def sort_key(x):
+            has_posse = 0 if x["data_posse"] else 1
+            dt_posse = x["data_posse"] or date(9999, 12, 31)
+            orig_order = 0 if x["is_concurso"] else 1
+            classif = x["classificacao_original"] or 999999
+            return (has_posse, dt_posse, orig_order, classif)
+
+        registros_filtrados.sort(key=sort_key)
+
+        # 6. Totais e Métricas da Seleção
+        totais = {
+            "total_registros": len(registros_filtrados),
+            "total_concurso": sum(1 for r in registros_filtrados if r["is_concurso"]),
+            "total_seletivo": sum(1 for r in registros_filtrados if not r["is_concurso"]),
+            "empossados_exercicio": sum(1 for r in registros_filtrados if r["status_badge"] == "empossado"),
+            "exonerados": sum(1 for r in registros_filtrados if r["status_badge"] == "exonerado"),
+            "desistencias": sum(1 for r in registros_filtrados if r["status_badge"] == "desistente"),
+            "aguardando_cr": sum(1 for r in registros_filtrados if r["status_badge"] == "aguardando"),
+            "alertas_pretericao": sum(1 for r in registros_filtrados if r["is_pretericao"]),
+            "concurso_inicio": concurso_inicio,
+            "concurso_fim": concurso_fim,
+            "concurso_inicio_str": concurso_inicio.strftime("%d/%m/%Y"),
+            "concurso_fim_str": concurso_fim.strftime("%d/%m/%Y"),
+            "concurso_numero": certame_base.numero_certame if certame_base else "001/2022",
+            "concurso_ano": certame_base.ano if certame_base else 2022
+        }
+
+        return {
+            "certame_base": certame_base,
+            "concurso_base": concurso_base,
+            "todos_certames": todos_certames,
+            "tipos_cargos_lista": tipos_cargos_lista,
+            "origens_lista": sorted(list(origens_set)),
+            "cargo_ativo": cargo_ativo,
+            "origem_filtro": origem_filtro or "TODAS",
+            "status_filtro": status_filtro or "TODOS",
+            "apenas_pretericao": apenas_pretericao,
+            "termo_busca": termo_busca or "",
+            "registros": registros_filtrados,
+            "totais": totais,
+            "data_hoje": date.today()
+        }
