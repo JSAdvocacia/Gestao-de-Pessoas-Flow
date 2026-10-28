@@ -195,7 +195,7 @@
         </div>
 
         <!-- CARDS DE MÉTRICAS E INDICADORES CHAVE -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 no-print">
+        <div class="grid grid-cols-2 md:grid-cols-6 gap-3 no-print">
             <!-- 1. VIGÊNCIA CONCURSO AUDITADO -->
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow">
                 <div class="flex items-center justify-between text-[11px] text-slate-400 font-bold uppercase">
@@ -255,6 +255,18 @@
                     <p class="text-[10px] text-rose-300/80 mt-0.5 font-medium">Contratações PSS na Vigência</p>
                 </div>
             </div>
+
+            <!-- 6. NOMEADOS PÓS-VIGÊNCIA -->
+            <div class="bg-slate-900 border border-purple-500/40 rounded-2xl p-4 flex flex-col justify-between shadow">
+                <div class="flex items-center justify-between text-[11px] text-purple-300 font-bold uppercase">
+                    <span>Pós-Vigência Concurso</span>
+                    <i class="fa-solid fa-calendar-xmark text-purple-400"></i>
+                </div>
+                <div class="mt-2">
+                    <p class="text-2xl font-black text-purple-300">{{ totais.nomeados_pos_vigencia }}</p>
+                    <p class="text-[10px] text-purple-300/80 mt-0.5 font-medium">Após {{ totais.concurso_fim_str }} (Sem Preterição)</p>
+                </div>
+            </div>
         </div>
 
         <!-- BARRA DE FILTROS INTERATIVA -->
@@ -304,6 +316,7 @@
                         <option value="EXONERADO" {% if status_filtro == 'EXONERADO' %}selected{% endif %}>Exonerado</option>
                         <option value="DESISTENTE" {% if status_filtro == 'DESISTENTE' %}selected{% endif %}>Desistente/Renúncia</option>
                         <option value="AGUARDANDO" {% if status_filtro == 'AGUARDANDO' %}selected{% endif %}>Aguardando Convocação</option>
+                        <option value="POS_VIGENCIA" {% if status_filtro == 'POS_VIGENCIA' %}selected{% endif %}>Nomeado após vigência (Concurso {{ totais.concurso_ano }})</option>
                     </select>
                 </div>
 
@@ -463,21 +476,25 @@
                                 </td>
 
                                 <!-- STATUS ATUAL -->
-                                <td class="py-2 px-3 text-center border-r border-slate-200 whitespace-nowrap">
-                                    {% if r.status_badge == 'empossado' %}
-                                    <span class="inline-block px-2 py-0.5 rounded text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                <td class="py-2 px-3 text-center border-r border-slate-200">
+                                    {% if r.is_pos_vigencia %}
+                                    <span class="inline-block px-2.5 py-0.5 rounded text-[10px] font-black bg-purple-100 text-purple-900 border border-purple-300 shadow-sm" title="{{ r.motivo_auditoria }}">
+                                        <i class="fa-solid fa-calendar-xmark mr-1 text-purple-700"></i> Nomeado após a vigência do concurso de {{ totais.concurso_ano }}
+                                    </span>
+                                    {% elif r.status_badge == 'empossado' %}
+                                    <span class="inline-block px-2 py-0.5 rounded text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 whitespace-nowrap">
                                         <i class="fa-solid fa-check mr-0.5"></i> {{ r.status_label }}
                                     </span>
                                     {% elif r.status_badge == 'exonerado' %}
-                                    <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300">
+                                    <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300 whitespace-nowrap">
                                         {{ r.status_label }}
                                     </span>
                                     {% elif r.status_badge == 'desistente' %}
-                                    <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
+                                    <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300 whitespace-nowrap">
                                         <i class="fa-solid fa-xmark mr-0.5"></i> {{ r.status_label }}
                                     </span>
                                     {% else %}
-                                    <span class="inline-block px-2 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-800 border border-amber-300">
+                                    <span class="inline-block px-2 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-800 border border-amber-300 whitespace-nowrap">
                                         {{ r.status_label }}
                                     </span>
                                     {% endif %}
@@ -488,6 +505,10 @@
                                     {% if r.is_pretericao %}
                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-rose-100 text-rose-900 border border-rose-400 badge-print-alerta" title="{{ r.motivo_pretericao }}">
                                         <i class="fa-solid fa-triangle-exclamation mr-1 text-rose-600"></i> Preterição em Vigência
+                                    </span>
+                                    {% elif r.is_pos_vigencia %}
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-800 border border-purple-200" title="{{ r.motivo_auditoria }}">
+                                        <i class="fa-solid fa-calendar-xmark mr-1 text-purple-600"></i> Pós-vigência (Concurso {{ totais.concurso_ano }})
                                     </span>
                                     {% elif r.is_concurso %}
                                     <span class="text-[10px] font-bold text-blue-700">
@@ -527,8 +548,9 @@
                             <td class="py-2.5 px-3 text-center text-[10px] text-slate-600">
                                 {{ totais.desistencias }} Desistências
                             </td>
-                            <td class="py-2.5 px-3 text-center text-rose-700 font-black text-xs">
-                                ⚠️ {{ totais.alertas_pretericao }} Preterição(ões)
+                            <td class="py-2.5 px-3 text-center font-black text-[11px]">
+                                <span class="text-rose-700 block">⚠️ {{ totais.alertas_pretericao }} Preterição(ões)</span>
+                                <span class="text-purple-700 block text-[9px] font-bold">{{ totais.nomeados_pos_vigencia }} Pós-Vigência</span>
                             </td>
                         </tr>
                     </tfoot>

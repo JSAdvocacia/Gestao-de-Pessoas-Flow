@@ -1963,19 +1963,42 @@ class AuditEngine:
                 status_badge = "aguardando"
                 status_classe = "bg-amber-50 text-amber-800 border-amber-300"
 
-            # Apuração de Preterição
+            # Apuração de Preterição e Pós-Vigência (Concurso 2022)
             is_pretericao = False
+            is_pos_vigencia = False
+            is_pre_vigencia = False
             motivo_pretericao = ""
+            motivo_auditoria = ""
+            ano_concurso_ref = certame_base.ano if certame_base else 2022
+
             if not is_concurso:
                 if posse_date and concurso_inicio <= posse_date <= concurso_fim:
                     is_pretericao = True
-                    motivo_pretericao = f"Contratação no Seletivo em {posse_date.strftime('%d/%m/%Y')} durante vigência do Concurso 001/2022 ({concurso_inicio.strftime('%d/%m/%Y')} a {concurso_fim.strftime('%d/%m/%Y')})"
+                    motivo_pretericao = f"Contratação no Seletivo em {posse_date.strftime('%d/%m/%Y')} durante vigência do Concurso {certame_base.numero_certame if certame_base else '001/2022'} ({concurso_inicio.strftime('%d/%m/%Y')} a {concurso_fim.strftime('%d/%m/%Y')})"
+                    motivo_auditoria = "Preterição: Chamamento PSS durante vigência do Concurso"
+                elif posse_date and posse_date > concurso_fim:
+                    is_pos_vigencia = True
+                    status_label = f"Nomeado após a vigência do concurso de {ano_concurso_ref}"
+                    status_badge = "pos_vigencia"
+                    status_classe = "bg-purple-100 text-purple-900 border-purple-300 font-bold"
+                    motivo_auditoria = f"Nomeado após a vigência do Concurso {certame_base.numero_certame if certame_base else '001/2022'} (vigência encerrada em {concurso_fim.strftime('%d/%m/%Y')})"
                 elif has_posse and not posse_date:
                     is_pretericao = True
                     motivo_pretericao = "Contratação no Seletivo durante vigência presumida do concurso"
+                    motivo_auditoria = "Preterição presumida"
+                elif posse_date and posse_date < concurso_inicio:
+                    is_pre_vigencia = True
+                    motivo_auditoria = f"Contratação anterior ao Concurso {certame_base.numero_certame if certame_base else '001/2022'}"
+                else:
+                    motivo_auditoria = "Seletivo Regular"
             else:
                 if is_cr and status_badge == "aguardando":
                     motivo_pretericao = "Candidato em Cadastro de Reserva do Concurso aguardando convocação"
+                    motivo_auditoria = "CR Concurso Aguardando"
+                elif not is_cr:
+                    motivo_auditoria = "Vaga Imediata Concurso"
+                else:
+                    motivo_auditoria = "CR Concurso Chamado"
 
             reg = {
                 "id_candidato": c.id_candidato,
@@ -1999,7 +2022,10 @@ class AuditEngine:
                 "status_badge": status_badge,
                 "status_classe": status_classe,
                 "is_pretericao": is_pretericao,
-                "motivo_pretericao": motivo_pretericao
+                "is_pos_vigencia": is_pos_vigencia,
+                "is_pre_vigencia": is_pre_vigencia,
+                "motivo_pretericao": motivo_pretericao,
+                "motivo_auditoria": motivo_auditoria
             }
 
             lista_completa.append(reg)
@@ -2062,6 +2088,8 @@ class AuditEngine:
                     continue
                 elif status_filtro == "AGUARDANDO" and r["status_badge"] != "aguardando":
                     continue
+                elif status_filtro == "POS_VIGENCIA" and not r.get("is_pos_vigencia"):
+                    continue
 
             # Filtro apenas com alerta de preterição
             if apenas_pretericao and not r["is_pretericao"]:
@@ -2098,6 +2126,7 @@ class AuditEngine:
             "desistencias": sum(1 for r in registros_filtrados if r["status_badge"] == "desistente"),
             "aguardando_cr": sum(1 for r in registros_filtrados if r["status_badge"] == "aguardando"),
             "alertas_pretericao": sum(1 for r in registros_filtrados if r["is_pretericao"]),
+            "nomeados_pos_vigencia": sum(1 for r in registros_filtrados if r.get("is_pos_vigencia")),
             "concurso_inicio": concurso_inicio,
             "concurso_fim": concurso_fim,
             "concurso_inicio_str": concurso_inicio.strftime("%d/%m/%Y"),

@@ -566,8 +566,12 @@ class PDFTextGenerator:
                 pdf.set_font("Helvetica", "", 6.5)
 
             is_pret = r.get("is_pretericao", False)
+            is_pos = r.get("is_pos_vigencia", False)
             if is_pret:
                 pdf.set_fill_color(254, 242, 242) # Rose suave
+                fill = True
+            elif is_pos:
+                pdf.set_fill_color(250, 245, 255) # Roxo suave
                 fill = True
             elif idx % 2 == 1:
                 pdf.set_fill_color(248, 250, 252) # Zebrado suave
@@ -606,7 +610,11 @@ class PDFTextGenerator:
 
             # Status Atual
             st_lbl = r.get("status_label", "")
-            if "exercício" in st_lbl.lower():
+            if is_pos:
+                pdf.set_text_color(107, 33, 168)
+                pdf.set_font("Helvetica", "B", 5.5)
+                st_lbl = "Nomeado apos vigencia (Concurso 2022)"
+            elif "exercício" in st_lbl.lower():
                 pdf.set_text_color(22, 101, 52)
                 pdf.set_font("Helvetica", "B", 6.5)
             elif "exonerado" in st_lbl.lower():
@@ -621,16 +629,19 @@ class PDFTextGenerator:
             pdf.cell(34, 4.6, sanitize_text(st_lbl), border=1, align="C", fill=fill)
 
             # Apuração / Auditoria
-            pdf.set_font("Helvetica", "B" if is_pret else "", 6)
+            pdf.set_font("Helvetica", "B" if (is_pret or is_pos) else "", 6)
             if is_pret:
                 pdf.set_text_color(190, 18, 60)
                 apuracao_str = "PRETERICAO: Chamamento PSS durante vigencia"
+            elif is_pos:
+                pdf.set_text_color(107, 33, 168)
+                apuracao_str = "Pos-Vigencia: Convocado apos vigencia Concurso 2022"
             elif is_conc:
                 pdf.set_text_color(30, 64, 175)
                 apuracao_str = "Concurso Efetivo"
             else:
                 pdf.set_text_color(100, 116, 139)
-                apuracao_str = "Seletivo (Fora da vigencia do concurso)"
+                apuracao_str = "Seletivo Regular"
             pdf.cell(60, 4.6, sanitize_text(apuracao_str), border=1, align="L", fill=fill)
 
             pdf.ln()
