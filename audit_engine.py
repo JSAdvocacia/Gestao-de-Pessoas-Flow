@@ -2,6 +2,7 @@ import datetime
 from datetime import date
 from sqlalchemy.orm import Session
 from models import (
+    CertameAcompanhamentoAto,
     Cargo, Lotacionograma, Concurso, ConcursoVaga, Candidato, 
     MovimentacaoCandidato, Convocacao, ServidorEfetivo, Afastamento, 
     ContratoTemporario, AuditoriaAchado, GravidadeAchadoEnum,
@@ -744,6 +745,7 @@ class AuditEngine:
         para o módulo de acompanhamento pós-homologação, cruzando com o Lotacionograma Oficial do Município.
         """
         from models import (
+    CertameAcompanhamentoAto,
             CertameAbertura, CertameFaseOficial, Concurso, ConcursoVaga, Cargo, Lotacionograma,
             Candidato, CertameAcompanhamentoAto, AuditoriaAchado, GravidadeAchadoEnum
         )
@@ -1150,6 +1152,7 @@ class AuditEngine:
         termos e movimentações, e retornando todos os candidatos ao seu estado inicial pós-homologação.
         """
         from models import (
+    CertameAcompanhamentoAto,
             CertameAbertura, Concurso, ConcursoVaga, Candidato, 
             Convocacao, MovimentacaoCandidato, CertameAcompanhamentoAto, CertameAnexo
         )
@@ -1369,6 +1372,7 @@ class AuditEngine:
         - Pareceres Prévios e Conclusivos da Auditoria de Controle Interno
         """
         from models import (
+    CertameAcompanhamentoAto,
             Candidato, Cargo, ConcursoVaga, Lotacionograma, CertameAbertura, 
             Concurso, CertameFaseOficial, ParecerTecnico, ParecerOficial, CertameVigenciaAto
         )
@@ -1917,7 +1921,25 @@ class AuditEngine:
         cargos_cache = {cg.id_cargo: cg for cg in self.db.query(Cargo).all()}
         certames_cache = {c.id_certame: c for c in todos_certames}
 
-        # 3. Mapear a Data de Partida da Apuração para cada Cargo:
+        # 3. Mapear datas de convocação/posse dos editais do concurso (para posicionamento cronológico preciso)
+        edital_dates = {}
+        by_ed = {}
+        for c in self.db.query(Candidato).filter(Candidato.id_certame == id_certame_base).all():
+            if c.edital_convocacao and c.data_posse:
+                p_date = parse_iso_date(c.data_posse)
+                if p_date:
+                    if c.edital_convocacao not in by_ed:
+                        by_ed[c.edital_convocacao] = []
+                    by_ed[c.edital_convocacao].append(p_date)
+
+        for ed, posses in by_ed.items():
+            edital_dates[ed] = max(set(posses), key=posses.count)
+
+        for a in self.db.query(CertameAcompanhamentoAto).filter(CertameAcompanhamentoAto.id_certame == id_certame_base).all():
+            if a.numero_ato and a.numero_ato not in edital_dates and a.data_ato:
+                edital_dates[a.numero_ato] = parse_iso_date(a.data_ato)
+
+        # 4. Mapear a Data de Partida da Apuração para cada Cargo:
         # A data de partida é a convocação/posse do primeiro colocado do concurso para o cargo designado.
         data_partida_por_cargo = {}
         concurso_cands_por_cargo = {}
@@ -1945,7 +1967,7 @@ class AuditEngine:
                 else:
                     data_partida_por_cargo[canon] = concurso_inicio
 
-        # 4. Processar registros individuais
+        # 5. Processar registros individuais
         lista_completa = []
         cargos_contagem = {}
         origens_set = set()
@@ -1996,7 +2018,6 @@ class AuditEngine:
                 if posse_date and posse_date < data_partida_cargo:
                     continue  # Fica fora do relatório pois é anterior à primeira convocação do concurso
                 elif not posse_date and "EMPOSSADO" not in st and "CONVOCADO" not in st:
-                    # Candidato em seletivo sem convocação/posse não afeta preterição
                     continue
 
             if has_exon:
@@ -2068,6 +2089,9 @@ class AuditEngine:
                 if is_cr and status_badge == "aguardando":
                     motivo_pretericao = "Candidato em Cadastro de Reserva do Concurso aguardando convocação"
                     motivo_auditoria = "CR Concurso Aguardando"
+                elif status_badge == "desistente":
+                    motivo_pretericao = "Candidato convocado que formalizou desistência/renúncia"
+                    motivo_auditoria = "Concurso Efetivo"
                 elif not is_cr:
                     motivo_auditoria = "Vaga Imediata Concurso"
                 else:
@@ -2088,6 +2112,7 @@ class AuditEngine:
                 "classificacao_original": classif,
                 "classificacao_cr_str": classif_cr_str,
                 "is_cr": is_cr,
+                "edital_convocacao": c.edital_convocacao,
                 "data_posse": posse_date,
                 "data_posse_str": posse_date.strftime("%d/%m/%Y") if posse_date else "",
                 "data_exoneracao": exon_date,
@@ -2134,7 +2159,7 @@ class AuditEngine:
         else:
             cargo_ativo = tipo_cargo_filtro
 
-        # 5. Filtros
+        # 6. Filtros
         registros_filtrados = []
         for r in lista_completa:
             if cargo_ativo and cargo_ativo != "TODOS" and r["tipo_cargo"] != cargo_ativo:
@@ -2173,13 +2198,26 @@ class AuditEngine:
 
             registros_filtrados.append(r)
 
-        # 6. Ordenação cronológica por posse
+        # 7. Ordenação cronológica por provimento / convocação
+        def get_effective_date(x):
+            # Se tem data de posse efetiva
+            if x["data_posse"]:
+                return (0, x["data_posse"])
+            
+            # Se é do Concurso e foi convocado (inclusive desistente / renúncia),
+            # sua posição cronológica no provimento é a data da convocação da sua turma/edital
+            ed_conv = x.get("edital_convocacao")
+            if x["is_concurso"] and ed_conv and ed_conv in edital_dates:
+                return (0, edital_dates[ed_conv])
+            
+            # Candidato sem convocação/posse (ex: CR aguardando convocação no concurso)
+            return (1, date(9999, 12, 31))
+
         def sort_key(x):
-            has_posse = 0 if x["data_posse"] else 1
-            dt_posse = x["data_posse"] or date(9999, 12, 31)
+            has_posse_flag, dt = get_effective_date(x)
             orig_order = 0 if x["is_concurso"] else 1
             classif = x["classificacao_original"] or 999999
-            return (has_posse, dt_posse, orig_order, classif)
+            return (has_posse_flag, dt, orig_order, classif)
 
         registros_filtrados.sort(key=sort_key)
 
