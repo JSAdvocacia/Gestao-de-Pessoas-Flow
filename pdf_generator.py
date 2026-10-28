@@ -511,8 +511,12 @@ class PDFTextGenerator:
         pdf.set_xy(12, y_box)
         pdf.set_font("Helvetica", "B", 7.5)
         pdf.set_text_color(30, 41, 59)
-        pdf.cell(140, 4, sanitize_text(f"CARGO AUDITADO: {cargo_ativo}"), ln=False)
-        pdf.cell(125, 4, sanitize_text(f"PERÍODO VIGÊNCIA CONCURSO ({totais.get('concurso_numero', '001/2022')}): {totais.get('concurso_inicio_str', '')} A {totais.get('concurso_fim_str', '')}"), ln=True, align="R")
+        dt_partida = totais.get('data_partida_cargo_str')
+        sub_info = f"CARGO AUDITADO: {cargo_ativo}"
+        if dt_partida:
+            sub_info += f" (Início Apuração: 1ª Convocação Concurso em {dt_partida})"
+        pdf.cell(155, 4, sanitize_text(sub_info), ln=False)
+        pdf.cell(110, 4, sanitize_text(f"VIGÊNCIA CONCURSO ({totais.get('concurso_numero', '001/2022')}): {totais.get('concurso_inicio_str', '')} A {totais.get('concurso_fim_str', '')}"), ln=True, align="R")
 
         pdf.set_x(12)
         pdf.set_font("Helvetica", "", 7)

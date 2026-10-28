@@ -1917,7 +1917,35 @@ class AuditEngine:
         cargos_cache = {cg.id_cargo: cg for cg in self.db.query(Cargo).all()}
         certames_cache = {c.id_certame: c for c in todos_certames}
 
-        # 3. Processar registros
+        # 3. Mapear a Data de Partida da Apuração para cada Cargo:
+        # A data de partida é a convocação/posse do primeiro colocado do concurso para o cargo designado.
+        data_partida_por_cargo = {}
+        concurso_cands_por_cargo = {}
+
+        for c in candidatos_query:
+            ca = certames_cache.get(c.id_certame)
+            is_conc = True if (ca and "CONCURSO" in (ca.modalidade or "").upper()) else (c.id_concurso == 3 or c.id_certame == id_certame_base)
+            if is_conc and c.id_certame == id_certame_base:
+                cg = cargos_cache.get(c.id_cargo)
+                canon = canonical_cargo_type(cg.nome_cargo if cg else "")
+                if canon not in concurso_cands_por_cargo:
+                    concurso_cands_por_cargo[canon] = []
+                concurso_cands_por_cargo[canon].append(c)
+
+        for canon, c_list in concurso_cands_por_cargo.items():
+            c_list_sorted = sorted(c_list, key=lambda x: (x.classificacao_original or 999999))
+            c1 = c_list_sorted[0]
+            p1 = parse_iso_date(c1.data_posse)
+            if p1:
+                data_partida_por_cargo[canon] = p1
+            else:
+                all_posses = [parse_iso_date(x.data_posse) for x in c_list_sorted if parse_iso_date(x.data_posse)]
+                if all_posses:
+                    data_partida_por_cargo[canon] = min(all_posses)
+                else:
+                    data_partida_por_cargo[canon] = concurso_inicio
+
+        # 4. Processar registros individuais
         lista_completa = []
         cargos_contagem = {}
         origens_set = set()
@@ -1929,10 +1957,21 @@ class AuditEngine:
             cargo_nome_raw = cg.nome_cargo if cg else "Cargo Não Informado"
             canon_cargo = canonical_cargo_type(cargo_nome_raw)
             
-            is_concurso = True if (ca and "CONCURSO" in (ca.modalidade or "").upper()) else (c.id_concurso == 3 or c.id_certame == 1)
+            is_concurso = True if (ca and "CONCURSO" in (ca.modalidade or "").upper()) else (c.id_concurso == 3 or c.id_certame == id_certame_base)
             origem_tipo = "Concurso" if is_concurso else "Seletivo"
-            ano_cert = ca.ano if ca else (2022 if is_concurso else 2024)
+
+            # Extração correta do ano a partir do número do certame (ex: 001/2023 -> 2023, 001/2026 -> 2026)
             num_cert = ca.numero_certame if ca else ("001/2022" if is_concurso else "")
+            if num_cert and "/" in num_cert:
+                parts = num_cert.split("/")
+                if len(parts) == 2 and parts[1].strip().isdigit():
+                    ano_cert = int(parts[1].strip())
+                else:
+                    ano_cert = ca.ano if ca else (2022 if is_concurso else 2024)
+            elif ca and ca.ano:
+                ano_cert = ca.ano
+            else:
+                ano_cert = 2022 if is_concurso else 2024
             
             origem_label = f"{origem_tipo} {ano_cert}"
             origem_detalhe = f"{origem_tipo} {ano_cert} (Ed. {num_cert})" if num_cert else origem_label
@@ -1948,6 +1987,17 @@ class AuditEngine:
             has_posse = posse_date is not None
             has_exon = exon_date is not None or any(k in st for k in ["EXCLUÍDO", "EXONERADO"])
             has_desist = bool(c.edital_desistencia) or any(k in st for k in ["DESISTENTE", "RENÚNCIA"])
+
+            # REGRA FUNDAMENTAL DE AUDITORIA:
+            # O exame de preterição no cargo deve iniciar a partir da convocação do 1º colocado do concurso.
+            # Candidatos de processos seletivos convocados/empossados antes dessa data ficam FORA do relatório.
+            data_partida_cargo = data_partida_por_cargo.get(canon_cargo, concurso_inicio)
+            if not is_concurso:
+                if posse_date and posse_date < data_partida_cargo:
+                    continue  # Fica fora do relatório pois é anterior à primeira convocação do concurso
+                elif not posse_date and "EMPOSSADO" not in st and "CONVOCADO" not in st:
+                    # Candidato em seletivo sem convocação/posse não afeta preterição
+                    continue
 
             if has_exon:
                 status_label = "Exonerado"
@@ -1970,7 +2020,7 @@ class AuditEngine:
                 status_badge = "aguardando"
                 status_classe = "bg-amber-50 text-amber-800 border-amber-300"
 
-            # Classificação/CR ajustada conforme regras de resultado final
+            # Classificação/CR ajustada conforme resultado final homologado
             if is_concurso:
                 if vagas_ed > 0 and classif <= vagas_ed:
                     classif_cr_str = f"{classif}º"
@@ -1982,7 +2032,7 @@ class AuditEngine:
                     classif_cr_str = f"{classif}º CR"
                     is_cr = True
             else:
-                # Processo Seletivo: preserva exatamente a classificação ordinal do resultado final (ex.: Marta Barbosa é 4º)
+                # Processo Seletivo: preserva exatamente a classificação ordinal do resultado final
                 if "CADASTRO RESERVA" in st and status_badge == "aguardando":
                     classif_cr_str = f"{classif}º CR"
                     is_cr = True
@@ -2012,9 +2062,6 @@ class AuditEngine:
                     is_pretericao = True
                     motivo_pretericao = "Contratação no Seletivo durante vigência presumida do concurso"
                     motivo_auditoria = "Possível Preterição presumida"
-                elif posse_date and posse_date < concurso_inicio:
-                    is_pre_vigencia = True
-                    motivo_auditoria = f"Contratação anterior ao Concurso {num_concurso_ref}"
                 else:
                     motivo_auditoria = "Seletivo Regular"
             else:
@@ -2052,7 +2099,8 @@ class AuditEngine:
                 "is_pos_vigencia": is_pos_vigencia,
                 "is_pre_vigencia": is_pre_vigencia,
                 "motivo_pretericao": motivo_pretericao,
-                "motivo_auditoria": motivo_auditoria
+                "motivo_auditoria": motivo_auditoria,
+                "data_partida_cargo": data_partida_cargo
             }
 
             lista_completa.append(reg)
@@ -2086,7 +2134,7 @@ class AuditEngine:
         else:
             cargo_ativo = tipo_cargo_filtro
 
-        # 4. Filtros
+        # 5. Filtros
         registros_filtrados = []
         for r in lista_completa:
             if cargo_ativo and cargo_ativo != "TODOS" and r["tipo_cargo"] != cargo_ativo:
@@ -2125,7 +2173,7 @@ class AuditEngine:
 
             registros_filtrados.append(r)
 
-        # 5. Ordenação cronológica por posse
+        # 6. Ordenação cronológica por posse
         def sort_key(x):
             has_posse = 0 if x["data_posse"] else 1
             dt_posse = x["data_posse"] or date(9999, 12, 31)
@@ -2134,6 +2182,8 @@ class AuditEngine:
             return (has_posse, dt_posse, orig_order, classif)
 
         registros_filtrados.sort(key=sort_key)
+
+        dt_partida_cargo_ativo = data_partida_por_cargo.get(cargo_ativo, concurso_inicio) if (cargo_ativo and cargo_ativo != "TODOS") else concurso_inicio
 
         totais = {
             "total_registros": len(registros_filtrados),
@@ -2150,7 +2200,9 @@ class AuditEngine:
             "concurso_inicio_str": concurso_inicio.strftime("%d/%m/%Y"),
             "concurso_fim_str": concurso_fim.strftime("%d/%m/%Y"),
             "concurso_numero": num_concurso_ref,
-            "concurso_ano": ano_concurso_ref
+            "concurso_ano": ano_concurso_ref,
+            "data_partida_cargo": dt_partida_cargo_ativo,
+            "data_partida_cargo_str": dt_partida_cargo_ativo.strftime("%d/%m/%Y")
         }
 
         return {
@@ -2172,3 +2224,4 @@ class AuditEngine:
             "totais": totais,
             "data_hoje": date.today()
         }
+
