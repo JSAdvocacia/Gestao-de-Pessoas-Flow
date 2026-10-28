@@ -523,7 +523,7 @@ class PDFTextGenerator:
             f"Processos Seletivos: {totais.get('total_seletivo', 0)}  |  "
             f"Em Exercício: {totais.get('empossados_exercicio', 0)}  |  "
             f"Exonerados: {totais.get('exonerados', 0)}  |  "
-            f"Alertas de Preterição: {totais.get('alertas_pretericao', 0)}"
+            f"Alertas de Possível Preterição: {totais.get('alertas_pretericao', 0)}"
         )
         pdf.cell(273, 4, sanitize_text(kpis_str), ln=True)
         pdf.set_y(y_box + 14)
@@ -632,7 +632,7 @@ class PDFTextGenerator:
             pdf.set_font("Helvetica", "B" if (is_pret or is_pos) else "", 6)
             if is_pret:
                 pdf.set_text_color(190, 18, 60)
-                apuracao_str = "PRETERICAO: Chamamento PSS durante vigencia"
+                apuracao_str = "POSSIVEL PRETERICAO: Chamamento PSS durante vigencia"
             elif is_pos:
                 pdf.set_text_color(107, 33, 168)
                 apuracao_str = "Pos-Vigencia: Convocado apos vigencia Concurso 2022"

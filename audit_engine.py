@@ -1795,7 +1795,8 @@ class AuditEngine:
         status_filtro: str = None,
         apenas_pretericao: bool = False,
         termo_busca: str = None,
-        id_certame_base: int = 1
+        id_certame_base: int = 1,
+        seletivos_ids: list = None
     ) -> dict:
         import unicodedata
         import re
@@ -1882,18 +1883,33 @@ class AuditEngine:
                 pass
             return None
 
-        # 1. Obter vigência do Concurso Público de Referência
+        # 1. Obter Concursos e Seletivos disponíveis
+        todos_certames = self.db.query(CertameAbertura).order_by(CertameAbertura.ano.asc(), CertameAbertura.numero_certame.asc()).all()
+        concursos_disponiveis = [c for c in todos_certames if "CONCURSO" in (c.modalidade or "").upper()]
+        seletivos_disponiveis = [c for c in todos_certames if "CONCURSO" not in (c.modalidade or "").upper()]
+
+        # Concurso de Referência
+        id_certame_base = int(id_certame_base or 1)
         certame_base = self.db.query(CertameAbertura).filter_by(id_certame=id_certame_base).first()
         concurso_base = self.db.query(Concurso).filter_by(id_certame=id_certame_base).first() if certame_base else None
         
         concurso_inicio = parse_iso_date(concurso_base.data_homologacao) if concurso_base and concurso_base.data_homologacao else date(2022, 10, 14)
         concurso_fim = parse_iso_date(concurso_base.data_validade_final) if concurso_base and concurso_base.data_validade_final else date(2024, 10, 14)
+        ano_concurso_ref = certame_base.ano if certame_base else 2022
+        num_concurso_ref = certame_base.numero_certame if certame_base else "001/2022"
 
-        # 2. Carregar todos os candidatos com certames e vagas
-        todos_certames = self.db.query(CertameAbertura).order_by(CertameAbertura.ano.asc(), CertameAbertura.numero_certame.asc()).all()
-        candidatos_query = self.db.query(Candidato).all()
+        # Seletivos Selecionados pelo auditor para confronto
+        if seletivos_ids is None or len(seletivos_ids) == 0:
+            seletivos_ativos_ids = [s.id_certame for s in seletivos_disponiveis]
+        else:
+            seletivos_ativos_ids = [int(sid) for sid in seletivos_ids]
 
-        # Cache de vagas por (id_concurso, id_cargo)
+        # Certames incluídos no confronto: Concurso base + Seletivos escolhidos
+        certames_confronto_ids = set([id_certame_base] + seletivos_ativos_ids)
+
+        # 2. Carregar candidatos dos certames selecionados
+        candidatos_query = self.db.query(Candidato).filter(Candidato.id_certame.in_(certames_confronto_ids)).all()
+
         vagas_cache = {}
         for cv in self.db.query(ConcursoVaga).all():
             vagas_cache[(cv.id_concurso, cv.id_cargo)] = cv.vagas_imediatas_edital
@@ -1901,7 +1917,7 @@ class AuditEngine:
         cargos_cache = {cg.id_cargo: cg for cg in self.db.query(Cargo).all()}
         certames_cache = {c.id_certame: c for c in todos_certames}
 
-        # 3. Processar registros individuais
+        # 3. Processar registros
         lista_completa = []
         cargos_contagem = {}
         origens_set = set()
@@ -1924,15 +1940,6 @@ class AuditEngine:
 
             vagas_ed = vagas_cache.get((c.id_concurso, c.id_cargo), 1 if is_concurso else 0)
             classif = c.classificacao_original or 1
-            if vagas_ed > 0 and classif <= vagas_ed:
-                classif_cr_str = f"{classif}º"
-                is_cr = False
-            elif vagas_ed > 0:
-                classif_cr_str = f"{classif - vagas_ed}º CR"
-                is_cr = True
-            else:
-                classif_cr_str = f"{classif}º CR"
-                is_cr = True
 
             posse_date = parse_iso_date(c.data_posse)
             exon_date = parse_iso_date(c.data_exoneracao)
@@ -1963,32 +1970,51 @@ class AuditEngine:
                 status_badge = "aguardando"
                 status_classe = "bg-amber-50 text-amber-800 border-amber-300"
 
-            # Apuração de Preterição e Pós-Vigência (Concurso 2022)
+            # Classificação/CR ajustada conforme regras de resultado final
+            if is_concurso:
+                if vagas_ed > 0 and classif <= vagas_ed:
+                    classif_cr_str = f"{classif}º"
+                    is_cr = False
+                elif vagas_ed > 0:
+                    classif_cr_str = f"{classif - vagas_ed}º CR"
+                    is_cr = True
+                else:
+                    classif_cr_str = f"{classif}º CR"
+                    is_cr = True
+            else:
+                # Processo Seletivo: preserva exatamente a classificação ordinal do resultado final (ex.: Marta Barbosa é 4º)
+                if "CADASTRO RESERVA" in st and status_badge == "aguardando":
+                    classif_cr_str = f"{classif}º CR"
+                    is_cr = True
+                else:
+                    classif_cr_str = f"{classif}º"
+                    is_cr = False
+
+            # Apuração de Preterição e Pós-Vigência
             is_pretericao = False
             is_pos_vigencia = False
             is_pre_vigencia = False
             motivo_pretericao = ""
             motivo_auditoria = ""
-            ano_concurso_ref = certame_base.ano if certame_base else 2022
 
             if not is_concurso:
                 if posse_date and concurso_inicio <= posse_date <= concurso_fim:
                     is_pretericao = True
-                    motivo_pretericao = f"Contratação no Seletivo em {posse_date.strftime('%d/%m/%Y')} durante vigência do Concurso {certame_base.numero_certame if certame_base else '001/2022'} ({concurso_inicio.strftime('%d/%m/%Y')} a {concurso_fim.strftime('%d/%m/%Y')})"
-                    motivo_auditoria = "Preterição: Chamamento PSS durante vigência do Concurso"
+                    motivo_pretericao = f"Contratação no Seletivo em {posse_date.strftime('%d/%m/%Y')} durante vigência do Concurso {num_concurso_ref} ({concurso_inicio.strftime('%d/%m/%Y')} a {concurso_fim.strftime('%d/%m/%Y')})"
+                    motivo_auditoria = "Possível Preterição: Chamamento PSS durante vigência do Concurso"
                 elif posse_date and posse_date > concurso_fim:
                     is_pos_vigencia = True
                     status_label = f"Nomeado após a vigência do concurso de {ano_concurso_ref}"
                     status_badge = "pos_vigencia"
                     status_classe = "bg-purple-100 text-purple-900 border-purple-300 font-bold"
-                    motivo_auditoria = f"Nomeado após a vigência do Concurso {certame_base.numero_certame if certame_base else '001/2022'} (vigência encerrada em {concurso_fim.strftime('%d/%m/%Y')})"
+                    motivo_auditoria = f"Nomeado após a vigência do Concurso {num_concurso_ref} (vigência encerrada em {concurso_fim.strftime('%d/%m/%Y')})"
                 elif has_posse and not posse_date:
                     is_pretericao = True
                     motivo_pretericao = "Contratação no Seletivo durante vigência presumida do concurso"
-                    motivo_auditoria = "Preterição presumida"
+                    motivo_auditoria = "Possível Preterição presumida"
                 elif posse_date and posse_date < concurso_inicio:
                     is_pre_vigencia = True
-                    motivo_auditoria = f"Contratação anterior ao Concurso {certame_base.numero_certame if certame_base else '001/2022'}"
+                    motivo_auditoria = f"Contratação anterior ao Concurso {num_concurso_ref}"
                 else:
                     motivo_auditoria = "Seletivo Regular"
             else:
@@ -2006,6 +2032,7 @@ class AuditEngine:
                 "cpf": c.cpf,
                 "origem": origem_label,
                 "origem_detalhe": origem_detalhe,
+                "id_certame": c.id_certame,
                 "is_concurso": is_concurso,
                 "ano_certame": ano_cert,
                 "numero_certame": num_cert,
@@ -2030,7 +2057,7 @@ class AuditEngine:
 
             lista_completa.append(reg)
 
-            # Acumulador para estatísticas por tipo de cargo
+            # Acumulador para tipos de cargo
             if canon_cargo not in cargos_contagem:
                 cargos_contagem[canon_cargo] = {
                     "tipo_cargo": canon_cargo,
@@ -2047,29 +2074,24 @@ class AuditEngine:
                 if is_pretericao:
                     cargos_contagem[canon_cargo]["pretericoes"] += 1
 
-        # Lista de tipos de cargo ordenada por relevância
         tipos_cargos_lista = sorted(
             cargos_contagem.values(),
             key=lambda x: (x["concurso"] > 0 and x["seletivo"] > 0, x["pretericoes"], x["total"]),
             reverse=True
         )
 
-        # Se nenhum cargo foi selecionado, definir default para o com maior preterição
         if not tipo_cargo_filtro and tipos_cargos_lista:
-            # Seleciona o primeiro que tenha tanto concurso quanto seletivo com preterições
             cargos_com_ambos = [tc["tipo_cargo"] for tc in tipos_cargos_lista if tc["concurso"] > 0 and tc["seletivo"] > 0]
             cargo_ativo = cargos_com_ambos[0] if cargos_com_ambos else tipos_cargos_lista[0]["tipo_cargo"]
         else:
             cargo_ativo = tipo_cargo_filtro
 
-        # 4. Aplicar filtros aos registros
+        # 4. Filtros
         registros_filtrados = []
         for r in lista_completa:
-            # Filtro tipo cargo
             if cargo_ativo and cargo_ativo != "TODOS" and r["tipo_cargo"] != cargo_ativo:
                 continue
 
-            # Filtro origem
             if origem_filtro and origem_filtro != "TODAS":
                 if origem_filtro == "CONCURSO" and not r["is_concurso"]:
                     continue
@@ -2078,7 +2100,6 @@ class AuditEngine:
                 elif origem_filtro not in ["CONCURSO", "SELETIVO"] and r["origem"] != origem_filtro:
                     continue
 
-            # Filtro status
             if status_filtro and status_filtro != "TODOS":
                 if status_filtro == "EM_EXERCICIO" and r["status_badge"] != "empossado":
                     continue
@@ -2091,11 +2112,9 @@ class AuditEngine:
                 elif status_filtro == "POS_VIGENCIA" and not r.get("is_pos_vigencia"):
                     continue
 
-            # Filtro apenas com alerta de preterição
             if apenas_pretericao and not r["is_pretericao"]:
                 continue
 
-            # Filtro busca por texto
             if termo_busca:
                 tb = termo_busca.lower().strip()
                 if (tb not in r["nome_candidato"].lower() and 
@@ -2106,7 +2125,7 @@ class AuditEngine:
 
             registros_filtrados.append(r)
 
-        # 5. Ordenação: por Data de Posse ascendente (com posse primeiro), depois sem posse por classificação
+        # 5. Ordenação cronológica por posse
         def sort_key(x):
             has_posse = 0 if x["data_posse"] else 1
             dt_posse = x["data_posse"] or date(9999, 12, 31)
@@ -2116,7 +2135,6 @@ class AuditEngine:
 
         registros_filtrados.sort(key=sort_key)
 
-        # 6. Totais e Métricas da Seleção
         totais = {
             "total_registros": len(registros_filtrados),
             "total_concurso": sum(1 for r in registros_filtrados if r["is_concurso"]),
@@ -2131,14 +2149,18 @@ class AuditEngine:
             "concurso_fim": concurso_fim,
             "concurso_inicio_str": concurso_inicio.strftime("%d/%m/%Y"),
             "concurso_fim_str": concurso_fim.strftime("%d/%m/%Y"),
-            "concurso_numero": certame_base.numero_certame if certame_base else "001/2022",
-            "concurso_ano": certame_base.ano if certame_base else 2022
+            "concurso_numero": num_concurso_ref,
+            "concurso_ano": ano_concurso_ref
         }
 
         return {
             "certame_base": certame_base,
             "concurso_base": concurso_base,
             "todos_certames": todos_certames,
+            "concursos_disponiveis": concursos_disponiveis,
+            "seletivos_disponiveis": seletivos_disponiveis,
+            "seletivos_ativos_ids": seletivos_ativos_ids,
+            "id_certame_base": id_certame_base,
             "tipos_cargos_lista": tipos_cargos_lista,
             "origens_lista": sorted(list(origens_set)),
             "cargo_ativo": cargo_ativo,

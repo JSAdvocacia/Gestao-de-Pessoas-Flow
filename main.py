@@ -2647,6 +2647,10 @@ def modulo_relatorios_auditoria_pretericao(
     if not usuario:
         return RedirectResponse(url="/login", status_code=303)
 
+    id_base = int(request.query_params.get("id_certame") or id_certame or 1)
+    seletivos_req = request.query_params.getlist("seletivos") or request.query_params.getlist("seletivos_selecionados")
+    seletivos_ids = [int(s) for s in seletivos_req if str(s).isdigit()] if seletivos_req else None
+
     engine = AuditEngine(db)
     dados = engine.gerar_relatorio_auditoria_pretericao(
         tipo_cargo_filtro=tipo_cargo,
@@ -2654,7 +2658,8 @@ def modulo_relatorios_auditoria_pretericao(
         status_filtro=status,
         apenas_pretericao=apenas_pretericao,
         termo_busca=busca,
-        id_certame_base=id_certame or 1
+        id_certame_base=id_base,
+        seletivos_ids=seletivos_ids
     )
 
     return templates.TemplateResponse("modulo_relatorio_auditoria_pretericao.html", {
@@ -2663,6 +2668,10 @@ def modulo_relatorios_auditoria_pretericao(
         "certame_base": dados["certame_base"],
         "concurso_base": dados["concurso_base"],
         "todos_certames": dados["todos_certames"],
+        "concursos_disponiveis": dados.get("concursos_disponiveis", []),
+        "seletivos_disponiveis": dados.get("seletivos_disponiveis", []),
+        "seletivos_ativos_ids": dados.get("seletivos_ativos_ids", []),
+        "id_certame_base": dados.get("id_certame_base", id_base),
         "tipos_cargos_lista": dados["tipos_cargos_lista"],
         "origens_lista": dados["origens_lista"],
         "cargo_ativo": dados["cargo_ativo"],
@@ -2679,6 +2688,7 @@ def modulo_relatorios_auditoria_pretericao(
 @app.get("/modulo/relatorios/pretericao/pdf")
 @app.get("/certames/{id_certame}/relatorios/pretericao/pdf")
 def modulo_relatorios_auditoria_pretericao_pdf(
+    request: Request,
     id_certame: int = 1,
     tipo_cargo: str = None,
     origem: str = "TODAS",
@@ -2691,6 +2701,10 @@ def modulo_relatorios_auditoria_pretericao_pdf(
     if not usuario:
         return RedirectResponse(url="/login", status_code=303)
 
+    id_base = int(request.query_params.get("id_certame") or id_certame or 1)
+    seletivos_req = request.query_params.getlist("seletivos") or request.query_params.getlist("seletivos_selecionados")
+    seletivos_ids = [int(s) for s in seletivos_req if str(s).isdigit()] if seletivos_req else None
+
     engine = AuditEngine(db)
     dados = engine.gerar_relatorio_auditoria_pretericao(
         tipo_cargo_filtro=tipo_cargo,
@@ -2698,7 +2712,8 @@ def modulo_relatorios_auditoria_pretericao_pdf(
         status_filtro=status,
         apenas_pretericao=apenas_pretericao,
         termo_busca=busca,
-        id_certame_base=id_certame or 1
+        id_certame_base=id_base,
+        seletivos_ids=seletivos_ids
     )
 
     res = PDFTextGenerator.gerar_pdf_auditoria_pretericao(
