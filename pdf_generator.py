@@ -613,17 +613,19 @@ class PDFTextGenerator:
             pdf.cell(25, 4.6, sanitize_text(r.get("data_exoneracao_str", "") or "-"), border=1, align="C", fill=fill)
 
             # Status Atual
+            st_badge = r.get("status_badge", "")
             st_lbl = r.get("status_label", "")
-            if is_pos:
+            if st_badge == "exonerado" or "exonerado" in st_lbl.lower():
+                pdf.set_text_color(71, 85, 105)
+                pdf.set_font("Helvetica", "", 6.5)
+                st_lbl = "Exonerado"
+            elif is_pos:
                 pdf.set_text_color(107, 33, 168)
                 pdf.set_font("Helvetica", "B", 5.5)
                 st_lbl = "Nomeado apos vigencia (Concurso 2022)"
-            elif "exercício" in st_lbl.lower():
+            elif "exercício" in st_lbl.lower() or st_badge == "empossado":
                 pdf.set_text_color(22, 101, 52)
                 pdf.set_font("Helvetica", "B", 6.5)
-            elif "exonerado" in st_lbl.lower():
-                pdf.set_text_color(71, 85, 105)
-                pdf.set_font("Helvetica", "", 6.5)
             elif "desistente" in st_lbl.lower():
                 pdf.set_text_color(159, 18, 57)
                 pdf.set_font("Helvetica", "B", 6.5)

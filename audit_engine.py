@@ -2075,9 +2075,10 @@ class AuditEngine:
                     motivo_auditoria = "Possível Preterição: Chamamento PSS durante vigência do Concurso"
                 elif posse_date and posse_date > concurso_fim:
                     is_pos_vigencia = True
-                    status_label = f"Nomeado após a vigência do concurso de {ano_concurso_ref}"
-                    status_badge = "pos_vigencia"
-                    status_classe = "bg-purple-100 text-purple-900 border-purple-300 font-bold"
+                    if not has_exon and not has_desist:
+                        status_label = f"Nomeado após a vigência do concurso de {ano_concurso_ref}"
+                        status_badge = "pos_vigencia"
+                        status_classe = "bg-purple-100 text-purple-900 border-purple-300 font-bold"
                     motivo_auditoria = f"Nomeado após a vigência do Concurso {num_concurso_ref} (vigência encerrada em {concurso_fim.strftime('%d/%m/%Y')})"
                 elif has_posse and not posse_date:
                     is_pretericao = True
