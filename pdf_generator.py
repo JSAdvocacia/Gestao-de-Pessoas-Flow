@@ -639,6 +639,10 @@ class PDFTextGenerator:
             elif "desistente" in st_lbl.lower():
                 pdf.set_text_color(159, 18, 57)
                 pdf.set_font("Helvetica", "B", 6)
+            elif "vigência" in st_lbl.lower() or "esgotada" in st_lbl.lower() or st_badge == "esgotado":
+                pdf.set_text_color(100, 116, 139)
+                pdf.set_font("Helvetica", "B", 5.5)
+                st_lbl = "Vigência do CP esgotada"
             else:
                 pdf.set_text_color(180, 83, 9)
                 pdf.set_font("Helvetica", "", 6)

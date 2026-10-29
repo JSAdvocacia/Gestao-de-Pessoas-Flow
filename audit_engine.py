@@ -2021,6 +2021,7 @@ class AuditEngine:
         concurso_fim = parse_iso_date(concurso_base.data_validade_final) if concurso_base and concurso_base.data_validade_final else date(2024, 10, 13)
         ano_concurso_ref = certame_base.ano if certame_base else 2022
         num_concurso_ref = certame_base.numero_certame if certame_base else "001/2022"
+        concurso_expirado = bool((concurso_fim and concurso_fim < date.today()) or (concurso_base and (concurso_base.status or '').upper() == 'EXPIRADO'))
 
         # Seletivos Selecionados pelo auditor para confronto
         if seletivos_ids is None or len(seletivos_ids) == 0:
@@ -2172,6 +2173,12 @@ class AuditEngine:
                 else:
                     classif_cr_str = f"{classif}º CR"
                     is_cr = True
+
+                # Regra: Candidatos em cadastro de reserva com validade do concurso expirada
+                if is_cr and status_badge == "aguardando" and concurso_expirado:
+                    status_label = "Vigência do CP esgotada"
+                    status_badge = "esgotado"
+                    status_classe = "bg-slate-100 text-slate-700 border-slate-300 font-bold"
             else:
                 # Processo Seletivo: preserva exatamente a classificação ordinal do resultado final
                 if "CADASTRO RESERVA" in st and status_badge == "aguardando":
@@ -2207,9 +2214,9 @@ class AuditEngine:
                 else:
                     motivo_auditoria = "Seletivo Regular"
             else:
-                if is_cr and status_badge == "aguardando":
-                    motivo_pretericao = "Candidato em Cadastro de Reserva do Concurso aguardando convocação"
-                    motivo_auditoria = "CR Concurso Aguardando"
+                if is_cr and status_badge in ["aguardando", "esgotado"]:
+                    motivo_pretericao = "Candidato em Cadastro de Reserva do Concurso com vigência do certame esgotada" if concurso_expirado else "Candidato em Cadastro de Reserva do Concurso aguardando convocação"
+                    motivo_auditoria = "CR Concurso (Vigência Esgotada)" if concurso_expirado else "CR Concurso Aguardando"
                 elif status_badge == "desistente":
                     motivo_pretericao = "Candidato convocado que formalizou desistência/renúncia"
                     motivo_auditoria = "Concurso Efetivo"
@@ -2313,7 +2320,9 @@ class AuditEngine:
                     continue
                 elif status_filtro == "DESISTENTE" and r["status_badge"] != "desistente":
                     continue
-                elif status_filtro == "AGUARDANDO" and r["status_badge"] != "aguardando":
+                elif status_filtro == "ESGOTADO" and r["status_badge"] != "esgotado":
+                    continue
+                elif status_filtro == "AGUARDANDO" and r["status_badge"] not in ["aguardando", "esgotado"]:
                     continue
                 elif status_filtro == "POS_VIGENCIA" and not r.get("is_pos_vigencia"):
                     continue
@@ -2373,7 +2382,8 @@ class AuditEngine:
             "empossados_exercicio": sum(1 for r in registros_filtrados if r["status_badge"] == "empossado"),
             "exonerados": sum(1 for r in registros_filtrados if r["status_badge"] == "exonerado"),
             "desistencias": sum(1 for r in registros_filtrados if r["status_badge"] == "desistente"),
-            "aguardando_cr": sum(1 for r in registros_filtrados if r["status_badge"] == "aguardando"),
+            "aguardando_cr": sum(1 for r in registros_filtrados if r["status_badge"] in ["aguardando", "esgotado"]),
+            "vigencia_esgotada": sum(1 for r in registros_filtrados if r["status_badge"] == "esgotado"),
             "alertas_pretericao": sum(1 for r in registros_filtrados if r["is_pretericao"]),
             "nomeados_pos_vigencia": sum(1 for r in registros_filtrados if r.get("is_pos_vigencia")),
             "pareceres_favoraveis": sum(1 for r in registros_filtrados if r.get("parecer_ci_badge") == "favoravel"),

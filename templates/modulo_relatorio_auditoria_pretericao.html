@@ -356,6 +356,7 @@
                             <option value="EM_EXERCICIO" {% if status_filtro == 'EM_EXERCICIO' %}selected{% endif %}>Em exercício</option>
                             <option value="EXONERADO" {% if status_filtro == 'EXONERADO' %}selected{% endif %}>Exonerado</option>
                             <option value="DESISTENTE" {% if status_filtro == 'DESISTENTE' %}selected{% endif %}>Desistente/Renúncia</option>
+                            <option value="ESGOTADO" {% if status_filtro == 'ESGOTADO' %}selected{% endif %}>Vigência do CP esgotada</option>
                             <option value="AGUARDANDO" {% if status_filtro == 'AGUARDANDO' %}selected{% endif %}>Aguardando Convocação</option>
                             <option value="POS_VIGENCIA" {% if status_filtro == 'POS_VIGENCIA' %}selected{% endif %}>Nomeado após vigência (Concurso {{ totais.concurso_ano }})</option>
                         </select>
@@ -590,6 +591,10 @@
                                     {% elif r.status_badge == 'desistente' %}
                                     <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300 whitespace-nowrap">
                                         <i class="fa-solid fa-xmark mr-0.5"></i> {{ r.status_label }}
+                                    </span>
+                                    {% elif r.status_badge == 'esgotado' or r.status_label == 'Vigência do CP esgotada' %}
+                                    <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300 whitespace-nowrap" title="Prazo de validade do concurso público encerrado">
+                                        <i class="fa-solid fa-clock-rotate-left mr-1 text-slate-500"></i> Vigência do CP esgotada
                                     </span>
                                     {% else %}
                                     <span class="inline-block px-2 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-800 border border-amber-300 whitespace-nowrap">
