@@ -247,12 +247,12 @@
             <!-- 5. ALERTAS DE POSSÍVEL PRETERIÇÃO (DESTAQUE) -->
             <div class="bg-rose-950/40 border border-rose-500/50 rounded-2xl p-4 flex flex-col justify-between shadow">
                 <div class="flex items-center justify-between text-[11px] text-rose-300 font-bold uppercase">
-                    <span>Possível Preterição</span>
+                    <span>Convocado PSS na Vigência</span>
                     <i class="fa-solid fa-triangle-exclamation text-rose-400 animate-pulse"></i>
                 </div>
                 <div class="mt-2">
                     <p class="text-2xl font-black text-rose-300">{{ totais.alertas_pretericao }}</p>
-                    <p class="text-[10px] text-rose-300/80 mt-0.5 font-medium">Chamamento PSS na Vigência</p>
+                    <p class="text-[10px] text-rose-300/80 mt-0.5 font-medium">Convocado PSS durante vigência de CP</p>
                 </div>
             </div>
 
@@ -377,7 +377,7 @@
                         <label class="flex items-center space-x-2 cursor-pointer bg-slate-950/80 border border-slate-800 hover:border-rose-500/60 px-3 py-2 rounded-xl transition w-full">
                             <input type="checkbox" name="apenas_pretericao" value="true" {% if apenas_pretericao %}checked{% endif %} onchange="document.getElementById('formFiltros').submit()" class="w-4 h-4 text-rose-600 rounded focus:ring-rose-500 focus:ring-offset-slate-900 border-slate-700">
                             <span class="text-xs font-bold text-rose-300 flex items-center">
-                                <i class="fa-solid fa-triangle-exclamation mr-1 text-[10px]"></i> Apenas Possível Preterição
+                                <i class="fa-solid fa-triangle-exclamation mr-1 text-[10px]"></i> Apenas Convocados PSS durante vigência de CP
                             </span>
                         </label>
                     </div>
@@ -414,7 +414,7 @@
             </div>
 
             <!-- TÍTULO DA SEÇÃO DO RELATÓRIO -->
-            <div class="mb-4 flex flex-col md:flex-row md:items-center justify-between gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <div class="mb-3 flex flex-col md:flex-row md:items-center justify-between gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <div>
                     <h2 class="text-sm font-black uppercase text-slate-900 tracking-tight flex items-center">
                         <i class="fa-solid fa-scale-balanced mr-2 text-amber-600"></i>
@@ -431,11 +431,30 @@
                 </div>
                 <div class="text-right text-[11px]">
                     <span class="inline-block bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded border border-blue-200 text-[10px] mr-1">
-                        Concurso: {{ totais.concurso_inicio_str }} a {{ totais.concurso_fim_str }}
+                        CP: {{ totais.concurso_inicio_str }} a {{ totais.concurso_fim_str }}
                     </span>
                     <span class="inline-block bg-rose-100 text-rose-800 font-black px-2 py-0.5 rounded border border-rose-300 text-[10px]">
-                        {{ totais.alertas_pretericao }} Chamamento(s) com Indício de Possível Preterição
+                        {{ totais.alertas_pretericao }} Convocado(s) PSS durante vigência de CP
                     </span>
+                </div>
+            </div>
+
+            <!-- LEGENDA EXPLICATIVA DAS SIGLAS (SOLICITADO PELO AUDITOR) -->
+            <div class="mb-4 flex items-center justify-between flex-wrap gap-2 bg-blue-50/90 border border-blue-200 rounded-xl px-4 py-2 text-xs">
+                <div class="flex items-center space-x-3">
+                    <span class="font-black text-blue-950 flex items-center uppercase tracking-wider text-[11px]">
+                        <i class="fa-solid fa-circle-info text-blue-600 mr-1.5"></i> Legenda:
+                    </span>
+                    <span class="inline-flex items-center text-slate-800 font-bold text-[11px]">
+                        <span class="bg-blue-600 text-white font-black px-1.5 py-0.5 rounded text-[10px] mr-1.5 shadow-sm">CP</span> Concurso Público
+                    </span>
+                    <span class="text-blue-300 font-bold">•</span>
+                    <span class="inline-flex items-center text-slate-800 font-bold text-[11px]">
+                        <span class="bg-purple-600 text-white font-black px-1.5 py-0.5 rounded text-[10px] mr-1.5 shadow-sm">PSS</span> Processo Seletivo Simplificado
+                    </span>
+                </div>
+                <div class="text-[10.5px] text-blue-900 font-semibold">
+                    <span class="text-rose-700 font-black mr-1">⚠️ Convocado PSS durante vigência de CP:</span> Apuração de candidatos admitidos via seletivo enquanto o concurso estava vigente.
                 </div>
             </div>
 
@@ -552,7 +571,7 @@
                                 <td class="py-2 px-3 text-center whitespace-nowrap">
                                     {% if r.is_pretericao %}
                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-rose-100 text-rose-900 border border-rose-400 badge-print-alerta" title="{{ r.motivo_pretericao }}">
-                                        <i class="fa-solid fa-triangle-exclamation mr-1 text-rose-600"></i> Possível Preterição
+                                        <i class="fa-solid fa-triangle-exclamation mr-1 text-rose-600"></i> Convocado PSS durante vigência de CP
                                     </span>
                                     {% elif r.is_pos_vigencia %}
                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-800 border border-purple-200" title="{{ r.motivo_auditoria }}">
@@ -597,7 +616,7 @@
                                 {{ totais.desistencias }} Desistências
                             </td>
                             <td class="py-2.5 px-3 text-center font-black text-[11px]">
-                                <span class="text-rose-700 block">⚠️ {{ totais.alertas_pretericao }} Possível(is) Preterição(ões)</span>
+                                <span class="text-rose-700 block">⚠️ {{ totais.alertas_pretericao }} Convocado(s) PSS durante vigência de CP</span>
                                 <span class="text-purple-700 block text-[9px] font-bold">{{ totais.nomeados_pos_vigencia }} Pós-Vigência</span>
                             </td>
                         </tr>
@@ -614,7 +633,10 @@
                     <strong>1. Precedente Vinculante STF (Tema nº 784 / RE 598.099):</strong> O surgimento de novas vagas ou a contratação temporária para preenchimento de funções permanentes durante o prazo de vigência de concurso público gera direito subjetivo à nomeação do candidato aprovado em cadastro de reserva, caso demonstrada a necessidade contínua e a preterição arbitrária.
                 </p>
                 <p>
-                    <strong>2. Vigência Auditada:</strong> O Concurso Público nº {{ totais.concurso_numero }} vigeu no período de <strong>{{ totais.concurso_inicio_str }} a {{ totais.concurso_fim_str }}</strong>. As contratações efetivadas por Processos Seletivos Simplificados (PSS) que recaíram no mesmo intervalo temporal e para o mesmo plexo de atribuições encontram-se destacadas com alerta de possível preterição.
+                    <strong>2. Vigência Auditada:</strong> O Concurso Público nº {{ totais.concurso_numero }} vigeu no período de <strong>{{ totais.concurso_inicio_str }} a {{ totais.concurso_fim_str }}</strong>. As contratações efetivadas por Processos Seletivos Simplificados (PSS) que recaíram no mesmo intervalo temporal e para o mesmo plexo de atribuições encontram-se destacadas como <em>"Convocado PSS durante vigência de CP"</em>.
+                </p>
+                <p>
+                    <strong>3. Legenda Oficial de Siglas:</strong> <strong>PSS</strong> - Processo Seletivo Simplificado | <strong>CP</strong> - Concurso Público.
                 </p>
             </div>
 

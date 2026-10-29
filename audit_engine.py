@@ -2071,19 +2071,19 @@ class AuditEngine:
             if not is_concurso:
                 if posse_date and concurso_inicio <= posse_date <= concurso_fim:
                     is_pretericao = True
-                    motivo_pretericao = f"Contratação no Seletivo em {posse_date.strftime('%d/%m/%Y')} durante vigência do Concurso {num_concurso_ref} ({concurso_inicio.strftime('%d/%m/%Y')} a {concurso_fim.strftime('%d/%m/%Y')})"
-                    motivo_auditoria = "Possível Preterição: Chamamento PSS durante vigência do Concurso"
+                    motivo_pretericao = f"Convocado no PSS em {posse_date.strftime('%d/%m/%Y')} durante vigência do CP {num_concurso_ref} ({concurso_inicio.strftime('%d/%m/%Y')} a {concurso_fim.strftime('%d/%m/%Y')})"
+                    motivo_auditoria = "Convocado PSS durante vigência de CP"
                 elif posse_date and posse_date > concurso_fim:
                     is_pos_vigencia = True
                     if not has_exon and not has_desist:
                         status_label = "Em exercício"
                         status_badge = "empossado"
                         status_classe = "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold"
-                    motivo_auditoria = f"Nomeado após a vigência do Concurso {num_concurso_ref} (vigência encerrada em {concurso_fim.strftime('%d/%m/%Y')})"
+                    motivo_auditoria = f"Nomeado após a vigência do CP {num_concurso_ref} (vigência encerrada em {concurso_fim.strftime('%d/%m/%Y')})"
                 elif has_posse and not posse_date:
                     is_pretericao = True
-                    motivo_pretericao = "Contratação no Seletivo durante vigência presumida do concurso"
-                    motivo_auditoria = "Possível Preterição presumida"
+                    motivo_pretericao = f"Convocado no PSS durante vigência presumida do CP {num_concurso_ref}"
+                    motivo_auditoria = "Convocado PSS durante vigência de CP"
                 else:
                     motivo_auditoria = "Seletivo Regular"
             else:

@@ -486,8 +486,7 @@ class PDFTextGenerator:
         aplicar_cabecalho_oficial_logo(
             pdf,
             orientacao='L',
-            titulo_complementar='SISTEMA INTEGRADO DE AUDITORIA DE PESSOAL (SIAP)',
-            subtitulo=f'AUDITORIA DE PRETERICAO: CONCURSO PUBLICO VS. SELETIVOS * CARGO: {cargo_ativo}'
+            titulo_complementar='SISTEMA INTEGRADO DE AUDITORIA DE PESSOAL (SIAP)'
         )
 
         totais = dados.get("totais", {})
@@ -497,15 +496,15 @@ class PDFTextGenerator:
         pdf.set_font("Helvetica", "B", 11)
         pdf.set_text_color(15, 23, 42)
         pdf.cell(0, 5, sanitize_text("RELATÓRIO DE AUDITORIA: CONFRONTO CONCURSO PÚBLICO VS. PROCESSOS SELETIVOS"), ln=True, align="C")
-        pdf.set_font("Helvetica", "B", 8.5)
+        pdf.set_font("Helvetica", "B", 8)
         pdf.set_text_color(180, 83, 9)
-        pdf.cell(0, 4.5, sanitize_text("APURAÇÃO DE PRETERIÇÃO DE CHAMAMENTOS DURANTE A VIGÊNCIA DO CONCURSO PÚBLICO"), ln=True, align="C")
-        pdf.ln(2)
+        pdf.cell(0, 4.5, sanitize_text("APURAÇÃO DE CONVOCAÇÕES PSS DURANTE A VIGÊNCIA DO CONCURSO PÚBLICO"), ln=True, align="C")
+        pdf.ln(1.5)
 
-        # Caixa de Parâmetros e Indicadores
+        # Caixa de Parâmetros, Indicadores e Legenda
         pdf.set_fill_color(248, 250, 252)
         pdf.set_draw_color(203, 213, 225)
-        pdf.rect(10, pdf.get_y(), 277, 14, "DF")
+        pdf.rect(10, pdf.get_y(), 277, 18, "DF")
 
         y_box = pdf.get_y() + 2
         pdf.set_xy(12, y_box)
@@ -516,21 +515,27 @@ class PDFTextGenerator:
         if dt_partida:
             sub_info += f" (Início Apuração: 1ª Convocação Concurso em {dt_partida})"
         pdf.cell(155, 4, sanitize_text(sub_info), ln=False)
-        pdf.cell(110, 4, sanitize_text(f"VIGÊNCIA CONCURSO ({totais.get('concurso_numero', '001/2022')}): {totais.get('concurso_inicio_str', '')} A {totais.get('concurso_fim_str', '')}"), ln=True, align="R")
+        pdf.cell(110, 4, sanitize_text(f"VIGÊNCIA CP ({totais.get('concurso_numero', '001/2022')}): {totais.get('concurso_inicio_str', '')} A {totais.get('concurso_fim_str', '')}"), ln=True, align="R")
 
         pdf.set_x(12)
         pdf.set_font("Helvetica", "", 7)
         pdf.set_text_color(71, 85, 105)
         kpis_str = (
             f"Total de Registros: {totais.get('total_registros', 0)}  |  "
-            f"Concurso Público: {totais.get('total_concurso', 0)}  |  "
-            f"Processos Seletivos: {totais.get('total_seletivo', 0)}  |  "
+            f"CP (Concurso): {totais.get('total_concurso', 0)}  |  "
+            f"PSS (Seletivos): {totais.get('total_seletivo', 0)}  |  "
             f"Em Exercício: {totais.get('empossados_exercicio', 0)}  |  "
             f"Exonerados: {totais.get('exonerados', 0)}  |  "
-            f"Alertas de Possível Preterição: {totais.get('alertas_pretericao', 0)}"
+            f"Convocados PSS durante vigência de CP: {totais.get('alertas_pretericao', 0)}"
         )
         pdf.cell(273, 4, sanitize_text(kpis_str), ln=True)
-        pdf.set_y(y_box + 14)
+
+        # Linha de Legenda Explicativa
+        pdf.set_x(12)
+        pdf.set_font("Helvetica", "B", 7)
+        pdf.set_text_color(30, 64, 175) # Azul
+        pdf.cell(273, 4, sanitize_text("LEGENDA: PSS - Processo Seletivo Simplificado  |  CP - Concurso Público"), ln=True)
+        pdf.set_y(y_box + 18)
 
         # Cabeçalho da Tabela
         def desenhar_cabecalho_tabela():
@@ -557,14 +562,13 @@ class PDFTextGenerator:
             if pdf.get_y() > 190:
                 pdf.add_page()
                 aplicar_cabecalho_oficial_logo(
-            pdf,
-            orientacao='L',
-            titulo_complementar='SISTEMA INTEGRADO DE AUDITORIA DE PESSOAL (SIAP)',
-            subtitulo=f'AUDITORIA DE PRETERICAO: CONCURSO PUBLICO VS. SELETIVOS * CARGO: {cargo_ativo}'
-        )
+                    pdf,
+                    orientacao='L',
+                    titulo_complementar='SISTEMA INTEGRADO DE AUDITORIA DE PESSOAL (SIAP)'
+                )
                 pdf.set_font("Helvetica", "B", 7.5)
                 pdf.set_text_color(100, 116, 139)
-                pdf.cell(0, 4, sanitize_text(f"(Continuação) - Cargo: {cargo_ativo}"), ln=True)
+                pdf.cell(0, 4, sanitize_text(f"(Continuação) - Cargo: {cargo_ativo} | LEGENDA: PSS - Processo Seletivo Simplificado | CP - Concurso Público"), ln=True)
                 pdf.ln(1)
                 desenhar_cabecalho_tabela()
                 pdf.set_font("Helvetica", "", 6.5)
@@ -643,7 +647,7 @@ class PDFTextGenerator:
             pdf.set_font("Helvetica", "B" if (is_pret or is_pos) else "", 6)
             if is_pret:
                 pdf.set_text_color(190, 18, 60)
-                apuracao_str = "POSSIVEL PRETERICAO: Chamamento PSS durante vigencia"
+                apuracao_str = "Convocado PSS durante vigência de CP"
             elif is_pos:
                 pdf.set_text_color(107, 33, 168)
                 apuracao_str = "Pos-Vigencia: Convocado apos vigencia Concurso 2022"
@@ -657,11 +661,11 @@ class PDFTextGenerator:
 
             pdf.ln()
 
-        # Rodapé Institucional
+        # Rodapé Institucional com Legenda
         pdf.ln(3)
         pdf.set_font("Helvetica", "I", 6.5)
-        pdf.set_text_color(148, 163, 184)
-        pdf.cell(0, 4, sanitize_text("Relatório gerado pelo SIAP - Sistema de Auditoria de Pessoal | Município de Pontes e Lacerda - MT | Controle Interno"), ln=True, align="C")
+        pdf.set_text_color(100, 116, 139)
+        pdf.cell(0, 4, sanitize_text("Relatório gerado pelo SIAP - Sistema de Auditoria de Pessoal | LEGENDA: PSS - Processo Seletivo Simplificado | CP - Concurso Público | Controle Interno"), ln=True, align="C")
 
         pdf.output(caminho_arquivo)
 
