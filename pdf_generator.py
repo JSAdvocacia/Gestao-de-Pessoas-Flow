@@ -615,10 +615,14 @@ class PDFTextGenerator:
             # Status Atual
             st_badge = r.get("status_badge", "")
             st_lbl = r.get("status_label", "")
-            if st_badge == "exonerado" or "exonerado" in st_lbl.lower():
+            if st_badge == "exonerado" or "exonerado" in st_lbl.lower() or r.get("data_exoneracao"):
                 pdf.set_text_color(71, 85, 105)
                 pdf.set_font("Helvetica", "", 6.5)
                 st_lbl = "Exonerado"
+            elif r.get("data_posse") and not r.get("data_exoneracao"):
+                pdf.set_text_color(22, 101, 52)
+                pdf.set_font("Helvetica", "B", 6.5)
+                st_lbl = "Em exercício"
             elif is_pos:
                 pdf.set_text_color(107, 33, 168)
                 pdf.set_font("Helvetica", "B", 5.5)
@@ -626,6 +630,7 @@ class PDFTextGenerator:
             elif "exercício" in st_lbl.lower() or st_badge == "empossado":
                 pdf.set_text_color(22, 101, 52)
                 pdf.set_font("Helvetica", "B", 6.5)
+                st_lbl = "Em exercício"
             elif "desistente" in st_lbl.lower():
                 pdf.set_text_color(159, 18, 57)
                 pdf.set_font("Helvetica", "B", 6.5)
