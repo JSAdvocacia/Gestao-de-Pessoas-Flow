@@ -532,25 +532,26 @@ class PDFTextGenerator:
 
         # Linha de Legenda Explicativa
         pdf.set_x(12)
-        pdf.set_font("Helvetica", "B", 7)
+        pdf.set_font("Helvetica", "B", 6.8)
         pdf.set_text_color(30, 64, 175) # Azul
-        pdf.cell(273, 4, sanitize_text("LEGENDA: PSS - Processo Seletivo Simplificado  |  CP - Concurso Público"), ln=True)
+        pdf.cell(273, 4, sanitize_text("LEGENDA: PSS - Processo Seletivo Simplificado | CP - Concurso Público | Parecer Favorável indica a regularidade legal da contratação."), ln=True)
         pdf.set_y(y_box + 18)
 
         # Cabeçalho da Tabela
         def desenhar_cabecalho_tabela():
-            pdf.set_font("Helvetica", "B", 7)
+            pdf.set_font("Helvetica", "B", 6.8)
             pdf.set_fill_color(15, 23, 42)
             pdf.set_text_color(255, 255, 255)
             pdf.set_draw_color(51, 65, 85)
             
-            pdf.cell(34, 5.5, sanitize_text("ORIGEM"), border=1, align="C", fill=True)
-            pdf.cell(74, 5.5, sanitize_text("CANDIDATO"), border=1, align="L", fill=True)
-            pdf.cell(25, 5.5, sanitize_text("CLASSIFICAÇÃO/CR"), border=1, align="C", fill=True)
-            pdf.cell(25, 5.5, sanitize_text("DATA DA POSSE"), border=1, align="C", fill=True)
-            pdf.cell(25, 5.5, sanitize_text("EXONERAÇÃO"), border=1, align="C", fill=True)
-            pdf.cell(34, 5.5, sanitize_text("STATUS ATUAL"), border=1, align="C", fill=True)
-            pdf.cell(60, 5.5, sanitize_text("APURAÇÃO / AUDITORIA"), border=1, align="L", fill=True)
+            pdf.cell(28, 5.5, sanitize_text("ORIGEM"), border=1, align="C", fill=True)
+            pdf.cell(62, 5.5, sanitize_text("CANDIDATO"), border=1, align="L", fill=True)
+            pdf.cell(22, 5.5, sanitize_text("CLASSIF./CR"), border=1, align="C", fill=True)
+            pdf.cell(22, 5.5, sanitize_text("DATA DA POSSE"), border=1, align="C", fill=True)
+            pdf.cell(22, 5.5, sanitize_text("EXONERAÇÃO"), border=1, align="C", fill=True)
+            pdf.cell(30, 5.5, sanitize_text("STATUS ATUAL"), border=1, align="C", fill=True)
+            pdf.cell(54, 5.5, sanitize_text("APURAÇÃO / AUDITORIA"), border=1, align="L", fill=True)
+            pdf.cell(37, 5.5, sanitize_text("PARECER C. INTERNO"), border=1, align="C", fill=True)
             pdf.ln()
 
         desenhar_cabecalho_tabela()
@@ -566,9 +567,9 @@ class PDFTextGenerator:
                     orientacao='L',
                     titulo_complementar='SISTEMA INTEGRADO DE AUDITORIA DE PESSOAL (SIAP)'
                 )
-                pdf.set_font("Helvetica", "B", 7.5)
+                pdf.set_font("Helvetica", "B", 7)
                 pdf.set_text_color(100, 116, 139)
-                pdf.cell(0, 4, sanitize_text(f"(Continuação) - Cargo: {cargo_ativo} | LEGENDA: PSS - Processo Seletivo Simplificado | CP - Concurso Público"), ln=True)
+                pdf.cell(0, 4, sanitize_text(f"(Continuação) - Cargo: {cargo_ativo} | Parecer Favorável indica a regularidade legal da contratação."), ln=True)
                 pdf.ln(1)
                 desenhar_cabecalho_tabela()
                 pdf.set_font("Helvetica", "", 6.5)
@@ -597,67 +598,89 @@ class PDFTextGenerator:
             else:
                 pdf.set_text_color(126, 34, 206) # Roxo
             pdf.set_font("Helvetica", "B", 6.5)
-            pdf.cell(34, 4.6, sanitize_text(r.get("origem", "")[:24]), border=1, align="C", fill=fill)
+            pdf.cell(28, 4.6, sanitize_text(r.get("origem", "")[:20]), border=1, align="C", fill=fill)
 
             # Candidato
-            pdf.set_font("Helvetica", "" if not is_pret else "B", 6.5)
+            pdf.set_font("Helvetica", "" if not is_pret else "B", 6.2)
             pdf.set_text_color(15, 23, 42)
-            pdf.cell(74, 4.6, sanitize_text(r.get("nome_candidato", "")[:48]), border=1, align="L", fill=fill)
+            pdf.cell(62, 4.6, sanitize_text(r.get("nome_candidato", "")[:42]), border=1, align="L", fill=fill)
 
             # Classificação/CR
-            pdf.set_font("Helvetica", "B", 6.5)
+            pdf.set_font("Helvetica", "B", 6.2)
             pdf.set_text_color(71, 85, 105)
-            pdf.cell(25, 4.6, sanitize_text(r.get("classificacao_cr_str", "")), border=1, align="C", fill=fill)
+            pdf.cell(22, 4.6, sanitize_text(r.get("classificacao_cr_str", "")), border=1, align="C", fill=fill)
 
             # Data Posse
-            pdf.set_font("Helvetica", "", 6.5)
-            pdf.cell(25, 4.6, sanitize_text(r.get("data_posse_str", "") or "-"), border=1, align="C", fill=fill)
+            pdf.set_font("Helvetica", "", 6.2)
+            pdf.cell(22, 4.6, sanitize_text(r.get("data_posse_str", "") or "-"), border=1, align="C", fill=fill)
 
             # Exoneração
-            pdf.cell(25, 4.6, sanitize_text(r.get("data_exoneracao_str", "") or "-"), border=1, align="C", fill=fill)
+            pdf.cell(22, 4.6, sanitize_text(r.get("data_exoneracao_str", "") or "-"), border=1, align="C", fill=fill)
 
             # Status Atual
             st_badge = r.get("status_badge", "")
             st_lbl = r.get("status_label", "")
             if st_badge == "exonerado" or "exonerado" in st_lbl.lower() or r.get("data_exoneracao"):
                 pdf.set_text_color(71, 85, 105)
-                pdf.set_font("Helvetica", "", 6.5)
+                pdf.set_font("Helvetica", "", 6)
                 st_lbl = "Exonerado"
             elif r.get("data_posse") and not r.get("data_exoneracao"):
                 pdf.set_text_color(22, 101, 52)
-                pdf.set_font("Helvetica", "B", 6.5)
+                pdf.set_font("Helvetica", "B", 6)
                 st_lbl = "Em exercício"
             elif is_pos:
                 pdf.set_text_color(107, 33, 168)
                 pdf.set_font("Helvetica", "B", 5.5)
-                st_lbl = "Nomeado apos vigencia (Concurso 2022)"
+                st_lbl = "Apos vigencia CP"
             elif "exercício" in st_lbl.lower() or st_badge == "empossado":
                 pdf.set_text_color(22, 101, 52)
-                pdf.set_font("Helvetica", "B", 6.5)
+                pdf.set_font("Helvetica", "B", 6)
                 st_lbl = "Em exercício"
             elif "desistente" in st_lbl.lower():
                 pdf.set_text_color(159, 18, 57)
-                pdf.set_font("Helvetica", "B", 6.5)
+                pdf.set_font("Helvetica", "B", 6)
             else:
                 pdf.set_text_color(180, 83, 9)
-                pdf.set_font("Helvetica", "", 6.5)
-            pdf.cell(34, 4.6, sanitize_text(st_lbl), border=1, align="C", fill=fill)
+                pdf.set_font("Helvetica", "", 6)
+            pdf.cell(30, 4.6, sanitize_text(st_lbl), border=1, align="C", fill=fill)
 
-            # Apuração / Auditoria
-            pdf.set_font("Helvetica", "B" if (is_pret or is_pos) else "", 6)
+            # Apuração / Auditoria (com regras de cores solicitadas pelo auditor)
+            par_badge = r.get("parecer_ci_badge", "")
+            pdf.set_font("Helvetica", "B" if (is_pret or is_pos) else "", 5.8)
             if is_pret:
-                pdf.set_text_color(190, 18, 60)
+                if par_badge == "favoravel":
+                    pdf.set_text_color(234, 88, 12) # Laranja: parecer favorável
+                elif par_badge == "favoravel_ressalva":
+                    pdf.set_text_color(180, 83, 9) # Amarelo: favorável com ressalva
+                else:
+                    pdf.set_text_color(190, 18, 60) # Vermelho padrão (desfavorável)
                 apuracao_str = "Convocado PSS durante vigência de CP"
             elif is_pos:
                 pdf.set_text_color(107, 33, 168)
-                apuracao_str = "Pos-Vigencia: Convocado apos vigencia Concurso 2022"
+                apuracao_str = "Pos-Vigencia: Convocado apos vigencia CP"
             elif is_conc:
                 pdf.set_text_color(30, 64, 175)
                 apuracao_str = "Concurso Efetivo"
             else:
                 pdf.set_text_color(100, 116, 139)
                 apuracao_str = "Seletivo Regular"
-            pdf.cell(60, 4.6, sanitize_text(apuracao_str), border=1, align="L", fill=fill)
+            pdf.cell(54, 4.6, sanitize_text(apuracao_str), border=1, align="L", fill=fill)
+
+            # Parecer Controle Interno (Nova Coluna Solicitada)
+            pdf.set_font("Helvetica", "B", 6)
+            if is_conc:
+                pdf.set_text_color(148, 163, 184)
+                parecer_str = "-"
+            elif par_badge == "favoravel":
+                pdf.set_text_color(22, 101, 52) # Verde
+                parecer_str = "Favorável"
+            elif par_badge == "favoravel_ressalva":
+                pdf.set_text_color(180, 83, 9) # Amarelo
+                parecer_str = "Favorável c/ Ressalva"
+            else:
+                pdf.set_text_color(190, 18, 60) # Vermelho
+                parecer_str = "Desfavorável"
+            pdf.cell(37, 4.6, sanitize_text(parecer_str), border=1, align="C", fill=fill)
 
             pdf.ln()
 
@@ -665,7 +688,7 @@ class PDFTextGenerator:
         pdf.ln(3)
         pdf.set_font("Helvetica", "I", 6.5)
         pdf.set_text_color(100, 116, 139)
-        pdf.cell(0, 4, sanitize_text("Relatório gerado pelo SIAP - Sistema de Auditoria de Pessoal | LEGENDA: PSS - Processo Seletivo Simplificado | CP - Concurso Público | Controle Interno"), ln=True, align="C")
+        pdf.cell(0, 4, sanitize_text("Relatório gerado pelo SIAP | LEGENDA: PSS - Processo Seletivo Simplificado | CP - Concurso Público | Parecer Favorável indica a regularidade legal da contratação | Controle Interno"), ln=True, align="C")
 
         pdf.output(caminho_arquivo)
 

@@ -2639,6 +2639,7 @@ def modulo_relatorios_auditoria_pretericao(
     tipo_cargo: str = None,
     origem: str = "TODAS",
     status: str = "TODOS",
+    parecer_ci: str = "TODOS",
     apenas_pretericao: bool = False,
     busca: str = "",
     db: Session = Depends(get_db),
@@ -2659,7 +2660,8 @@ def modulo_relatorios_auditoria_pretericao(
         apenas_pretericao=apenas_pretericao,
         termo_busca=busca,
         id_certame_base=id_base,
-        seletivos_ids=seletivos_ids
+        seletivos_ids=seletivos_ids,
+        parecer_filtro=parecer_ci
     )
 
     return templates.TemplateResponse("modulo_relatorio_auditoria_pretericao.html", {
@@ -2677,6 +2679,7 @@ def modulo_relatorios_auditoria_pretericao(
         "cargo_ativo": dados["cargo_ativo"],
         "origem_filtro": dados["origem_filtro"],
         "status_filtro": dados["status_filtro"],
+        "parecer_filtro": dados.get("parecer_filtro", "TODOS"),
         "apenas_pretericao": dados["apenas_pretericao"],
         "termo_busca": dados["termo_busca"],
         "registros": dados["registros"],
@@ -2693,6 +2696,7 @@ def modulo_relatorios_auditoria_pretericao_pdf(
     tipo_cargo: str = None,
     origem: str = "TODAS",
     status: str = "TODOS",
+    parecer_ci: str = "TODOS",
     apenas_pretericao: bool = False,
     busca: str = "",
     db: Session = Depends(get_db),
@@ -2713,7 +2717,8 @@ def modulo_relatorios_auditoria_pretericao_pdf(
         apenas_pretericao=apenas_pretericao,
         termo_busca=busca,
         id_certame_base=id_base,
-        seletivos_ids=seletivos_ids
+        seletivos_ids=seletivos_ids,
+        parecer_filtro=parecer_ci
     )
 
     res = PDFTextGenerator.gerar_pdf_auditoria_pretericao(

@@ -1,3 +1,7 @@
+import os
+import json
+import re
+import unicodedata
 import datetime
 from datetime import date
 from sqlalchemy.orm import Session
@@ -8,6 +12,121 @@ from models import (
     ContratoTemporario, AuditoriaAchado, GravidadeAchadoEnum,
     CertameAbertura, CertameAnexo, CertameAnaliseTCE, ParecerTecnico, CertameFaseOficial, ParecerOficial
 )
+
+_PARECERES_CI_CACHE = None
+
+def carregar_pareceres_controle_interno():
+    global _PARECERES_CI_CACHE
+    if _PARECERES_CI_CACHE is not None:
+        return _PARECERES_CI_CACHE
+
+    json_path = os.path.join(os.path.dirname(__file__), "data", "pareceres_controle_interno.json")
+    if not os.path.exists(json_path):
+        _PARECERES_CI_CACHE = ([], {}, {})
+        return _PARECERES_CI_CACHE
+
+    try:
+        with open(json_path, "r", encoding="utf-8") as f:
+            lista = json.load(f)
+        by_cpf = {}
+        by_name = {}
+        for item in lista:
+            cpf = item.get("cpf")
+            name = item.get("norm_name")
+            if cpf:
+                by_cpf.setdefault(cpf, []).append(item)
+            if name:
+                by_name.setdefault(name, []).append(item)
+        _PARECERES_CI_CACHE = (lista, by_cpf, by_name)
+    except Exception as e:
+        print(f"Erro ao carregar pareceres controle interno: {e}")
+        _PARECERES_CI_CACHE = ([], {}, {})
+
+    return _PARECERES_CI_CACHE
+
+def avaliar_parecer_controle_interno(nome: str, cpf: str, posse_date, is_concurso: bool) -> dict:
+    if is_concurso:
+        return {
+            "parecer": "-",
+            "badge": "nao_se_aplica",
+            "cor": "slate",
+            "numero": "",
+            "motivo": ""
+        }
+
+    _, by_cpf, by_name = carregar_pareceres_controle_interno()
+    
+    clean_cpf = re.sub(r'\D', '', str(cpf or ''))
+    norm_name = ""
+    if nome:
+        text = unicodedata.normalize('NFKD', str(nome)).encode('ASCII', 'ignore').decode('utf-8')
+        norm_name = re.sub(r'[^A-Z0-9]', '', text.upper())
+
+    matches = []
+    if clean_cpf and clean_cpf in by_cpf:
+        matches = by_cpf[clean_cpf]
+    elif norm_name and norm_name in by_name:
+        matches = by_name[norm_name]
+
+    if not matches:
+        return {
+            "parecer": "Desfavorável",
+            "badge": "desfavoravel",
+            "cor": "red",
+            "numero": "",
+            "motivo": "Não localizado na base oficial de pareceres"
+        }
+
+    if len(matches) == 1:
+        best = matches[0]
+    else:
+        best = matches[0]
+        best_diff = 999999
+        target_date = None
+        if isinstance(posse_date, datetime.datetime):
+            target_date = posse_date.date()
+        elif isinstance(posse_date, datetime.date):
+            target_date = posse_date
+        elif posse_date and len(str(posse_date)) >= 10:
+            try:
+                target_date = datetime.datetime.strptime(str(posse_date)[:10], '%Y-%m-%d').date()
+            except:
+                pass
+
+        if target_date:
+            for m in matches:
+                dt_str = m.get("data_admissao")
+                if dt_str:
+                    try:
+                        m_date = datetime.datetime.strptime(dt_str, '%Y-%m-%d').date()
+                        diff = abs((m_date - target_date).days)
+                        if diff < best_diff:
+                            best_diff = diff
+                            best = m
+                    except:
+                        pass
+
+    op = best.get("opiniao", "Desfavorável")
+    if "RESSALVA" in op.upper():
+        op_norm = "Favorável com Ressalva"
+        badge = "favoravel_ressalva"
+        cor = "yellow"
+    elif "DESFAVOR" in op.upper():
+        op_norm = "Desfavorável"
+        badge = "desfavoravel"
+        cor = "red"
+    else:
+        op_norm = "Favorável"
+        badge = "favoravel"
+        cor = "orange"
+
+    return {
+        "parecer": op_norm,
+        "badge": badge,
+        "cor": cor,
+        "numero": best.get("parecer", ""),
+        "motivo": best.get("motivo", "")
+    }
 
 class AuditEngine:
     def __init__(self, db: Session):
@@ -1800,7 +1919,8 @@ class AuditEngine:
         apenas_pretericao: bool = False,
         termo_busca: str = None,
         id_certame_base: int = 1,
-        seletivos_ids: list = None
+        seletivos_ids: list = None,
+        parecer_filtro: str = "TODOS"
     ) -> dict:
         import unicodedata
         import re
@@ -2098,6 +2218,13 @@ class AuditEngine:
                 else:
                     motivo_auditoria = "CR Concurso Chamado"
 
+            par_info = avaliar_parecer_controle_interno(
+                nome=c.nome_completo,
+                cpf=c.cpf,
+                posse_date=posse_date,
+                is_concurso=is_concurso
+            )
+
             reg = {
                 "id_candidato": c.id_candidato,
                 "nome_candidato": c.nome_completo,
@@ -2126,7 +2253,12 @@ class AuditEngine:
                 "is_pre_vigencia": is_pre_vigencia,
                 "motivo_pretericao": motivo_pretericao,
                 "motivo_auditoria": motivo_auditoria,
-                "data_partida_cargo": data_partida_cargo
+                "data_partida_cargo": data_partida_cargo,
+                "parecer_ci": par_info["parecer"],
+                "parecer_ci_badge": par_info["badge"],
+                "parecer_ci_numero": par_info["numero"],
+                "parecer_ci_motivo": par_info["motivo"],
+                "cor_convocacao_pss": par_info["cor"]
             }
 
             lista_completa.append(reg)
@@ -2189,12 +2321,22 @@ class AuditEngine:
             if apenas_pretericao and not r["is_pretericao"]:
                 continue
 
+            # Filtro por Parecer do Controle Interno
+            if parecer_filtro and parecer_filtro != "TODOS":
+                if parecer_filtro == "FAVORAVEL" and r.get("parecer_ci_badge") != "favoravel":
+                    continue
+                elif parecer_filtro == "DESFAVORAVEL" and r.get("parecer_ci_badge") != "desfavoravel":
+                    continue
+                elif parecer_filtro == "RESSALVA" and r.get("parecer_ci_badge") != "favoravel_ressalva":
+                    continue
+
             if termo_busca:
                 tb = termo_busca.lower().strip()
                 if (tb not in r["nome_candidato"].lower() and 
                     tb not in (r["cpf"] or "").lower() and 
                     tb not in r["origem"].lower() and 
-                    tb not in r["status_label"].lower()):
+                    tb not in r["status_label"].lower() and
+                    tb not in (r.get("parecer_ci") or "").lower()):
                     continue
 
             registros_filtrados.append(r)
@@ -2234,6 +2376,9 @@ class AuditEngine:
             "aguardando_cr": sum(1 for r in registros_filtrados if r["status_badge"] == "aguardando"),
             "alertas_pretericao": sum(1 for r in registros_filtrados if r["is_pretericao"]),
             "nomeados_pos_vigencia": sum(1 for r in registros_filtrados if r.get("is_pos_vigencia")),
+            "pareceres_favoraveis": sum(1 for r in registros_filtrados if r.get("parecer_ci_badge") == "favoravel"),
+            "pareceres_desfavoraveis": sum(1 for r in registros_filtrados if r.get("parecer_ci_badge") == "desfavoravel"),
+            "pareceres_ressalva": sum(1 for r in registros_filtrados if r.get("parecer_ci_badge") == "favoravel_ressalva"),
             "concurso_inicio": concurso_inicio,
             "concurso_fim": concurso_fim,
             "concurso_inicio_str": concurso_inicio.strftime("%d/%m/%Y"),
@@ -2241,7 +2386,8 @@ class AuditEngine:
             "concurso_numero": num_concurso_ref,
             "concurso_ano": ano_concurso_ref,
             "data_partida_cargo": dt_partida_cargo_ativo,
-            "data_partida_cargo_str": dt_partida_cargo_ativo.strftime("%d/%m/%Y")
+            "data_partida_cargo_str": dt_partida_cargo_ativo.strftime("%d/%m/%Y"),
+            "parecer_filtro": parecer_filtro or "TODOS"
         }
 
         return {
@@ -2257,6 +2403,7 @@ class AuditEngine:
             "cargo_ativo": cargo_ativo,
             "origem_filtro": origem_filtro or "TODAS",
             "status_filtro": status_filtro or "TODOS",
+            "parecer_filtro": parecer_filtro or "TODOS",
             "apenas_pretericao": apenas_pretericao,
             "termo_busca": termo_busca or "",
             "registros": registros_filtrados,

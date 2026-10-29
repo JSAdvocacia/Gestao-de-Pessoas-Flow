@@ -175,7 +175,7 @@
                 <button type="button" onclick="window.print()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-black px-4 py-2 rounded-xl text-xs shadow-lg transition flex items-center">
                     <i class="fa-solid fa-print mr-2 text-slate-950"></i> Imprimir / Salvar PDF
                 </button>
-                <a href="/modulo/relatorios/pretericao/pdf?id_certame={{ id_certame_base }}&tipo_cargo={{ cargo_ativo | urlencode }}{% if origem_filtro %}&origem={{ origem_filtro | urlencode }}{% endif %}{% if apenas_pretericao %}&apenas_pretericao=true{% endif %}{% for sid in seletivos_ativos_ids %}&seletivos={{ sid }}{% endfor %}" target="_blank" class="bg-rose-700 hover:bg-rose-600 text-white font-bold px-3.5 py-2 rounded-xl text-xs transition flex items-center shadow-lg">
+                <a href="/modulo/relatorios/pretericao/pdf?id_certame={{ id_certame_base }}&tipo_cargo={{ cargo_ativo | urlencode }}{% if origem_filtro %}&origem={{ origem_filtro | urlencode }}{% endif %}{% if status_filtro %}&status={{ status_filtro | urlencode }}{% endif %}{% if parecer_filtro %}&parecer_ci={{ parecer_filtro | urlencode }}{% endif %}{% if apenas_pretericao %}&apenas_pretericao=true{% endif %}{% for sid in seletivos_ativos_ids %}&seletivos={{ sid }}{% endfor %}" target="_blank" class="bg-rose-700 hover:bg-rose-600 text-white font-bold px-3.5 py-2 rounded-xl text-xs transition flex items-center shadow-lg">
                     <i class="fa-solid fa-file-pdf mr-2"></i> Baixar PDF Oficial
                 </a>
             </div>
@@ -315,9 +315,9 @@
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
                     
                     <!-- FILTRAGEM POR TIPO DE CARGO -->
-                    <div class="md:col-span-4">
+                    <div class="md:col-span-3">
                         <label class="block text-[10px] font-black uppercase tracking-wider text-amber-400 mb-1">
-                            <i class="fa-solid fa-briefcase mr-1"></i> Filtrar por Tipo de Cargo
+                            <i class="fa-solid fa-briefcase mr-1"></i> Tipo de Cargo
                         </label>
                         <select name="tipo_cargo" onchange="document.getElementById('formFiltros').submit()" class="w-full bg-slate-950 border border-amber-500/50 text-white text-xs font-bold rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-amber-500 focus:outline-none">
                             <option value="TODOS" {% if cargo_ativo == 'TODOS' %}selected{% endif %}>
@@ -361,25 +361,45 @@
                         </select>
                     </div>
 
-                    <!-- BUSCA TEXTUAL INSTANTÂNEA -->
+                    <!-- FILTRAR POR PARECER CONTROLE INTERNO -->
                     <div class="md:col-span-2">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                            Parecer C. Interno
+                        </label>
+                        <select name="parecer_ci" onchange="document.getElementById('formFiltros').submit()" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                            <option value="TODOS" {% if parecer_filtro == 'TODOS' %}selected{% endif %}>Todos os Pareceres</option>
+                            <option value="FAVORAVEL" {% if parecer_filtro == 'FAVORAVEL' %}selected{% endif %}>Favorável</option>
+                            <option value="DESFAVORAVEL" {% if parecer_filtro == 'DESFAVORAVEL' %}selected{% endif %}>Desfavorável</option>
+                            <option value="RESSALVA" {% if parecer_filtro == 'RESSALVA' %}selected{% endif %}>Favorável com Ressalva</option>
+                        </select>
+                    </div>
+
+                    <!-- BUSCA TEXTUAL INSTANTÂNEA -->
+                    <div class="md:col-span-3">
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
                             Buscar Candidato
                         </label>
                         <div class="relative">
-                            <input type="text" id="inputBusca" name="busca" value="{{ termo_busca }}" placeholder="Digitar nome..." onkeyup="filtrarTabelaLocal()" class="w-full bg-slate-950 border border-slate-700 text-white text-xs rounded-xl pl-8 pr-3 py-2.5 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                            <input type="text" id="inputBusca" name="busca" value="{{ termo_busca }}" placeholder="Digitar nome ou parecer..." onkeyup="filtrarTabelaLocal()" class="w-full bg-slate-950 border border-slate-700 text-white text-xs rounded-xl pl-8 pr-3 py-2.5 focus:ring-2 focus:ring-amber-500 focus:outline-none">
                             <i class="fa-solid fa-magnifying-glass text-slate-500 absolute left-2.5 top-3 text-xs"></i>
                         </div>
                     </div>
 
                     <!-- CHECKBOX APENAS POSSÍVEL PRETERIÇÃO -->
-                    <div class="md:col-span-2 flex items-center h-10">
-                        <label class="flex items-center space-x-2 cursor-pointer bg-slate-950/80 border border-slate-800 hover:border-rose-500/60 px-3 py-2 rounded-xl transition w-full">
+                    <div class="md:col-span-12 flex items-center justify-between pt-1">
+                        <label class="flex items-center space-x-2 cursor-pointer bg-slate-950/80 border border-slate-800 hover:border-rose-500/60 px-3 py-2 rounded-xl transition">
                             <input type="checkbox" name="apenas_pretericao" value="true" {% if apenas_pretericao %}checked{% endif %} onchange="document.getElementById('formFiltros').submit()" class="w-4 h-4 text-rose-600 rounded focus:ring-rose-500 focus:ring-offset-slate-900 border-slate-700">
                             <span class="text-xs font-bold text-rose-300 flex items-center">
-                                <i class="fa-solid fa-triangle-exclamation mr-1 text-[10px]"></i> Apenas Convocados PSS durante vigência de CP
+                                <i class="fa-solid fa-triangle-exclamation mr-1.5 text-xs text-rose-400"></i> Apenas Convocados PSS durante vigência de CP
                             </span>
                         </label>
+                        <div class="text-[11px] text-slate-400 flex items-center space-x-3">
+                            <span><strong class="text-emerald-400">{{ totais.pareceres_favoraveis }}</strong> Favoráveis</span>
+                            <span>•</span>
+                            <span><strong class="text-rose-400">{{ totais.pareceres_desfavoraveis }}</strong> Desfavoráveis</span>
+                            <span>•</span>
+                            <span><strong class="text-amber-400">{{ totais.pareceres_ressalva }}</strong> c/ Ressalva</span>
+                        </div>
                     </div>
 
                 </div>
@@ -439,22 +459,29 @@
                 </div>
             </div>
 
-            <!-- LEGENDA EXPLICATIVA DAS SIGLAS (SOLICITADO PELO AUDITOR) -->
-            <div class="mb-4 flex items-center justify-between flex-wrap gap-2 bg-blue-50/90 border border-blue-200 rounded-xl px-4 py-2 text-xs">
-                <div class="flex items-center space-x-3">
+            <!-- LEGENDA EXPLICATIVA DAS SIGLAS E PARECERES -->
+            <div class="mb-4 flex items-center justify-between flex-wrap gap-2 bg-blue-50/90 border border-blue-200 rounded-xl px-4 py-2.5 text-xs">
+                <div class="flex items-center flex-wrap gap-2">
                     <span class="font-black text-blue-950 flex items-center uppercase tracking-wider text-[11px]">
                         <i class="fa-solid fa-circle-info text-blue-600 mr-1.5"></i> Legenda:
                     </span>
                     <span class="inline-flex items-center text-slate-800 font-bold text-[11px]">
-                        <span class="bg-blue-600 text-white font-black px-1.5 py-0.5 rounded text-[10px] mr-1.5 shadow-sm">CP</span> Concurso Público
+                        <span class="bg-blue-600 text-white font-black px-1.5 py-0.5 rounded text-[10px] mr-1 shadow-sm">CP</span> Concurso Público
                     </span>
                     <span class="text-blue-300 font-bold">•</span>
                     <span class="inline-flex items-center text-slate-800 font-bold text-[11px]">
-                        <span class="bg-purple-600 text-white font-black px-1.5 py-0.5 rounded text-[10px] mr-1.5 shadow-sm">PSS</span> Processo Seletivo Simplificado
+                        <span class="bg-purple-600 text-white font-black px-1.5 py-0.5 rounded text-[10px] mr-1 shadow-sm">PSS</span> Processo Seletivo Simplificado
+                    </span>
+                    <span class="text-blue-300 font-bold">•</span>
+                    <span class="inline-flex items-center text-emerald-900 font-bold text-[11px]">
+                        <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Parecer Favorável indica a regularidade legal da contratação.
                     </span>
                 </div>
-                <div class="text-[10.5px] text-blue-900 font-semibold">
-                    <span class="text-rose-700 font-black mr-1">⚠️ Convocado PSS durante vigência de CP:</span> Apuração de candidatos admitidos via seletivo enquanto o concurso estava vigente.
+                <div class="text-[10.5px] text-slate-600 font-medium">
+                    <span class="font-bold text-slate-800">Cores na Apuração:</span> 
+                    <span class="text-orange-600 font-black ml-1">Laranja</span> = Parecer Favorável | 
+                    <span class="text-amber-600 font-black ml-1">Amarelo</span> = Favorável c/ Ressalva | 
+                    <span class="text-rose-600 font-black ml-1">Vermelho</span> = Desfavorável
                 </div>
             </div>
 
@@ -464,7 +491,7 @@
                     <thead class="bg-slate-900 text-slate-100 uppercase font-black text-[10px] tracking-wider border-b border-slate-700">
                         <tr>
                             <!-- 1. ORIGEM -->
-                            <th class="py-2.5 px-3 text-center w-[14%] border-r border-slate-700 cursor-pointer" onclick="ordenarTabela(0)">
+                            <th class="py-2.5 px-3 text-center w-[12%] border-r border-slate-700 cursor-pointer" onclick="ordenarTabela(0)">
                                 Origem <i class="fa-solid fa-sort ml-1 text-slate-400 text-[9px]"></i>
                             </th>
                             <!-- 2. CANDIDATO -->
@@ -472,24 +499,28 @@
                                 Candidato <i class="fa-solid fa-sort ml-1 text-slate-400 text-[9px]"></i>
                             </th>
                             <!-- 3. CLASSIFICAÇÃO/CR -->
-                            <th class="py-2.5 px-2 text-center w-[12%] min-w-[105px] whitespace-nowrap border-r border-slate-700 cursor-pointer" onclick="ordenarTabela(2)">
-                                Classificação/CR <i class="fa-solid fa-sort ml-1 text-slate-400 text-[9px]"></i>
+                            <th class="py-2.5 px-2 text-center w-[9%] min-w-[85px] whitespace-nowrap border-r border-slate-700 cursor-pointer" onclick="ordenarTabela(2)">
+                                Classif./CR <i class="fa-solid fa-sort ml-1 text-slate-400 text-[9px]"></i>
                             </th>
                             <!-- 4. DATA DA POSSE -->
-                            <th class="py-2.5 px-2 text-center w-[12%] min-w-[105px] whitespace-nowrap border-r border-slate-700 cursor-pointer" onclick="ordenarTabela(3)">
-                                Data da Posse <i class="fa-solid fa-sort ml-1 text-slate-400 text-[9px]"></i>
+                            <th class="py-2.5 px-2 text-center w-[9%] min-w-[85px] whitespace-nowrap border-r border-slate-700 cursor-pointer" onclick="ordenarTabela(3)">
+                                Data Posse <i class="fa-solid fa-sort ml-1 text-slate-400 text-[9px]"></i>
                             </th>
                             <!-- 5. EXONERAÇÃO -->
-                            <th class="py-2.5 px-2 text-center w-[11%] min-w-[95px] whitespace-nowrap border-r border-slate-700 cursor-pointer" onclick="ordenarTabela(4)">
+                            <th class="py-2.5 px-2 text-center w-[9%] min-w-[85px] whitespace-nowrap border-r border-slate-700 cursor-pointer" onclick="ordenarTabela(4)">
                                 Exoneração <i class="fa-solid fa-sort ml-1 text-slate-400 text-[9px]"></i>
                             </th>
                             <!-- 6. STATUS ATUAL -->
-                            <th class="py-2.5 px-3 text-center w-[13%] border-r border-slate-700 cursor-pointer" onclick="ordenarTabela(5)">
+                            <th class="py-2.5 px-3 text-center w-[11%] border-r border-slate-700 cursor-pointer" onclick="ordenarTabela(5)">
                                 Status Atual <i class="fa-solid fa-sort ml-1 text-slate-400 text-[9px]"></i>
                             </th>
                             <!-- 7. APURAÇÃO / AUDITORIA -->
-                            <th class="py-2.5 px-3 text-center w-[14%] cursor-pointer" onclick="ordenarTabela(6)">
+                            <th class="py-2.5 px-3 text-center w-[14%] border-r border-slate-700 cursor-pointer" onclick="ordenarTabela(6)">
                                 Apuração / Auditoria <i class="fa-solid fa-sort ml-1 text-slate-400 text-[9px]"></i>
+                            </th>
+                            <!-- 8. PARECER CONTROLE INTERNO -->
+                            <th class="py-2.5 px-3 text-center w-[12%] cursor-pointer" onclick="ordenarTabela(7)">
+                                Parecer Controle Interno <i class="fa-solid fa-sort ml-1 text-slate-400 text-[9px]"></i>
                             </th>
                         </tr>
                     </thead>
@@ -568,11 +599,21 @@
                                 </td>
 
                                 <!-- APURAÇÃO / AUDITORIA -->
-                                <td class="py-2 px-3 text-center whitespace-nowrap">
+                                <td class="py-2 px-3 text-center whitespace-nowrap border-r border-slate-200">
                                     {% if r.is_pretericao %}
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-rose-100 text-rose-900 border border-rose-400 badge-print-alerta" title="{{ r.motivo_pretericao }}">
-                                        <i class="fa-solid fa-triangle-exclamation mr-1 text-rose-600"></i> Convocado PSS durante vigência de CP
-                                    </span>
+                                        {% if r.parecer_ci_badge == 'favoravel' %}
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-orange-100 text-orange-800 border border-orange-400 shadow-sm" title="{{ r.motivo_pretericao }}">
+                                            <i class="fa-solid fa-triangle-exclamation mr-1 text-orange-600"></i> Convocado PSS durante vigência de CP
+                                        </span>
+                                        {% elif r.parecer_ci_badge == 'favoravel_ressalva' %}
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-400 shadow-sm" title="{{ r.motivo_pretericao }}">
+                                            <i class="fa-solid fa-triangle-exclamation mr-1 text-amber-600"></i> Convocado PSS durante vigência de CP
+                                        </span>
+                                        {% else %}
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-rose-100 text-rose-900 border border-rose-400 badge-print-alerta" title="{{ r.motivo_pretericao }}">
+                                            <i class="fa-solid fa-triangle-exclamation mr-1 text-rose-600"></i> Convocado PSS durante vigência de CP
+                                        </span>
+                                        {% endif %}
                                     {% elif r.is_pos_vigencia %}
                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-800 border border-purple-200" title="{{ r.motivo_auditoria }}">
                                         <i class="fa-solid fa-calendar-xmark mr-1 text-purple-600"></i> Pós-vigência (Concurso {{ totais.concurso_ano }})
@@ -587,11 +628,30 @@
                                     </span>
                                     {% endif %}
                                 </td>
+
+                                <!-- 8. PARECER CONTROLE INTERNO (NOVA COLUNA) -->
+                                <td class="py-2 px-3 text-center whitespace-nowrap">
+                                    {% if r.is_concurso %}
+                                    <span class="text-slate-400 font-mono text-[11px]">-</span>
+                                    {% elif r.parecer_ci_badge == 'favoravel' %}
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-sm" title="{% if r.parecer_ci_numero %}Parecer nº {{ r.parecer_ci_numero }}{% endif %}{% if r.parecer_ci_motivo %} - {{ r.parecer_ci_motivo }}{% endif %}">
+                                        <i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> Favorável
+                                    </span>
+                                    {% elif r.parecer_ci_badge == 'favoravel_ressalva' %}
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-400 shadow-sm" title="{% if r.parecer_ci_numero %}Parecer nº {{ r.parecer_ci_numero }}{% endif %}{% if r.parecer_ci_motivo %} - {{ r.parecer_ci_motivo }}{% endif %}">
+                                        <i class="fa-solid fa-triangle-exclamation mr-1 text-amber-600"></i> Favorável com Ressalva
+                                    </span>
+                                    {% else %}
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-rose-100 text-rose-800 border border-rose-300 shadow-sm" title="{% if r.parecer_ci_numero %}Parecer nº {{ r.parecer_ci_numero }}{% endif %}{% if r.parecer_ci_motivo %} - {{ r.parecer_ci_motivo }}{% else %}Não localizado na relação oficial de pareceres{% endif %}">
+                                        <i class="fa-solid fa-circle-xmark mr-1 text-rose-600"></i> Desfavorável
+                                    </span>
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% endfor %}
                         {% else %}
                             <tr>
-                                <td colspan="7" class="py-8 text-center text-slate-500">
+                                <td colspan="8" class="py-8 text-center text-slate-500">
                                     <i class="fa-solid fa-inbox text-2xl mb-2 text-slate-400"></i>
                                     <p class="font-bold">Nenhum registro encontrado para os filtros selecionados.</p>
                                 </td>
@@ -615,9 +675,14 @@
                             <td class="py-2.5 px-3 text-center text-[10px] text-slate-600">
                                 {{ totais.desistencias }} Desistências
                             </td>
-                            <td class="py-2.5 px-3 text-center font-black text-[11px]">
+                            <td class="py-2.5 px-3 text-center font-black text-[11px] border-r border-slate-200">
                                 <span class="text-rose-700 block">⚠️ {{ totais.alertas_pretericao }} Convocado(s) PSS durante vigência de CP</span>
                                 <span class="text-purple-700 block text-[9px] font-bold">{{ totais.nomeados_pos_vigencia }} Pós-Vigência</span>
+                            </td>
+                            <td class="py-2.5 px-3 text-center text-[10px] font-bold">
+                                <span class="text-emerald-700 block">{{ totais.pareceres_favoraveis }} Favorável</span>
+                                <span class="text-rose-700 block">{{ totais.pareceres_desfavoraveis }} Desfavorável</span>
+                                <span class="text-amber-700 block">{{ totais.pareceres_ressalva }} c/ Ressalva</span>
                             </td>
                         </tr>
                     </tfoot>
@@ -637,6 +702,9 @@
                 </p>
                 <p>
                     <strong>3. Legenda Oficial de Siglas:</strong> <strong>PSS</strong> - Processo Seletivo Simplificado | <strong>CP</strong> - Concurso Público.
+                </p>
+                <p>
+                    <strong>4. Parecer do Controle Interno:</strong> Parecer Favorável indica a regularidade legal da contratação temporária (ex.: substituição documentada de servidor efetivo ou aumento de demanda). Parecer Desfavorável indica contratação sem motivação legal ou para vaga livre permanente.
                 </p>
             </div>
 
