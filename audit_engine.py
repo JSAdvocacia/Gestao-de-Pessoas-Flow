@@ -496,7 +496,7 @@ class AuditEngine:
             f"devendo o órgão sanar a ressalva apontada quanto à especificação da licenciatura no plano de cargos."
         )
 
-        parecer.auditor_responsavel = "Jansen de Pinho e Silva - Controladoria e Auditoria Municipal"
+        parecer.auditor_responsavel = "Jansen de Pinho e Silva - Técnico em Auditoria"
         parecer.data_emissao = date.today()
         parecer.status = "RASCUNHO_EDITAVEL"
 
@@ -584,7 +584,7 @@ class AuditEngine:
                 f"apresentam conformidade geral, porém recomendam-se ressalvas formais para que a administração mantenha a vigilância na publicação tempestiva dos decretos finais e resposta individualizada a eventuais recursos pendentes antes das nomeações."
             )
 
-        parecer_oficial.auditor_responsavel = "Jansen de Pinho e Silva - Controladoria e Auditoria Municipal"
+        parecer_oficial.auditor_responsavel = "Jansen de Pinho e Silva - Técnico em Auditoria"
         parecer_oficial.data_emissao = date.today()
         parecer_oficial.status = "RASCUNHO_EDITAVEL"
 
@@ -732,7 +732,7 @@ class AuditEngine:
                 f"recomenda-se o prosseguimento das convocações para atendimento do interesse público."
             )
 
-        parecer_oficial.auditor_responsavel = "Jansen de Pinho e Silva - Controladoria e Auditoria Municipal (Audit-IA)"
+        parecer_oficial.auditor_responsavel = "Jansen de Pinho e Silva - Técnico em Auditoria"
         parecer_oficial.data_emissao = date.today()
         parecer_oficial.status = "RASCUNHO_EDITAVEL"
 
@@ -1393,13 +1393,13 @@ class AuditEngine:
         dt_inscricoes = fase_oficial.data_homologacao_inscricoes if (fase_oficial and fase_oficial.data_homologacao_inscricoes) else date(2022, 8, 1)
         dt_homologacao = (
             fase_oficial.data_homologacao_resultado_final if (fase_oficial and fase_oficial.data_homologacao_resultado_final)
-            else (concurso.data_homologacao if concurso else date(2022, 10, 14))
+            else (concurso.data_homologacao if concurso else date(2022, 10, 13))
         )
         dt_provas = fase_oficial.data_realizacao_provas if (fase_oficial and fase_oficial.data_realizacao_provas and fase_oficial.data_realizacao_provas <= dt_homologacao) else date(dt_homologacao.year, 9, 11)
         dt_parcial = fase_oficial.data_resultado_parcial if (fase_oficial and fase_oficial.data_resultado_parcial and fase_oficial.data_resultado_parcial <= dt_homologacao) else date(dt_homologacao.year, 10, 6)
         
         dt_inicio_vigencia = dt_homologacao
-        dt_validade_final = concurso.data_validade_final if (concurso and concurso.data_validade_final) else date(2024, 10, 14)
+        dt_validade_final = concurso.data_validade_final if (concurso and concurso.data_validade_final) else date(2024, 10, 13)
         hoje = date.today()
         dias_vigencia = (dt_validade_final - dt_inicio_vigencia).days if (dt_validade_final and dt_inicio_vigencia) else 730
         is_expirado = bool((dt_validade_final and dt_validade_final < hoje) or (concurso and concurso.status == 'EXPIRADO'))
@@ -1897,8 +1897,8 @@ class AuditEngine:
         certame_base = self.db.query(CertameAbertura).filter_by(id_certame=id_certame_base).first()
         concurso_base = self.db.query(Concurso).filter_by(id_certame=id_certame_base).first() if certame_base else None
         
-        concurso_inicio = parse_iso_date(concurso_base.data_homologacao) if concurso_base and concurso_base.data_homologacao else date(2022, 10, 14)
-        concurso_fim = parse_iso_date(concurso_base.data_validade_final) if concurso_base and concurso_base.data_validade_final else date(2024, 10, 14)
+        concurso_inicio = parse_iso_date(concurso_base.data_homologacao) if concurso_base and concurso_base.data_homologacao else date(2022, 10, 13)
+        concurso_fim = parse_iso_date(concurso_base.data_validade_final) if concurso_base and concurso_base.data_validade_final else date(2024, 10, 13)
         ano_concurso_ref = certame_base.ano if certame_base else 2022
         num_concurso_ref = certame_base.numero_certame if certame_base else "001/2022"
 

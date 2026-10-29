@@ -343,7 +343,7 @@ class ParecerTecnico(Base):
     prazos_isencoes_texto = Column(Text)
     conclusao_parecer_texto = Column(Text)
     
-    auditor_responsavel = Column(String(150), default="Jansen de Pinho e Silva - Controladoria e Auditoria Municipal")
+    auditor_responsavel = Column(String(150), default="Jansen de Pinho e Silva - Técnico em Auditoria")
     data_emissao = Column(Date, default=date.today)
     status = Column(String(30), default="RASCUNHO_EDITAVEL") # RASCUNHO_EDITAVEL, DEFINITIVO_EMITIDO
 

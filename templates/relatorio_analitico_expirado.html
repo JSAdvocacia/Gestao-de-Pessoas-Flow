@@ -82,7 +82,7 @@
                     MODALIDADE: {{ certame.modalidade }}
                 </span>
                 <span class="bg-slate-100 border border-slate-300 px-3 py-1 rounded-lg font-bold text-slate-800">
-                    VALIDADE FINAL: {{ concurso.data_validade_final.strftime('%d/%m/%Y') if (concurso and concurso.data_validade_final) else '14/10/2024' }}
+                    VALIDADE FINAL: {{ concurso.data_validade_final.strftime('%d/%m/%Y') if (concurso and concurso.data_validade_final) else '13/10/2024' }}
                 </span>
                 <span class="bg-rose-100 border border-rose-300 px-3 py-1 rounded-lg font-bold text-rose-800">
                     SITUAÇÃO: CONCURSO EXPIRADO
@@ -109,10 +109,10 @@
 
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
                     <h4 class="font-extrabold text-slate-900 uppercase text-[11px]">Fase Oficial, Homologação e Validade</h4>
-                    <p>A condução do certame foi realizada pela banca <strong>{{ certame.banca_examinadora }}</strong>. O resultado final foi homologado em <strong>{{ concurso.data_homologacao.strftime('%d/%m/%Y') if (concurso and concurso.data_homologacao) else '14/10/2022' }}</strong>.</p>
+                    <p>A condução do certame foi realizada pela banca <strong>{{ certame.banca_examinadora }}</strong>. O resultado final foi homologado em <strong>{{ concurso.data_homologacao.strftime('%d/%m/%Y') if (concurso and concurso.data_homologacao) else '13/10/2022' }}</strong>.</p>
                     <ul class="list-disc pl-4 space-y-1 text-[11px] text-slate-600">
                         <li><strong>Prazo Inicial de Validade:</strong> 2 (dois) anos.</li>
-                        <li><strong>Data Limite de Vigência:</strong> {{ concurso.data_validade_final.strftime('%d/%m/%Y') if (concurso and concurso.data_validade_final) else '14/10/2024' }}.</li>
+                        <li><strong>Data Limite de Vigência:</strong> {{ concurso.data_validade_final.strftime('%d/%m/%Y') if (concurso and concurso.data_validade_final) else '13/10/2024' }}.</li>
                         <li><strong>Status de Vigência:</strong> Certame integralmente expirado.</li>
                         <li><strong>Efeito Jurídico:</strong> Encerramento definitivo do provimento do cadastro de reserva.</li>
                     </ul>
