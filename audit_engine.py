@@ -1500,6 +1500,7 @@ class AuditEngine:
         certame = self.db.query(CertameAbertura).filter_by(id_certame=certame_id).first()
         concurso = self.db.query(Concurso).filter_by(id_certame=certame_id).first()
         fase_oficial = self.db.query(CertameFaseOficial).filter_by(id_certame=certame_id).first()
+        is_concurso = bool(certame and "CONCURSO" in (certame.modalidade or "").upper())
         parecer_tecnico = self.db.query(ParecerTecnico).filter_by(id_certame=certame_id).first()
         parecer_oficial = self.db.query(ParecerOficial).filter_by(id_certame=certame_id).first()
         atos_vigencia = self.db.query(CertameVigenciaAto).filter_by(id_certame=certame_id).order_by(CertameVigenciaAto.data_publicacao.asc()).all()
@@ -1779,6 +1780,7 @@ class AuditEngine:
         certame = self.db.query(CertameAbertura).filter_by(id_certame=certame_id).first()
         concurso = self.db.query(Concurso).filter_by(id_certame=certame_id).first()
         fase_oficial = self.db.query(CertameFaseOficial).filter_by(id_certame=certame_id).first()
+        is_concurso = bool(certame and "CONCURSO" in (certame.modalidade or "").upper())
 
         todos_candidatos = self.db.query(Candidato).filter_by(id_certame=certame_id).order_by(Candidato.id_cargo, Candidato.classificacao_original).all()
 
@@ -1862,7 +1864,7 @@ class AuditEngine:
                     badge_tipo = "convocado"
 
                 dt_ini_str = c.data_posse.strftime("%d/%m/%Y") if getattr(c, 'data_posse', None) else "-"
-                dt_fim_str = c.data_exoneracao.strftime("%d/%m/%Y") if getattr(c, 'data_exoneracao', None) else ("Vigente" if badge_tipo == "empossado" else "-")
+                dt_fim_str = c.data_exoneracao.strftime("%d/%m/%Y") if getattr(c, 'data_exoneracao', None) else ("Em Exercício" if (badge_tipo == "empossado" and is_concurso) else ("Vigente" if badge_tipo == "empossado" else "-"))
 
                 cands_fmt.append({
                     "id_candidato": c.id_candidato,
@@ -1906,7 +1908,8 @@ class AuditEngine:
             "grupos_cargos": grupos_cargos,
             "totais": totais,
             "data_hoje": date.today(),
-            "is_expirado": True
+            "is_expirado": True,
+            "is_concurso": is_concurso
         }
 
 

@@ -559,8 +559,13 @@
                                     <th class="py-2 px-3 border-r border-slate-800 text-left w-[32%]">Nome do Candidato</th>
                                     <th class="py-2 px-3 border-r border-slate-800 text-left w-[24%]">Cargo</th>
                                     <th class="py-2 px-1 text-center border-r border-slate-800 w-[7%]">Cota</th>
+                                    {% if is_concurso or (certame and 'CONCURSO' in (certame.modalidade or '').upper()) %}
+                                    <th class="py-2 px-2 text-center border-r border-slate-800 w-[10%]">Data Posse</th>
+                                    <th class="py-2 px-2 text-center border-r border-slate-800 w-[10%]">Data Exoneração</th>
+                                    {% else %}
                                     <th class="py-2 px-2 text-center border-r border-slate-800 w-[10%]">Início Vigência</th>
                                     <th class="py-2 px-2 text-center border-r border-slate-800 w-[10%]">Fim Vigência</th>
+                                    {% endif %}
                                     <th class="py-2 px-2 text-center w-[10%]">Situação Final</th>
                                 </tr>
                             </thead>
@@ -605,9 +610,9 @@
 
                                     <!-- 6. FIM VIGÊNCIA DO CONTRATO -->
                                     <td class="py-2 px-3 text-center font-mono text-[11px] font-bold text-slate-700 border-r border-slate-200 whitespace-nowrap">
-                                        {% if cand.data_fim_vigencia == 'Vigente' %}
+                                        {% if cand.data_fim_vigencia in ['Vigente', 'Em Exercício'] %}
                                         <span class="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded border border-emerald-200 font-bold">
-                                            Vigente
+                                            {{ cand.data_fim_vigencia }}
                                         </span>
                                         {% elif cand.data_fim_vigencia != '-' %}
                                         <span class="bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded border border-amber-200">
@@ -953,7 +958,10 @@
         // Exportação Dinâmica do Rol Nominal para CSV
         function exportarRolNominalCSV() {
             let csv = [];
-            csv.push(['"CÓDIGO CARGO"', '"CARGO"', '"CLASSIFICAÇÃO"', '"NOME DO CANDIDATO"', '"COTA"', '"INÍCIO VIGÊNCIA"', '"FIM VIGÊNCIA"', '"SITUAÇÃO FINAL"'].join(';'));
+            const isConcurso = {{ 'true' if (is_concurso or (certame and 'CONCURSO' in (certame.modalidade or '').upper())) else 'false' }};
+            const colIni = isConcurso ? '"DATA POSSE"' : '"INÍCIO VIGÊNCIA"';
+            const colFim = isConcurso ? '"DATA EXONERAÇÃO"' : '"FIM VIGÊNCIA"';
+            csv.push(['"CÓDIGO CARGO"', '"CARGO"', '"CLASSIFICAÇÃO"', '"NOME DO CANDIDATO"', '"COTA"', colIni, colFim, '"SITUAÇÃO FINAL"'].join(';'));
 
             const blocos = document.querySelectorAll('.bloco-cargo');
             blocos.forEach(bloco => {

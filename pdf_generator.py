@@ -398,8 +398,11 @@ class PDFTextGenerator:
                 pdf.cell(72, 6, sanitize_text("Nome do Candidato"), border=1, align="L", fill=True)
                 pdf.cell(58, 6, sanitize_text("Cargo"), border=1, align="L", fill=True)
                 pdf.cell(14, 6, sanitize_text("Cota"), border=1, align="C", fill=True)
-                pdf.cell(24, 6, sanitize_text("Início Vigência"), border=1, align="C", fill=True)
-                pdf.cell(24, 6, sanitize_text("Fim Vigência"), border=1, align="C", fill=True)
+                is_conc = bool(certame and "CONCURSO" in (getattr(certame, 'modalidade', '') or '').upper())
+                col_ini_txt = "DATA POSSE" if is_conc else "Início Vigência"
+                col_fim_txt = "DATA EXONERAÇÃO" if is_conc else "Fim Vigência"
+                pdf.cell(24, 6, sanitize_text(col_ini_txt), border=1, align="C", fill=True)
+                pdf.cell(24, 6, sanitize_text(col_fim_txt), border=1, align="C", fill=True)
                 pdf.cell(48, 6, sanitize_text("Situação de Provimento"), border=1, align="C", fill=True)
                 pdf.cell(25, 6, sanitize_text("Edital Chamada"), border=1, align="C", fill=True)
                 pdf.ln()
@@ -418,6 +421,8 @@ class PDFTextGenerator:
                     cota_str = cand.get('tipo_cota', 'AMPLA')
                     dt_ini_str = str(cand.get('data_inicio_vigencia', '-'))
                     dt_fim_str = str(cand.get('data_fim_vigencia', '-'))
+                    if is_conc and dt_fim_str == 'Vigente':
+                        dt_fim_str = 'Em Exercício'
                     sit_str = cand.get('status_lbl', cand.get('status_atual', 'CONVOCADO'))
                     ed_str = cand.get('edital_convocacao', 'Edital Oficial')
 
