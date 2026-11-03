@@ -12,6 +12,19 @@
         .nav-item-inactive { color: #94a3b8; }
         .nav-item-inactive:hover { background-color: #0f172a; color: #f1f5f9; }
     </style>
+    <!-- Google Fonts: Inter & JetBrains Mono para máxima legibilidade -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+            letter-spacing: -0.01em;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+        }
+    </style>
 </head>
 <body class="bg-slate-100 font-sans min-h-screen flex text-slate-800 antialiased">
 
@@ -197,39 +210,39 @@
             {% endif %}
 
             <!-- DASHBOARD DE VIGÊNCIA E VALIDADE DO CERTAME -->
-            <div class="bg-slate-900 text-white p-6 rounded-3xl shadow-xl border border-slate-800 space-y-6">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-4">
+            <div class="bg-white text-slate-800 p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200/90 space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-5">
                     <div>
                         <div class="flex items-center space-x-2">
-                            <span class="bg-amber-500/20 text-amber-300 border border-amber-400/40 text-[10px] font-black px-2.5 py-0.5 rounded uppercase flex items-center">
-                                <i class="fa-solid fa-clock text-amber-400 mr-1.5"></i> Controle Temporal de Validade
+                            <span class="bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-extrabold px-3 py-0.5 rounded-full uppercase flex items-center shadow-xs">
+                                <i class="fa-solid fa-clock text-amber-600 mr-1.5"></i> Controle Temporal de Validade
                             </span>
                             {% if status_vigencia == 'VIGENTE' or status_vigencia == 'PRORROGADO' %}
-                            <span class="bg-emerald-500/30 text-emerald-300 text-[10px] font-black px-2.5 py-0.5 rounded uppercase flex items-center">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping mr-1.5"></span> Concurso Vigente
+                            <span class="bg-emerald-100 text-emerald-900 border border-emerald-300 text-[11px] font-extrabold px-3 py-0.5 rounded-full uppercase flex items-center shadow-xs">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping mr-1.5"></span> Concurso Vigente
                             </span>
                             {% else %}
-                            <span class="bg-rose-500/30 text-rose-300 text-[10px] font-black px-2.5 py-0.5 rounded uppercase">
+                            <span class="bg-rose-100 text-rose-900 border border-rose-300 text-[11px] font-extrabold px-3 py-0.5 rounded-full uppercase shadow-xs">
                                 Expirado / Encerrado
                             </span>
                             {% endif %}
                         </div>
-                        <h2 class="text-xl font-black text-white mt-1 flex items-center">
-                            <i class="fa-solid fa-calendar-check text-amber-400 mr-2"></i> Marco Temporal de Vigência — {{ certame.municipio }} ({{ certame.numero_certame }})
+                        <h2 class="text-xl md:text-2xl font-black text-slate-900 mt-2 flex items-center tracking-tight">
+                            <i class="fa-solid fa-calendar-check text-amber-600 mr-2.5"></i> Marco Temporal de Vigência — {{ certame.municipio }} ({{ certame.numero_certame }})
                         </h2>
-                        <p class="text-slate-400 text-xs">Especificação do período oficial de validade e atos de prorrogação ou suspensão do certame.</p>
+                        <p class="text-slate-600 text-xs md:text-sm font-medium mt-0.5">Especificação do período oficial de validade e atos de prorrogação ou suspensão do certame.</p>
                     </div>
 
                     <div class="flex items-center space-x-2 shrink-0">
                         {% if status_vigencia == 'VIGENTE' or status_vigencia == 'PRORROGADO' %}
-                        <div class="bg-emerald-950/80 border border-emerald-500/50 px-4 py-2 rounded-2xl text-center shadow-lg">
-                            <span class="text-[10px] text-emerald-400 uppercase font-bold tracking-wider block">Prazo Restante</span>
-                            <span class="text-xl font-black text-emerald-300">{{ dias_restantes }} dias</span>
+                        <div class="bg-emerald-50 border-2 border-emerald-300 px-5 py-3 rounded-2xl text-center shadow-xs">
+                            <span class="text-[11px] text-emerald-800 uppercase font-black tracking-wider block">Prazo Restante</span>
+                            <span class="text-2xl font-black text-emerald-950 font-mono">{{ dias_restantes }} dias</span>
                         </div>
                         {% else %}
-                        <div class="bg-rose-950/80 border border-rose-500/50 px-4 py-2 rounded-2xl text-center shadow-lg">
-                            <span class="text-[10px] text-rose-400 uppercase font-bold tracking-wider block">Status da Vigência</span>
-                            <span class="text-xl font-black text-rose-300">VIGÊNCIA EXPIRADA</span>
+                        <div class="bg-rose-50 border-2 border-rose-300 px-5 py-3 rounded-2xl text-center shadow-xs">
+                            <span class="text-[11px] text-rose-800 uppercase font-black tracking-wider block">Status da Vigência</span>
+                            <span class="text-xl font-black text-rose-900 tracking-tight">VIGÊNCIA EXPIRADA</span>
                         </div>
                         {% endif %}
                     </div>
@@ -238,116 +251,116 @@
                 <!-- CARDS DE KPIS DA VIGÊNCIA -->
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     <!-- 1. Início da Vigência -->
-                    <div class="bg-slate-800/80 backdrop-blur border border-slate-700/60 p-4 rounded-2xl transition hover:border-slate-500">
+                    <div class="bg-slate-50/80 border border-slate-200/90 p-4 rounded-2xl shadow-xs transition hover:border-slate-400 hover:bg-white">
                         <div class="flex items-center justify-between">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Início da Vigência</span>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Início da Vigência</span>
                             <i class="fa-solid fa-calendar-day text-slate-400 text-sm"></i>
                         </div>
-                        <p class="text-base font-black text-white mt-1.5 font-mono">{{ data_homologacao.strftime('%d/%m/%Y') }}</p>
-                        <p class="text-[10px] text-slate-400 font-medium mt-0.5">Data Homologação Final</p>
+                        <p class="text-lg font-black text-slate-900 mt-2 font-mono">{{ data_homologacao.strftime('%d/%m/%Y') }}</p>
+                        <p class="text-[11px] text-slate-500 font-semibold mt-0.5">Data Homologação Final</p>
                     </div>
 
                     <!-- 2. Prazo Inicial -->
-                    <div class="bg-slate-800/80 backdrop-blur border border-slate-700/60 p-4 rounded-2xl transition hover:border-slate-500">
+                    <div class="bg-indigo-50/50 border border-indigo-200/90 p-4 rounded-2xl shadow-xs transition hover:border-indigo-400 hover:bg-indigo-50">
                         <div class="flex items-center justify-between">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Prazo Inicial</span>
-                            <i class="fa-solid fa-hourglass-start text-indigo-400 text-sm"></i>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-800">Prazo Inicial</span>
+                            <i class="fa-solid fa-hourglass-start text-indigo-500 text-sm"></i>
                         </div>
-                        <p class="text-xl font-black text-indigo-300 mt-1.5">{{ (prazo_original_meses // 12) if prazo_original_meses % 12 == 0 else prazo_original_meses }} {{ 'Ano' if prazo_original_meses == 12 else ('Anos' if prazo_original_meses % 12 == 0 else 'Meses') }}</p>
-                        <p class="text-[10px] text-indigo-400/80 font-medium mt-0.5">{{ prazo_original_meses }} Meses (Edital)</p>
+                        <p class="text-xl font-black text-indigo-950 mt-2">{{ (prazo_original_meses // 12) if prazo_original_meses % 12 == 0 else prazo_original_meses }} {{ 'Ano' if prazo_original_meses == 12 else ('Anos' if prazo_original_meses % 12 == 0 else 'Meses') }}</p>
+                        <p class="text-[11px] text-indigo-700 font-semibold mt-0.5">{{ prazo_original_meses }} Meses (Edital)</p>
                     </div>
 
                     <!-- 3. Término Original -->
-                    <div class="bg-slate-800/80 backdrop-blur border border-slate-700/60 p-4 rounded-2xl transition hover:border-slate-500">
+                    <div class="bg-slate-50/80 border border-slate-200/90 p-4 rounded-2xl shadow-xs transition hover:border-slate-400 hover:bg-white">
                         <div class="flex items-center justify-between">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-300">Término Original</span>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Término Original</span>
                             <i class="fa-solid fa-calendar-xmark text-slate-400 text-sm"></i>
                         </div>
-                        <p class="text-base font-black text-slate-200 mt-1.5 font-mono">{{ data_fim_original.strftime('%d/%m/%Y') }}</p>
-                        <p class="text-[10px] text-slate-400 font-medium mt-0.5">Sem Prorrogação</p>
+                        <p class="text-lg font-black text-slate-900 mt-2 font-mono">{{ data_fim_original.strftime('%d/%m/%Y') }}</p>
+                        <p class="text-[11px] text-slate-500 font-semibold mt-0.5">Sem Prorrogação</p>
                     </div>
 
                     <!-- 4. Prorrogações -->
-                    <div class="bg-amber-950/40 backdrop-blur border border-amber-500/30 p-4 rounded-2xl transition hover:border-amber-400">
+                    <div class="bg-amber-50/70 border border-amber-250 p-4 rounded-2xl shadow-xs transition hover:border-amber-400 hover:bg-amber-50">
                         <div class="flex items-center justify-between">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">Prorrogações</span>
-                            <i class="fa-solid fa-arrows-rotate text-amber-400 text-sm"></i>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-amber-800">Prorrogações</span>
+                            <i class="fa-solid fa-arrows-rotate text-amber-600 text-sm"></i>
                         </div>
-                        <p class="text-2xl font-black text-amber-300 mt-1.5">{{ total_prorrogacoes }} ato(s)</p>
-                        <p class="text-[10px] text-amber-400/80 font-medium mt-0.5">Decretos de Validade</p>
+                        <p class="text-2xl font-black text-amber-950 mt-1.5">{{ total_prorrogacoes }} ato(s)</p>
+                        <p class="text-[11px] text-amber-700 font-semibold mt-0.5">Decretos de Validade</p>
                     </div>
 
                     <!-- 5. Término Efetivo Atual -->
-                    <div class="bg-emerald-950/60 backdrop-blur border border-emerald-500/40 p-4 rounded-2xl transition hover:border-emerald-400 col-span-2 sm:col-span-1">
+                    <div class="bg-emerald-50/70 border border-emerald-250 p-4 rounded-2xl shadow-xs transition hover:border-emerald-400 hover:bg-emerald-50 col-span-2 sm:col-span-1">
                         <div class="flex items-center justify-between">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Término Efetivo</span>
-                            <i class="fa-solid fa-calendar-check text-emerald-400 text-sm"></i>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-800">Término Efetivo</span>
+                            <i class="fa-solid fa-calendar-check text-emerald-600 text-sm"></i>
                         </div>
-                        <p class="text-base font-black text-emerald-300 mt-1.5 font-mono">{{ data_fim_efetiva.strftime('%d/%m/%Y') }}</p>
-                        <p class="text-[10px] text-emerald-400/80 font-medium mt-0.5">Limite Máximo Atual</p>
+                        <p class="text-lg font-black text-emerald-950 mt-2 font-mono">{{ data_fim_efetiva.strftime('%d/%m/%Y') }}</p>
+                        <p class="text-[11px] text-emerald-700 font-semibold mt-0.5">Limite Máximo Atual</p>
                     </div>
 
                     <!-- 6. Status da Validade -->
-                    <div class="{% if status_vigencia == 'VIGENTE' or status_vigencia == 'PRORROGADO' %}bg-emerald-950/70 border-emerald-500/50 text-emerald-300{% else %}bg-rose-950/70 border-rose-500/50 text-rose-300{% endif %} backdrop-blur border p-4 rounded-2xl transition">
+                    <div class="{% if status_vigencia == 'VIGENTE' or status_vigencia == 'PRORROGADO' %}bg-emerald-50 border-emerald-300 text-emerald-950{% else %}bg-rose-50 border-rose-300 text-rose-950{% endif %} border p-4 rounded-2xl shadow-xs transition">
                         <div class="flex items-center justify-between">
-                            <span class="text-[10px] font-bold uppercase tracking-wider opacity-80">Status Geral</span>
+                            <span class="text-[11px] font-bold uppercase tracking-wider opacity-85">Status Geral</span>
                             <i class="fa-solid fa-shield-check text-sm"></i>
                         </div>
-                        <p class="text-base font-black uppercase mt-1.5">{{ status_vigencia }}</p>
-                        <p class="text-[10px] opacity-80 font-medium mt-0.5">Auditoria de Validade</p>
+                        <p class="text-lg font-black uppercase mt-2 tracking-tight">{{ status_vigencia }}</p>
+                        <p class="text-[11px] opacity-85 font-semibold mt-0.5">Auditoria de Validade</p>
                     </div>
                 </div>
 
                 <!-- LINHA DO TEMPO VISUAL DA VIGÊNCIA -->
-                <div class="pt-4 border-t border-slate-800 space-y-3">
-                    <h3 class="text-xs font-extrabold text-slate-300 uppercase tracking-wider flex items-center">
-                        <i class="fa-solid fa-timeline text-amber-400 mr-2"></i> Linha do Tempo da Vigência do Certame
+                <div class="pt-5 border-t border-slate-200 space-y-3">
+                    <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center">
+                        <i class="fa-solid fa-timeline text-amber-600 mr-2 text-sm"></i> Linha do Tempo da Vigência do Certame
                     </h3>
 
-                    <div class="relative flex flex-col md:flex-row items-stretch justify-between gap-4 p-4 bg-slate-950/60 border border-slate-800 rounded-2xl">
+                    <div class="relative flex flex-col md:flex-row items-stretch justify-between gap-4 p-5 bg-slate-50 border border-slate-200 rounded-2xl shadow-xs">
                         <!-- Ponto 1: Homologação Final -->
-                        <div class="flex-1 flex items-center space-x-3">
-                            <div class="w-8 h-8 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-xs shrink-0 shadow-lg">1</div>
+                        <div class="flex-1 flex items-center space-x-3.5">
+                            <div class="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">1</div>
                             <div>
-                                <p class="text-xs font-bold text-white">Homologação Final</p>
-                                <p class="text-[10px] text-slate-400 font-mono">{{ data_homologacao.strftime('%d/%m/%Y') }}</p>
-                                <p class="text-[10px] text-emerald-400 font-semibold">Início do Prazo de Validade</p>
+                                <p class="text-xs font-black text-slate-900">Homologação Final</p>
+                                <p class="text-xs text-slate-700 font-mono font-bold">{{ data_homologacao.strftime('%d/%m/%Y') }}</p>
+                                <p class="text-[11px] text-emerald-800 font-bold">Início do Prazo de Validade</p>
                             </div>
                         </div>
 
-                        <div class="hidden md:block w-px bg-slate-800"></div>
+                        <div class="hidden md:block w-px bg-slate-200"></div>
 
                         <!-- Ponto 2: Término Original (2 anos) -->
-                        <div class="flex-1 flex items-center space-x-3">
-                            <div class="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-lg">2</div>
+                        <div class="flex-1 flex items-center space-x-3.5">
+                            <div class="w-9 h-9 rounded-full bg-indigo-600 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">2</div>
                             <div>
-                                <p class="text-xs font-bold text-white">Término {{ 'Bienal' if prazo_original_meses == 24 else ('Anual' if prazo_original_meses == 12 else 'Original') }}</p>
-                                <p class="text-[10px] text-slate-400 font-mono">{{ data_fim_original.strftime('%d/%m/%Y') }}</p>
-                                <p class="text-[10px] text-indigo-300 font-semibold">{{ prazo_original_meses }} Meses Conforme Edital</p>
+                                <p class="text-xs font-black text-slate-900">Término {{ 'Bienal' if prazo_original_meses == 24 else ('Anual' if prazo_original_meses == 12 else 'Original') }}</p>
+                                <p class="text-xs text-slate-700 font-mono font-bold">{{ data_fim_original.strftime('%d/%m/%Y') }}</p>
+                                <p class="text-[11px] text-indigo-800 font-bold">{{ prazo_original_meses }} Meses Conforme Edital</p>
                             </div>
                         </div>
 
-                        <div class="hidden md:block w-px bg-slate-800"></div>
+                        <div class="hidden md:block w-px bg-slate-200"></div>
 
                         <!-- Ponto 3: Atos de Prorrogação -->
-                        <div class="flex-1 flex items-center space-x-3">
-                            <div class="w-8 h-8 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xs shrink-0 shadow-lg">3</div>
+                        <div class="flex-1 flex items-center space-x-3.5">
+                            <div class="w-9 h-9 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xs shrink-0 shadow-sm">3</div>
                             <div>
-                                <p class="text-xs font-bold text-white">Decreto(s) de Prorrogação</p>
-                                <p class="text-[10px] text-slate-400 font-mono">{{ total_prorrogacoes }} ato(s) registrado(s)</p>
-                                <p class="text-[10px] text-amber-300 font-semibold">Prorrogação por Igual Período</p>
+                                <p class="text-xs font-black text-slate-900">Decreto(s) de Prorrogação</p>
+                                <p class="text-xs text-slate-700 font-mono font-bold">{{ total_prorrogacoes }} ato(s) registrado(s)</p>
+                                <p class="text-[11px] text-amber-800 font-bold">Prorrogação por Igual Período</p>
                             </div>
                         </div>
 
-                        <div class="hidden md:block w-px bg-slate-800"></div>
+                        <div class="hidden md:block w-px bg-slate-200"></div>
 
                         <!-- Ponto 4: Término Efetivo Final -->
-                        <div class="flex-1 flex items-center space-x-3">
-                            <div class="w-8 h-8 rounded-full {% if status_vigencia == 'VIGENTE' or status_vigencia == 'PRORROGADO' %}bg-emerald-400 text-slate-950{% else %}bg-rose-500 text-white{% endif %} flex items-center justify-center font-black text-xs shrink-0 shadow-lg">4</div>
+                        <div class="flex-1 flex items-center space-x-3.5">
+                            <div class="w-9 h-9 rounded-full {% if status_vigencia == 'VIGENTE' or status_vigencia == 'PRORROGADO' %}bg-emerald-600 text-white{% else %}bg-rose-600 text-white{% endif %} flex items-center justify-center font-black text-xs shrink-0 shadow-sm">4</div>
                             <div>
-                                <p class="text-xs font-bold text-white">Data Limite Efetiva</p>
-                                <p class="text-[10px] text-slate-400 font-mono font-bold">{{ data_fim_efetiva.strftime('%d/%m/%Y') }}</p>
-                                <p class="text-[10px] {% if status_vigencia == 'VIGENTE' or status_vigencia == 'PRORROGADO' %}text-emerald-400{% else %}text-rose-400{% endif %} font-bold uppercase">
+                                <p class="text-xs font-black text-slate-900">Data Limite Efetiva</p>
+                                <p class="text-xs text-slate-700 font-mono font-black">{{ data_fim_efetiva.strftime('%d/%m/%Y') }}</p>
+                                <p class="text-[11px] {% if status_vigencia == 'VIGENTE' or status_vigencia == 'PRORROGADO' %}text-emerald-800{% else %}text-rose-800{% endif %} font-black uppercase">
                                     {{ status_vigencia }}
                                 </p>
                             </div>
@@ -358,7 +371,7 @@
 
             <!-- ALERTA DE AUDITORIA DE NOMEAÇÃO / POSSE APÓS O VENCIMENTO DA VIGÊNCIA (RETRÁTIL / EXPANSÍVEL) -->
             {% if posses_irregulares %}
-            <details class="bg-rose-950 text-white p-6 rounded-3xl shadow-xl border border-rose-600 group transition-all duration-300">
+            <details class="bg-rose-50 text-slate-900 p-6 rounded-3xl shadow-sm border-2 border-rose-250 group transition-all duration-300">
                 <summary class="flex items-center justify-between cursor-pointer list-none select-none [&::-webkit-details-marker]:hidden group-open:pb-4 group-open:border-b group-open:border-rose-800/80">
                     <div class="flex items-center space-x-3">
                         <span class="w-10 h-10 rounded-2xl bg-rose-600/30 border border-rose-500 flex items-center justify-center text-rose-300 text-xl shrink-0">
@@ -368,7 +381,7 @@
                             <span class="bg-rose-500/30 text-rose-200 border border-rose-400/50 text-[10px] font-black px-2.5 py-0.5 rounded uppercase">
                                 ALERTA DE IRREGULARIDADE CRÍTICA PARA O AUDITOR
                             </span>
-                            <h3 class="text-lg font-black text-rose-100 mt-0.5">
+                            <h3 class="text-lg font-black text-rose-950 mt-0.5">
                                 Convocações / Posses Efetuadas Após a Data Final de Vigência
                             </h3>
                         </div>
@@ -385,11 +398,11 @@
 
                 <div class="space-y-3 text-xs pt-4">
                     {% for p in posses_irregulares %}
-                    <div class="bg-rose-900/60 border border-rose-700/60 p-4 rounded-2xl space-y-1.5">
-                        <p class="font-black text-rose-200 text-sm flex items-center">
+                    <div class="bg-white border-2 border-rose-200 p-4 rounded-2xl space-y-1.5 shadow-xs">
+                        <p class="font-black text-rose-900 text-sm font-black flex items-center">
                             <i class="fa-solid fa-gavel text-amber-400 mr-2"></i> {{ p.titulo }}
                         </p>
-                        <p class="text-rose-100 font-medium leading-relaxed">{{ p.descricao }}</p>
+                        <p class="text-slate-800 font-medium leading-relaxed">{{ p.descricao }}</p>
                         <p class="text-[11px] text-amber-300 font-mono font-bold pt-1">
                             ⚠️ Fundamentação Legal: Art. 37, III e IV da Constituição Federal (Nulidade dos atos de provimento praticados após a expiração da validade).
                         </p>
@@ -528,7 +541,7 @@
                 {% if atos_vigencia %}
                 <div class="overflow-x-auto border border-slate-200 rounded-2xl shadow-sm">
                     <table class="w-full text-left text-xs">
-                        <thead class="bg-slate-800 text-slate-200 uppercase font-extrabold text-[10px]">
+                        <thead class="bg-slate-100 text-slate-800 uppercase font-black text-[10px] border-b-2 border-slate-300">
                             <tr>
                                 <th class="py-3.5 px-4">Ato Oficial</th>
                                 <th class="py-3.5 px-4 text-center">Tipo de Ato</th>

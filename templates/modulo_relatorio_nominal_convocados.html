@@ -65,7 +65,7 @@
 <body class="bg-slate-950 text-slate-100 min-h-screen flex antialiased">
 
     <!-- SIDEBAR DE NAVEGAÇÃO -->
-    <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0 sidebar-container no-print min-h-screen">
+    <aside class="w-64 bg-slate-900 border-r border-slate-200 flex flex-col flex-shrink-0 sidebar-container no-print min-h-screen">
         <div class="p-4 border-b border-slate-800 flex items-center space-x-3">
             <div class="w-9 h-9 bg-gradient-to-tr from-amber-600 to-amber-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20 text-slate-950 font-black text-base">
                 <i class="fa-solid fa-file-invoice"></i>
@@ -515,35 +515,35 @@
                      data-nome-cargo="{{ g.cargo_nome.lower() }}"
                      data-total-convocados="{{ g.total_convocados }}">
 
-                    <!-- HEADER DO CARGO -->
-                    <div class="bg-slate-900 text-white p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2">
+                    <!-- HEADER DO CARGO (ALTA VISIBILIDADE & CONTRASTE) -->
+                    <div class="bg-slate-800 text-white p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-700">
                         <div class="flex items-center space-x-2.5">
-                            <span class="bg-amber-500 text-slate-950 font-mono font-black text-xs px-2.5 py-0.5 rounded shadow">
+                            <span class="bg-amber-400 text-slate-950 font-mono font-black text-xs px-2.5 py-0.5 rounded shadow-xs">
                                 {{ g.codigo_cargo }}
                             </span>
-                            <h3 class="font-black text-xs md:text-sm text-slate-100 uppercase tracking-tight">
+                            <h3 class="font-black text-xs md:text-sm text-white uppercase tracking-tight">
                                 {{ g.cargo_nome }}
                             </h3>
-                            <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">
+                            <span class="text-[10px] bg-slate-700 text-slate-200 px-2 py-0.5 rounded border border-slate-600 font-semibold">
                                 {{ g.nivel_escolaridade }}
                             </span>
                         </div>
 
-                        <!-- BADGES COM QUANTITATIVOS DO CARGO -->
-                        <div class="flex items-center space-x-2 text-[10px] font-mono">
-                            <span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded">
+                        <!-- BADGES COM QUANTITATIVOS DO CARGO (CORES CLARAS E NÍTIDAS) -->
+                        <div class="flex items-center space-x-2 text-[11px] font-mono">
+                            <span class="bg-white text-slate-900 px-2.5 py-0.5 rounded font-bold shadow-xs">
                                 Edital: <strong>{{ '0 (CR)' if g.vagas_edital == 0 else g.vagas_edital }}</strong>
                             </span>
-                            <span class="bg-amber-950/80 text-amber-300 px-2 py-0.5 rounded border border-amber-600/40">
+                            <span class="bg-amber-100 text-amber-950 px-2.5 py-0.5 rounded border border-amber-300 font-bold shadow-xs">
                                 Convocados: <strong>{{ g.total_convocados }}</strong>
                             </span>
-                            <span class="bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded border border-emerald-600/40 font-bold">
+                            <span class="bg-emerald-100 text-emerald-950 px-2.5 py-0.5 rounded border border-emerald-300 font-black shadow-xs">
                                 Exercício: <strong>{{ g.empossados_exercicio }}</strong>
                             </span>
-                            <span class="bg-rose-950 text-rose-300 px-2 py-0.5 rounded border border-rose-600/40">
+                            <span class="bg-rose-100 text-rose-950 px-2.5 py-0.5 rounded border border-rose-300 font-bold shadow-xs">
                                 Desistências: <strong>{{ g.desistencias }}</strong>
                             </span>
-                            <span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded">
+                            <span class="bg-slate-200 text-slate-900 px-2.5 py-0.5 rounded font-bold shadow-xs">
                                 Exonerações: <strong>{{ g.exoneracoes }}</strong>
                             </span>
                         </div>
@@ -553,18 +553,18 @@
                     {% if g.total_convocados > 0 %}
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse tbl-cargo-candidatos">
-                            <thead class="bg-slate-950 text-white font-black uppercase text-[9.5px] tracking-wider border-b border-slate-800">
+                            <thead class="bg-slate-100 text-slate-800 font-black uppercase text-[10px] tracking-wider border-b-2 border-slate-300">
                                 <tr>
-                                    <th class="py-2 px-2 text-center border-r border-slate-800 w-[7%]">Class.</th>
-                                    <th class="py-2 px-3 border-r border-slate-800 text-left w-[32%]">Nome do Candidato</th>
-                                    <th class="py-2 px-3 border-r border-slate-800 text-left w-[24%]">Cargo</th>
-                                    <th class="py-2 px-1 text-center border-r border-slate-800 w-[7%]">Cota</th>
+                                    <th class="py-2 px-2 text-center border-r border-slate-200 w-[7%]">Class.</th>
+                                    <th class="py-2 px-3 border-r border-slate-200 text-left w-[32%]">Nome do Candidato</th>
+                                    <th class="py-2 px-3 border-r border-slate-200 text-left w-[24%]">Cargo</th>
+                                    <th class="py-2 px-1 text-center border-r border-slate-200 w-[7%]">Cota</th>
                                     {% if is_concurso or (certame and 'CONCURSO' in (certame.modalidade or '').upper()) %}
-                                    <th class="py-2 px-2 text-center border-r border-slate-800 w-[10%]">Data Posse</th>
-                                    <th class="py-2 px-2 text-center border-r border-slate-800 w-[10%]">Data Exoneração</th>
+                                    <th class="py-2 px-2 text-center border-r border-slate-200 w-[10%]">Data Posse</th>
+                                    <th class="py-2 px-2 text-center border-r border-slate-200 w-[10%]">Data Exoneração</th>
                                     {% else %}
-                                    <th class="py-2 px-2 text-center border-r border-slate-800 w-[10%]">Início Vigência</th>
-                                    <th class="py-2 px-2 text-center border-r border-slate-800 w-[10%]">Fim Vigência</th>
+                                    <th class="py-2 px-2 text-center border-r border-slate-200 w-[10%]">Início Vigência</th>
+                                    <th class="py-2 px-2 text-center border-r border-slate-200 w-[10%]">Fim Vigência</th>
                                     {% endif %}
                                     <th class="py-2 px-2 text-center w-[10%]">Situação Final</th>
                                 </tr>

@@ -13,6 +13,19 @@
         .nav-item-inactive { color: #94a3b8; }
         .nav-item-inactive:hover { background-color: #0f172a; color: #f1f5f9; }
     </style>
+    <!-- Google Fonts: Inter & JetBrains Mono para máxima legibilidade -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+            letter-spacing: -0.01em;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+        }
+    </style>
 </head>
 <body class="bg-slate-100 font-sans min-h-screen flex text-slate-800 antialiased">
 
@@ -227,8 +240,8 @@
             {% set cnt_cr = kpis.cr if kpis else 0 %}
             {% set cnt_aprovados = kpis.aprovados if kpis else 0 %}
             
-            <div class="bg-slate-900 text-white p-6 rounded-3xl shadow-xl border border-slate-800 space-y-6">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-4">
+            <div class="bg-white text-slate-800 p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200/90 space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-4">
                     <div>
                         <div class="flex items-center space-x-2">
                             <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 text-[10px] font-black px-2.5 py-0.5 rounded uppercase flex items-center">
@@ -238,10 +251,10 @@
                                 Ciclo de Vida do Provimento
                             </span>
                         </div>
-                        <h2 class="text-xl font-black text-white mt-1 flex items-center">
-                            <i class="fa-solid fa-chart-line text-emerald-400 mr-2"></i> Painel Geral de Acompanhamento — {{ certame.municipio }} ({{ certame.numero_certame }})
+                        <h2 class="text-xl font-black text-slate-900 mt-1 flex items-center">
+                            <i class="fa-solid fa-chart-line text-emerald-600 mr-2"></i> Painel Geral de Acompanhamento — {{ certame.municipio }} ({{ certame.numero_certame }})
                         </h2>
-                        <p class="text-slate-400 text-xs">Gestão consolidada de candidatos aprovados, convocações, posses, desistências e vacâncias.</p>
+                        <p class="text-slate-600 text-xs font-medium">Gestão consolidada de candidatos aprovados, convocações, posses, desistências e vacâncias.</p>
                     </div>
 
                     <div class="flex items-center space-x-2 shrink-0">
@@ -257,62 +270,62 @@
                 <!-- CARDS DE KPIS EXECUTIVOS -->
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     <!-- 1. Total Candidatos -->
-                    <div class="bg-slate-800/80 backdrop-blur border border-slate-700/60 p-4 rounded-2xl transition hover:border-slate-500">
+                    <div class="bg-slate-50/80 border border-slate-200/90 p-4 rounded-2xl transition hover:border-slate-400 hover:bg-white shadow-xs">
                         <div class="flex items-center justify-between">
                             <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Candidatos</span>
                             <i class="fa-solid fa-users text-slate-400 text-sm"></i>
                         </div>
-                        <p class="text-2xl font-black text-white mt-1.5" id="dash_kpi_total">{{ cnt_total }}</p>
+                        <p class="text-2xl font-black text-slate-900 mt-1.5" id="dash_kpi_total">{{ cnt_total }}</p>
                         <p class="text-[10px] text-slate-400 font-medium mt-0.5">Mapeados no certame</p>
                     </div>
 
                     <!-- 2. Empossados -->
-                    <div class="bg-emerald-950/50 backdrop-blur border border-emerald-500/30 p-4 rounded-2xl transition hover:border-emerald-400">
+                    <div class="bg-emerald-50/80 border border-emerald-250 p-4 rounded-2xl transition hover:border-emerald-400 hover:bg-emerald-50 shadow-xs">
                         <div class="flex items-center justify-between">
                             <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Empossados</span>
                             <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
                         </div>
-                        <p class="text-2xl font-black text-emerald-300 mt-1.5" id="dash_kpi_empossados">{{ cnt_empossados }}</p>
+                        <p class="text-2xl font-black text-emerald-950 mt-1.5" id="dash_kpi_empossados">{{ cnt_empossados }}</p>
                         <p class="text-[10px] text-emerald-400/80 font-medium mt-0.5">Com data de posse</p>
                     </div>
 
                     <!-- 3. Convocados -->
-                    <div class="bg-blue-950/50 backdrop-blur border border-blue-500/30 p-4 rounded-2xl transition hover:border-blue-400">
+                    <div class="bg-sky-50/80 border border-sky-200 p-4 rounded-2xl transition hover:border-sky-400 hover:bg-sky-50 shadow-xs">
                         <div class="flex items-center justify-between">
                             <span class="text-[10px] font-bold uppercase tracking-wider text-blue-400">Convocados</span>
                             <i class="fa-solid fa-bullhorn text-blue-400 text-sm"></i>
                         </div>
-                        <p class="text-2xl font-black text-blue-300 mt-1.5" id="dash_kpi_convocados">{{ cnt_convocados }}</p>
+                        <p class="text-2xl font-black text-sky-950 mt-1.5" id="dash_kpi_convocados">{{ cnt_convocados }}</p>
                         <p class="text-[10px] text-blue-400/80 font-medium mt-0.5">Aguardando posse</p>
                     </div>
 
                     <!-- 4. Desistentes / Renúncias -->
-                    <div class="bg-rose-950/50 backdrop-blur border border-rose-500/30 p-4 rounded-2xl transition hover:border-rose-400">
+                    <div class="bg-rose-50/80 border border-rose-250 p-4 rounded-2xl transition hover:border-rose-400 hover:bg-rose-50 shadow-xs">
                         <div class="flex items-center justify-between">
                             <span class="text-[10px] font-bold uppercase tracking-wider text-rose-400">Desistentes</span>
                             <i class="fa-solid fa-user-xmark text-rose-400 text-sm"></i>
                         </div>
-                        <p class="text-2xl font-black text-rose-300 mt-1.5" id="dash_kpi_desistentes">{{ cnt_desistentes }}</p>
+                        <p class="text-2xl font-black text-rose-950 mt-1.5" id="dash_kpi_desistentes">{{ cnt_desistentes }}</p>
                         <p class="text-[10px] text-rose-400/80 font-medium mt-0.5">Com homologação</p>
                     </div>
 
                     <!-- 5. Exonerados / Excluídos -->
-                    <div class="bg-slate-800/90 backdrop-blur border border-slate-600/50 p-4 rounded-2xl transition hover:border-slate-400">
+                    <div class="bg-slate-50/80 border border-slate-200 p-4 rounded-2xl transition hover:border-slate-400 hover:bg-white shadow-xs">
                         <div class="flex items-center justify-between">
                             <span class="text-[10px] font-bold uppercase tracking-wider text-slate-300">Exonerados</span>
                             <i class="fa-solid fa-clock-rotate-left text-slate-400 text-sm"></i>
                         </div>
-                        <p class="text-2xl font-black text-slate-200 mt-1.5" id="dash_kpi_exonerados">{{ cnt_exonerados }}</p>
+                        <p class="text-2xl font-black text-slate-900 mt-1.5" id="dash_kpi_exonerados">{{ cnt_exonerados }}</p>
                         <p class="text-[10px] text-slate-400 font-medium mt-0.5">Com vacância</p>
                     </div>
 
                     <!-- 6. Cadastro de Reserva -->
-                    <div class="bg-amber-950/40 backdrop-blur border border-amber-500/30 p-4 rounded-2xl transition hover:border-amber-400">
+                    <div class="bg-amber-50/80 border border-amber-250 p-4 rounded-2xl transition hover:border-amber-400 hover:bg-amber-50 shadow-xs">
                         <div class="flex items-center justify-between">
                             <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">Cad. Reserva</span>
                             <i class="fa-solid fa-layer-group text-amber-400 text-sm"></i>
                         </div>
-                        <p class="text-2xl font-black text-amber-300 mt-1.5" id="dash_kpi_cr">{{ cnt_cr }}</p>
+                        <p class="text-2xl font-black text-amber-950 mt-1.5" id="dash_kpi_cr">{{ cnt_cr }}</p>
                         <p class="text-[10px] text-amber-400/80 font-medium mt-0.5">Disponíveis</p>
                     </div>
                 </div>
@@ -512,7 +525,7 @@
             {% set em_tramite = em_tramite if em_tramite > 0 else 0 %}
             {% set taxa_preenchimento = ((ns.empossados / ns.vagas) * 100)|round(1) if ns.vagas > 0 else 0 %}
 
-            <section class="bg-slate-900 text-white p-8 rounded-3xl shadow-xl border border-slate-800 space-y-6">
+            <section class="bg-white text-slate-800 p-8 rounded-3xl shadow-sm border border-slate-200/90 space-y-6">
                 <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-5 gap-4">
                     <div>
                         <div class="flex items-center space-x-2">
@@ -523,8 +536,8 @@
                                 Edital {{ certame.numero_certame }}
                             </span>
                         </div>
-                        <h2 class="text-xl font-black text-white mt-2 flex items-center">
-                            <i class="fa-solid fa-chart-line text-emerald-400 mr-2.5"></i> Curva de Atendimento das Vagas Editalícias
+                        <h2 class="text-xl font-black text-slate-900 mt-2 flex items-center">
+                            <i class="fa-solid fa-chart-line text-emerald-600 mr-2.5"></i> Curva de Atendimento das Vagas Editalícias
                         </h2>
                         <p class="text-xs text-slate-400">Acompanhamento gráfico em tempo real do provimento de vagas, taxa de efetivação de empossados e saldo remanescente do certame.</p>
                     </div>
@@ -652,7 +665,7 @@
                         <thead class="bg-slate-800 text-white uppercase font-extrabold text-[10px]">
                             <tr>
                                 <th class="py-3.5 px-4 rounded-l-xl">Cargo</th>
-                                <th class="py-3.5 px-4 text-center bg-slate-900 border-x border-slate-700 text-emerald-400" title="Vagas Criadas por Lei no Lotacionograma">Lotacionograma (Lei / Livres)</th>
+                                <th class="py-3.5 px-4 text-center bg-slate-100 border-x border-slate-200 text-emerald-800 font-black" title="Vagas Criadas por Lei no Lotacionograma">Lotacionograma (Lei / Livres)</th>
                                 <th class="py-3.5 px-4 text-center">Vagas Edital</th>
                                 <th class="py-3.5 px-4 text-center">Convocados</th>
                                 <th class="py-3.5 px-4 text-center">Empossados</th>

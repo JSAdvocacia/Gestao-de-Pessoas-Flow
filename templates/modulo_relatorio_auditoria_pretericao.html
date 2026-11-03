@@ -31,8 +31,21 @@
             .badge-print-alerta { border: 1px solid #e11d48 !important; color: #9f1239 !important; background: #fff1f2 !important; font-weight: bold !important; }
         }
     </style>
+    <!-- Google Fonts: Inter & JetBrains Mono para máxima legibilidade -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+            letter-spacing: -0.01em;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+        }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-100 flex h-screen overflow-hidden font-sans antialiased">
+<body class="bg-slate-100 text-slate-800 flex h-screen overflow-hidden font-sans antialiased">
 
     <!-- SIDEBAR DE NAVEGAÇÃO -->
     <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 no-print">
@@ -146,7 +159,7 @@
     </aside>
 
     <!-- ÁREA PRINCIPAL -->
-    <main class="flex-1 overflow-y-auto custom-scrollbar bg-slate-950 p-4 md:p-8 space-y-6">
+    <main class="flex-1 overflow-y-auto custom-scrollbar bg-slate-100 p-4 md:p-8 space-y-6">
 
         <!-- CABEÇALHO DO MÓDULO DE AUDITORIA -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5 no-print">
@@ -197,91 +210,91 @@
         <!-- CARDS DE MÉTRICAS E INDICADORES CHAVE -->
         <div class="grid grid-cols-2 md:grid-cols-6 gap-3 no-print">
             <!-- 1. VIGÊNCIA CONCURSO AUDITADO -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow">
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col justify-between shadow-xs">
                 <div class="flex items-center justify-between text-[11px] text-slate-400 font-bold uppercase">
                     <span>Vigência Concurso {{ totais.concurso_numero }}</span>
                     <i class="fa-solid fa-calendar-check text-blue-400"></i>
                 </div>
                 <div class="mt-2">
-                    <p class="text-sm font-black text-white">{{ totais.concurso_inicio_str }} a {{ totais.concurso_fim_str }}</p>
+                    <p class="text-sm font-black text-slate-900">{{ totais.concurso_inicio_str }} a {{ totais.concurso_fim_str }}</p>
                     <p class="text-[10px] text-emerald-400 mt-0.5">Prazo Regulamentar (2 Anos)</p>
                 </div>
             </div>
 
             <!-- 2. TOTAL REGISTROS NO CARGO -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow">
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col justify-between shadow-xs">
                 <div class="flex items-center justify-between text-[11px] text-slate-400 font-bold uppercase">
                     <span>Total no Cargo</span>
                     <i class="fa-solid fa-user-group text-slate-400"></i>
                 </div>
                 <div class="mt-2">
-                    <p class="text-2xl font-black text-white">{{ totais.total_registros }}</p>
+                    <p class="text-2xl font-black text-slate-900">{{ totais.total_registros }}</p>
                     <p class="text-[10px] text-slate-400 mt-0.5">{{ totais.total_concurso }} Concurso | {{ totais.total_seletivo }} Seletivos</p>
                 </div>
             </div>
 
             <!-- 3. EM EXERCÍCIO -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow">
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col justify-between shadow-xs">
                 <div class="flex items-center justify-between text-[11px] text-slate-400 font-bold uppercase">
                     <span>Em Exercício</span>
                     <i class="fa-solid fa-circle-check text-emerald-400"></i>
                 </div>
                 <div class="mt-2">
-                    <p class="text-2xl font-black text-emerald-400">{{ totais.empossados_exercicio }}</p>
+                    <p class="text-2xl font-black text-emerald-950">{{ totais.empossados_exercicio }}</p>
                     <p class="text-[10px] text-slate-400 mt-0.5">Candidatos / Contratados Ativos</p>
                 </div>
             </div>
 
             <!-- 4. EXONERAÇÕES / RESCISÕES -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow">
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col justify-between shadow-xs">
                 <div class="flex items-center justify-between text-[11px] text-slate-400 font-bold uppercase">
                     <span>Exonerações</span>
                     <i class="fa-solid fa-user-xmark text-slate-400"></i>
                 </div>
                 <div class="mt-2">
-                    <p class="text-2xl font-black text-slate-300">{{ totais.exonerados }}</p>
+                    <p class="text-2xl font-black text-slate-800">{{ totais.exonerados }}</p>
                     <p class="text-[10px] text-slate-400 mt-0.5">Desligamentos Registrados</p>
                 </div>
             </div>
 
             <!-- 5. ALERTAS DE POSSÍVEL PRETERIÇÃO (DESTAQUE) -->
-            <div class="bg-rose-950/40 border border-rose-500/50 rounded-2xl p-4 flex flex-col justify-between shadow">
+            <div class="bg-rose-50 border-2 border-rose-250 rounded-2xl p-4 flex flex-col justify-between shadow-xs">
                 <div class="flex items-center justify-between text-[11px] text-rose-300 font-bold uppercase">
                     <span>Convocado PSS na Vigência</span>
                     <i class="fa-solid fa-triangle-exclamation text-rose-400 animate-pulse"></i>
                 </div>
                 <div class="mt-2">
-                    <p class="text-2xl font-black text-rose-300">{{ totais.alertas_pretericao }}</p>
+                    <p class="text-2xl font-black text-rose-950">{{ totais.alertas_pretericao }}</p>
                     <p class="text-[10px] text-rose-300/80 mt-0.5 font-medium">Convocado PSS durante vigência de CP</p>
                 </div>
             </div>
 
             <!-- 6. NOMEADOS PÓS-VIGÊNCIA -->
-            <div class="bg-slate-900 border border-purple-500/40 rounded-2xl p-4 flex flex-col justify-between shadow">
+            <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 flex flex-col justify-between shadow-xs">
                 <div class="flex items-center justify-between text-[11px] text-purple-300 font-bold uppercase">
                     <span>Pós-Vigência Concurso</span>
                     <i class="fa-solid fa-calendar-xmark text-purple-400"></i>
                 </div>
                 <div class="mt-2">
-                    <p class="text-2xl font-black text-purple-300">{{ totais.nomeados_pos_vigencia }}</p>
+                    <p class="text-2xl font-black text-purple-950">{{ totais.nomeados_pos_vigencia }}</p>
                     <p class="text-[10px] text-purple-300/80 mt-0.5 font-medium">Após {{ totais.concurso_fim_str }} (Sem Preterição)</p>
                 </div>
             </div>
         </div>
 
         <!-- BARRA DE FILTROS INTERATIVA COM SELETORES DE CONCURSOS E SELETIVOS -->
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-4 no-print">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4 no-print">
             <form method="GET" action="/modulo/relatorios/pretericao" id="formFiltros" class="space-y-4">
                 
                 <!-- SELETOR DINÂMICO DE CERTAMES: CONCURSO BASE E SELETIVOS A CONFRONTAR -->
-                <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 grid grid-cols-1 md:grid-cols-12 gap-3.5 items-center">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 grid grid-cols-1 md:grid-cols-12 gap-3.5 items-center">
                     
                     <!-- 1. SELETOR DE CONCURSO PÚBLICO DE REFERÊNCIA -->
                     <div class="md:col-span-4">
                         <label class="block text-[10px] font-black uppercase tracking-wider text-blue-400 mb-1">
                             <i class="fa-solid fa-landmark mr-1"></i> Concurso Público de Referência
                         </label>
-                        <select name="id_certame" onchange="document.getElementById('formFiltros').submit()" class="w-full bg-slate-900 border border-blue-500/50 text-white text-xs font-bold rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <select name="id_certame" onchange="document.getElementById('formFiltros').submit()" class="w-full bg-white border border-blue-400 text-slate-900 text-xs font-bold rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                             {% for conc in concursos_disponiveis %}
                             <option value="{{ conc.id_certame }}" {% if conc.id_certame == id_certame_base %}selected{% endif %}>
                                 Concurso {{ conc.ano }} (Edital {{ conc.numero_certame }})
@@ -319,7 +332,7 @@
                         <label class="block text-[10px] font-black uppercase tracking-wider text-amber-400 mb-1">
                             <i class="fa-solid fa-briefcase mr-1"></i> Tipo de Cargo
                         </label>
-                        <select name="tipo_cargo" onchange="document.getElementById('formFiltros').submit()" class="w-full bg-slate-950 border border-amber-500/50 text-white text-xs font-bold rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        <select name="tipo_cargo" onchange="document.getElementById('formFiltros').submit()" class="w-full bg-white border border-amber-400 text-slate-900 text-xs font-bold rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-amber-500 focus:outline-none">
                             <option value="TODOS" {% if cargo_ativo == 'TODOS' %}selected{% endif %}>
                                 -- TODOS OS TIPOS DE CARGO (GERAL) --
                             </option>
@@ -336,7 +349,7 @@
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
                             Origem
                         </label>
-                        <select name="origem" onchange="document.getElementById('formFiltros').submit()" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        <select name="origem" onchange="document.getElementById('formFiltros').submit()" class="w-full bg-white border border-slate-300 text-slate-900 text-xs font-medium rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-amber-500 focus:outline-none">
                             <option value="TODAS" {% if origem_filtro == 'TODAS' %}selected{% endif %}>Todas as Origens</option>
                             <option value="CONCURSO" {% if origem_filtro == 'CONCURSO' %}selected{% endif %}>Apenas Concurso Público</option>
                             <option value="SELETIVO" {% if origem_filtro == 'SELETIVO' %}selected{% endif %}>Apenas Processos Seletivos</option>
@@ -351,7 +364,7 @@
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
                             Status Atual
                         </label>
-                        <select name="status" onchange="document.getElementById('formFiltros').submit()" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        <select name="status" onchange="document.getElementById('formFiltros').submit()" class="w-full bg-white border border-slate-300 text-slate-900 text-xs font-medium rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-amber-500 focus:outline-none">
                             <option value="TODOS" {% if status_filtro == 'TODOS' %}selected{% endif %}>Todos os Status</option>
                             <option value="EM_EXERCICIO" {% if status_filtro == 'EM_EXERCICIO' %}selected{% endif %}>Em exercício</option>
                             <option value="EXONERADO" {% if status_filtro == 'EXONERADO' %}selected{% endif %}>Exonerado</option>
@@ -367,7 +380,7 @@
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
                             Parecer C. Interno
                         </label>
-                        <select name="parecer_ci" onchange="document.getElementById('formFiltros').submit()" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        <select name="parecer_ci" onchange="document.getElementById('formFiltros').submit()" class="w-full bg-white border border-slate-300 text-slate-900 text-xs font-medium rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-amber-500 focus:outline-none">
                             <option value="TODOS" {% if parecer_filtro == 'TODOS' %}selected{% endif %}>Todos os Pareceres</option>
                             <option value="FAVORAVEL" {% if parecer_filtro == 'FAVORAVEL' %}selected{% endif %}>Favorável</option>
                             <option value="DESFAVORAVEL" {% if parecer_filtro == 'DESFAVORAVEL' %}selected{% endif %}>Desfavorável</option>
@@ -381,7 +394,7 @@
                             Buscar Candidato
                         </label>
                         <div class="relative">
-                            <input type="text" id="inputBusca" name="busca" value="{{ termo_busca }}" placeholder="Digitar nome ou parecer..." onkeyup="filtrarTabelaLocal()" class="w-full bg-slate-950 border border-slate-700 text-white text-xs rounded-xl pl-8 pr-3 py-2.5 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                            <input type="text" id="inputBusca" name="busca" value="{{ termo_busca }}" placeholder="Digitar nome ou parecer..." onkeyup="filtrarTabelaLocal()" class="w-full bg-white border border-slate-300 text-slate-900 text-xs font-medium rounded-xl pl-8 pr-3 py-2.5 focus:ring-2 focus:ring-amber-500 focus:outline-none">
                             <i class="fa-solid fa-magnifying-glass text-slate-500 absolute left-2.5 top-3 text-xs"></i>
                         </div>
                     </div>
@@ -489,34 +502,34 @@
             <!-- TABELA OFICIAL CONFORME O MODELO ANEXADO PELO USUÁRIO -->
             <div class="overflow-x-auto custom-scrollbar">
                 <table class="w-full text-left text-xs border border-slate-300 table-auto md:table-fixed" id="tabelaPretericao">
-                    <thead class="bg-slate-900 text-slate-100 uppercase font-black text-[10px] tracking-wider border-b border-slate-700">
+                    <thead class="bg-slate-100 text-slate-800 uppercase font-black text-[10px] tracking-wider border-b-2 border-slate-300">
                         <tr>
                             <!-- 1. ORIGEM -->
-                            <th class="py-2.5 px-3 text-center w-[12%] border-r border-slate-700 cursor-pointer" onclick="ordenarTabela(0)">
+                            <th class="py-2.5 px-3 text-center w-[12%] border-r border-slate-200 cursor-pointer" onclick="ordenarTabela(0)">
                                 Origem <i class="fa-solid fa-sort ml-1 text-slate-400 text-[9px]"></i>
                             </th>
                             <!-- 2. CANDIDATO -->
-                            <th class="py-2.5 px-3 text-left w-[24%] border-r border-slate-700 cursor-pointer" onclick="ordenarTabela(1)">
+                            <th class="py-2.5 px-3 text-left w-[24%] border-r border-slate-200 cursor-pointer" onclick="ordenarTabela(1)">
                                 Candidato <i class="fa-solid fa-sort ml-1 text-slate-400 text-[9px]"></i>
                             </th>
                             <!-- 3. CLASSIFICAÇÃO/CR -->
-                            <th class="py-2.5 px-2 text-center w-[9%] min-w-[85px] whitespace-nowrap border-r border-slate-700 cursor-pointer" onclick="ordenarTabela(2)">
+                            <th class="py-2.5 px-2 text-center w-[9%] min-w-[85px] whitespace-nowrap border-r border-slate-200 cursor-pointer" onclick="ordenarTabela(2)">
                                 Classif./CR <i class="fa-solid fa-sort ml-1 text-slate-400 text-[9px]"></i>
                             </th>
                             <!-- 4. DATA DA POSSE -->
-                            <th class="py-2.5 px-2 text-center w-[9%] min-w-[85px] whitespace-nowrap border-r border-slate-700 cursor-pointer" onclick="ordenarTabela(3)">
+                            <th class="py-2.5 px-2 text-center w-[9%] min-w-[85px] whitespace-nowrap border-r border-slate-200 cursor-pointer" onclick="ordenarTabela(3)">
                                 Data Posse <i class="fa-solid fa-sort ml-1 text-slate-400 text-[9px]"></i>
                             </th>
                             <!-- 5. EXONERAÇÃO -->
-                            <th class="py-2.5 px-2 text-center w-[9%] min-w-[85px] whitespace-nowrap border-r border-slate-700 cursor-pointer" onclick="ordenarTabela(4)">
+                            <th class="py-2.5 px-2 text-center w-[9%] min-w-[85px] whitespace-nowrap border-r border-slate-200 cursor-pointer" onclick="ordenarTabela(4)">
                                 Exoneração <i class="fa-solid fa-sort ml-1 text-slate-400 text-[9px]"></i>
                             </th>
                             <!-- 6. STATUS ATUAL -->
-                            <th class="py-2.5 px-3 text-center w-[11%] border-r border-slate-700 cursor-pointer" onclick="ordenarTabela(5)">
+                            <th class="py-2.5 px-3 text-center w-[11%] border-r border-slate-200 cursor-pointer" onclick="ordenarTabela(5)">
                                 Status Atual <i class="fa-solid fa-sort ml-1 text-slate-400 text-[9px]"></i>
                             </th>
                             <!-- 7. APURAÇÃO / AUDITORIA -->
-                            <th class="py-2.5 px-3 text-center w-[14%] border-r border-slate-700 cursor-pointer" onclick="ordenarTabela(6)">
+                            <th class="py-2.5 px-3 text-center w-[14%] border-r border-slate-200 cursor-pointer" onclick="ordenarTabela(6)">
                                 Apuração / Auditoria <i class="fa-solid fa-sort ml-1 text-slate-400 text-[9px]"></i>
                             </th>
                             <!-- 8. PARECER CONTROLE INTERNO -->

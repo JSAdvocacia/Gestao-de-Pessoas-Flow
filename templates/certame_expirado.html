@@ -22,6 +22,19 @@
             table { min-width: 100% !important; }
         }
     </style>
+    <!-- Google Fonts: Inter & JetBrains Mono para máxima legibilidade -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+            letter-spacing: -0.01em;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+        }
+    </style>
 </head>
 <body class="h-full bg-slate-950 text-slate-100 font-sans antialiased flex flex-col custom-scrollbar overflow-x-hidden">
 
@@ -196,28 +209,28 @@
             <!-- CARDS KPIS QUANTITATIVOS DE ENCERRAMENTO -->
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
                 <!-- 1. Vagas no Lotacionograma -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-1 shadow-sm">
+                <div class="bg-white border border-slate-200 rounded-2xl p-3.5 space-y-1 shadow-xs">
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Vagas Lotacionograma</span>
                     <span class="text-xl font-black text-white block">{{ totais.vagas_lei }}</span>
                     <span class="text-[10px] text-slate-500">Vagas criadas por Lei</span>
                 </div>
 
                 <!-- 2. Vagas no Edital -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-1 shadow-sm">
+                <div class="bg-white border border-slate-200 rounded-2xl p-3.5 space-y-1 shadow-xs">
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Vagas Edital</span>
                     <span class="text-xl font-black text-indigo-400 block">{{ totais.vagas_edital }}</span>
                     <span class="text-[10px] text-slate-500">Ofertadas no certame</span>
                 </div>
 
                 <!-- 3. Total de Aprovados (Imediatos + CR) -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-1 shadow-sm">
+                <div class="bg-white border border-slate-200 rounded-2xl p-3.5 space-y-1 shadow-xs">
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Aprovados + CR</span>
                     <span class="text-xl font-black text-sky-400 block">{{ totais.total_aprovados }}</span>
                     <span class="text-[10px] text-sky-500/80">{{ totais.aprovados_diretos }} imediatos / {{ totais.cadastro_reserva }} CR</span>
                 </div>
 
                 <!-- 4. Total de Convocados -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-1 shadow-sm">
+                <div class="bg-white border border-slate-200 rounded-2xl p-3.5 space-y-1 shadow-xs">
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Convocados</span>
                     <span class="text-xl font-black text-amber-400 block">{{ totais.convocados }}</span>
                     <span class="text-[10px] text-slate-500">Editais de convocação</span>
@@ -256,7 +269,7 @@
 
             <!-- SEÇÃO 1: QUADRO QUANTITATIVO CONSOLIDADO POR CARGO (EXIGIDO NO PROMPT) -->
             <div id="tab_quadro" class="space-y-4 tab-content">
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl print-card">
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-xs print-card">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div>
                             <h3 class="font-extrabold text-sm text-white flex items-center">
@@ -340,7 +353,7 @@
 
             <!-- SEÇÃO 2: ROL GERAL COMPLETO DE CANDIDATOS (APROVADOS E CADASTRO RESERVA) -->
             <div id="tab_candidatos" class="space-y-4 tab-content hidden">
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-xs">
                     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
                         <div>
                             <h3 class="font-extrabold text-sm text-white flex items-center">
@@ -422,7 +435,7 @@
 
             <!-- SEÇÃO 3: FASE PRÉ-EDITAL -->
             <div id="tab_pre_edital" class="space-y-4 tab-content hidden">
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-xs">
                     <h3 class="font-extrabold text-sm text-white flex items-center border-b border-slate-800 pb-3">
                         <i class="fa-solid fa-folder-open text-emerald-400 mr-2"></i> Dossiê de Planejamento e Fase Pré-Edital
                     </h3>
@@ -457,7 +470,7 @@
 
             <!-- SEÇÃO 4: FASE OFICIAL -->
             <div id="tab_fase_oficial" class="space-y-4 tab-content hidden">
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-xs">
                     <h3 class="font-extrabold text-sm text-white flex items-center border-b border-slate-800 pb-3">
                         <i class="fa-solid fa-award text-indigo-400 mr-2"></i> Dossiê da Fase Oficial & Homologação
                     </h3>
