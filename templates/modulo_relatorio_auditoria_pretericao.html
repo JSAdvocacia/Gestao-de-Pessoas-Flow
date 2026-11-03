@@ -14,23 +14,61 @@
         @media print {
             @page {
                 size: A4 landscape;
-                margin: 6mm 6mm;
+                margin: 8mm 8mm;
             }
-            .no-print { display: none !important; }
-            html, body { height: auto !important; overflow: visible !important; background: white !important; color: black !important; font-size: 8pt !important; margin: 0 !important; padding: 0 !important; }
-            .h-screen, .overflow-hidden, .overflow-y-auto { height: auto !important; overflow: visible !important; position: static !important; }
-            .print-card { border: 1px solid #cbd5e1 !important; box-shadow: none !important; background: white !important; color: black !important; page-break-inside: avoid; width: 100% !important; }
-            tr { page-break-inside: avoid; }
-            thead { display: table-header-group; }
-            table { min-width: 100% !important; width: 100% !important; table-layout: fixed !important; font-size: 7pt !important; }
-            th, td { padding: 3px 4px !important; word-break: break-word !important; }
-            .bg-slate-900, .bg-slate-950 { background-color: #0f172a !important; color: white !important; }
-            .bg-white-print { background-color: white !important; color: black !important; }
-            .badge-print-concurso { border: 1px solid #2563eb !important; color: #1e40af !important; background: #eff6ff !important; }
-            .badge-print-seletivo { border: 1px solid #9333ea !important; color: #6b21a8 !important; background: #faf5ff !important; }
-            .badge-print-alerta { border: 1px solid #e11d48 !important; color: #9f1239 !important; background: #fff1f2 !important; font-weight: bold !important; }
-        }
-    </style>
+            .no-print, header, nav, aside, .sidebar-container, .filtro-container, .botoes-acoes {
+                display: none !important;
+            }
+            html, body {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                font-size: 8pt !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            main {
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                background: #ffffff !important;
+            }
+            .print-card {
+                border: none !important;
+                box-shadow: none !important;
+                background: #ffffff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
+            table {
+                font-size: 7.5pt !important;
+                width: 100% !important;
+                min-width: 100% !important;
+                table-layout: fixed !important;
+                border-collapse: collapse !important;
+            }
+            thead {
+                display: table-header-group !important;
+            }
+            tr {
+                page-break-inside: avoid !important;
+            }
+            th {
+                background-color: #f1f5f9 !important;
+                color: #0f172a !important;
+                border: 1px solid #94a3b8 !important;
+                padding: 3px 2px !important;
+                font-weight: 800 !important;
+            }
+            td {
+                border: 1px solid #cbd5e1 !important;
+                padding: 2.5px 2px !important;
+                color: #0f172a !important;
+            }
+        }    </style>
     <!-- Google Fonts: Inter & JetBrains Mono para máxima legibilidade -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -162,7 +200,7 @@
     <main class="flex-1 overflow-y-auto custom-scrollbar bg-slate-100 p-4 md:p-8 space-y-6">
 
         <!-- CABEÇALHO DO MÓDULO DE AUDITORIA -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5 no-print">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5 no-print">
             <div>
                 <div class="flex items-center space-x-3 mb-1">
                     <span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider flex items-center">
@@ -175,7 +213,7 @@
                 <h2 class="text-2xl font-black text-white tracking-tight flex items-center">
                     Auditoria de Preterição: Concurso Público vs. Processos Seletivos
                 </h2>
-                <p class="text-xs text-slate-400 mt-1">
+                <p class="text-xs text-slate-600 mt-1 font-medium">
                     Confronto analítico e cronológico de chamamentos temporários realizados durante a vigência do certame efetivo (CF/88, art. 37, IV c/c STF Tema 784).
                 </p>
             </div>
@@ -207,78 +245,60 @@
             </div>
         </div>
 
-        <!-- CARDS DE MÉTRICAS E INDICADORES CHAVE -->
-        <div class="grid grid-cols-2 md:grid-cols-6 gap-3 no-print">
+        <!-- CARDS DE MÉTRICAS E INDICADORES CHAVE (PADRONIZADOS E NÍTIDOS) -->
+        <div class="grid grid-cols-2 md:grid-cols-6 gap-3.5 no-print">
             <!-- 1. VIGÊNCIA CONCURSO AUDITADO -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col justify-between shadow-xs">
-                <div class="flex items-center justify-between text-[11px] text-slate-400 font-bold uppercase">
-                    <span>Vigência Concurso {{ totais.concurso_numero }}</span>
-                    <i class="fa-solid fa-calendar-check text-blue-400"></i>
+            <div class="bg-white border border-slate-200 border-t-4 border-t-blue-600 rounded-2xl p-4 flex flex-col justify-between shadow-xs">
+                <div>
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-600 block mb-1">Vigência Concurso {{ totais.concurso_numero }}</span>
+                    <p class="text-sm font-black text-slate-900 font-mono">{{ totais.concurso_inicio_str }} a {{ totais.concurso_fim_str }}</p>
                 </div>
-                <div class="mt-2">
-                    <p class="text-sm font-black text-slate-900">{{ totais.concurso_inicio_str }} a {{ totais.concurso_fim_str }}</p>
-                    <p class="text-[10px] text-emerald-400 mt-0.5">Prazo Regulamentar (2 Anos)</p>
-                </div>
+                <p class="text-[11px] text-blue-900 font-bold mt-2 pt-2 border-t border-slate-100">Prazo Regulamentar (2 Anos)</p>
             </div>
 
             <!-- 2. TOTAL REGISTROS NO CARGO -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col justify-between shadow-xs">
-                <div class="flex items-center justify-between text-[11px] text-slate-400 font-bold uppercase">
-                    <span>Total no Cargo</span>
-                    <i class="fa-solid fa-user-group text-slate-400"></i>
+            <div class="bg-white border border-slate-200 border-t-4 border-t-indigo-600 rounded-2xl p-4 flex flex-col justify-between shadow-xs">
+                <div>
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-600 block mb-1">Total no Cargo</span>
+                    <p class="text-3xl font-black text-slate-900 font-mono">{{ totais.total_registros }}</p>
                 </div>
-                <div class="mt-2">
-                    <p class="text-2xl font-black text-slate-900">{{ totais.total_registros }}</p>
-                    <p class="text-[10px] text-slate-400 mt-0.5">{{ totais.total_concurso }} Concurso | {{ totais.total_seletivo }} Seletivos</p>
-                </div>
+                <p class="text-[11px] text-slate-600 font-bold mt-2 pt-2 border-t border-slate-100">{{ totais.total_concurso }} Concurso | {{ totais.total_seletivo }} Seletivos</p>
             </div>
 
             <!-- 3. EM EXERCÍCIO -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col justify-between shadow-xs">
-                <div class="flex items-center justify-between text-[11px] text-slate-400 font-bold uppercase">
-                    <span>Em Exercício</span>
-                    <i class="fa-solid fa-circle-check text-emerald-400"></i>
+            <div class="bg-emerald-50/40 border border-emerald-300 border-t-4 border-t-emerald-600 rounded-2xl p-4 flex flex-col justify-between shadow-xs">
+                <div>
+                    <span class="text-[11px] font-black uppercase tracking-wider text-emerald-900 block mb-1">Em Exercício</span>
+                    <p class="text-3xl font-black text-emerald-950 font-mono">{{ totais.empossados_exercicio }}</p>
                 </div>
-                <div class="mt-2">
-                    <p class="text-2xl font-black text-emerald-950">{{ totais.empossados_exercicio }}</p>
-                    <p class="text-[10px] text-slate-400 mt-0.5">Candidatos / Contratados Ativos</p>
-                </div>
+                <p class="text-[11px] text-emerald-800 font-bold mt-2 pt-2 border-t border-emerald-200/60">Servidores / Contratados Ativos</p>
             </div>
 
             <!-- 4. EXONERAÇÕES / RESCISÕES -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col justify-between shadow-xs">
-                <div class="flex items-center justify-between text-[11px] text-slate-400 font-bold uppercase">
-                    <span>Exonerações</span>
-                    <i class="fa-solid fa-user-xmark text-slate-400"></i>
+            <div class="bg-white border border-slate-200 border-t-4 border-t-slate-700 rounded-2xl p-4 flex flex-col justify-between shadow-xs">
+                <div>
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-600 block mb-1">Exonerações</span>
+                    <p class="text-3xl font-black text-slate-900 font-mono">{{ totais.exonerados }}</p>
                 </div>
-                <div class="mt-2">
-                    <p class="text-2xl font-black text-slate-800">{{ totais.exonerados }}</p>
-                    <p class="text-[10px] text-slate-400 mt-0.5">Desligamentos Registrados</p>
-                </div>
+                <p class="text-[11px] text-slate-500 font-semibold mt-2 pt-2 border-t border-slate-100">Desligamentos Registrados</p>
             </div>
 
             <!-- 5. ALERTAS DE POSSÍVEL PRETERIÇÃO (DESTAQUE) -->
-            <div class="bg-rose-50 border-2 border-rose-250 rounded-2xl p-4 flex flex-col justify-between shadow-xs">
-                <div class="flex items-center justify-between text-[11px] text-rose-300 font-bold uppercase">
-                    <span>Convocado PSS na Vigência</span>
-                    <i class="fa-solid fa-triangle-exclamation text-rose-400 animate-pulse"></i>
+            <div class="bg-rose-50/70 border border-rose-300 border-t-4 border-t-rose-600 rounded-2xl p-4 flex flex-col justify-between shadow-xs">
+                <div>
+                    <span class="text-[11px] font-black uppercase tracking-wider text-rose-900 block mb-1">Convocado PSS na Vigência</span>
+                    <p class="text-3xl font-black text-rose-950 font-mono">{{ totais.alertas_pretericao }}</p>
                 </div>
-                <div class="mt-2">
-                    <p class="text-2xl font-black text-rose-950">{{ totais.alertas_pretericao }}</p>
-                    <p class="text-[10px] text-rose-300/80 mt-0.5 font-medium">Convocado PSS durante vigência de CP</p>
-                </div>
+                <p class="text-[11px] text-rose-900 font-bold mt-2 pt-2 border-t border-rose-200/60">Convocado PSS durante vigência de CP</p>
             </div>
 
             <!-- 6. NOMEADOS PÓS-VIGÊNCIA -->
-            <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 flex flex-col justify-between shadow-xs">
-                <div class="flex items-center justify-between text-[11px] text-purple-300 font-bold uppercase">
-                    <span>Pós-Vigência Concurso</span>
-                    <i class="fa-solid fa-calendar-xmark text-purple-400"></i>
+            <div class="bg-white border border-slate-200 border-t-4 border-t-purple-600 rounded-2xl p-4 flex flex-col justify-between shadow-xs">
+                <div>
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-600 block mb-1">Pós-Vigência Concurso</span>
+                    <p class="text-3xl font-black text-purple-950 font-mono">{{ totais.nomeados_pos_vigencia }}</p>
                 </div>
-                <div class="mt-2">
-                    <p class="text-2xl font-black text-purple-950">{{ totais.nomeados_pos_vigencia }}</p>
-                    <p class="text-[10px] text-purple-300/80 mt-0.5 font-medium">Após {{ totais.concurso_fim_str }} (Sem Preterição)</p>
-                </div>
+                <p class="text-[11px] text-purple-900 font-bold mt-2 pt-2 border-t border-slate-100">Após {{ totais.concurso_fim_str }} (Sem Preterição)</p>
             </div>
         </div>
 
