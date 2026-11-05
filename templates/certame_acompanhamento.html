@@ -1521,8 +1521,54 @@
                         const empossadosData = todosCargosData.map(d => d.empossados);
                         const saldoData = todosCargosData.map(d => d.saldo);
 
+                        // Plugin para desenhar os números (valores) dentro de cada coluna do gráfico
+                const pluginBarLabels = {
+                    id: 'customBarLabels',
+                    afterDatasetsDraw(chart) {
+                        const { ctx } = chart;
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            if (meta.hidden) return;
+
+                            meta.data.forEach((element, index) => {
+                                const val = dataset.data[index];
+                                if (val === undefined || val === null || val === 0) return;
+
+                                ctx.save();
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.font = 'bold 11px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
+                                if (dataset.type === 'line') {
+                                    // Linha de Vagas Edital (exibe sobre o ponto)
+                                    ctx.fillStyle = '#0f172a';
+                                    ctx.fillText(val, element.x, element.y - 10);
+                                } else {
+                                    // Barras/Colunas: Empossados, Convocados, Saldo Livre
+                                    const barHeight = Math.abs(element.base - element.y);
+                                    if (barHeight >= 18) {
+                                        // Número dentro da coluna em branco de alto contraste com sombra sutil
+                                        ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+                                        ctx.shadowBlur = 3;
+                                        ctx.shadowOffsetY = 1;
+                                        ctx.fillStyle = '#ffffff';
+                                        ctx.fillText(val, element.x, element.y + 11);
+                                    } else {
+                                        // Barra muito baixa: posiciona logo acima para não cortar o número
+                                        ctx.shadowColor = 'transparent';
+                                        ctx.fillStyle = dataset.backgroundColor || '#1e293b';
+                                        ctx.fillText(val, element.x, element.y - 7);
+                                    }
+                                }
+                                ctx.restore();
+                            });
+                        });
+                    }
+                };
+
                         chartCurvaCargosInstance = new Chart(ctxCargos, {
                             type: 'bar',
+                            plugins: [pluginBarLabels],
                             data: {
                                 labels: cargoLabels,
                                 datasets: [
