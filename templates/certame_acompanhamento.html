@@ -526,27 +526,27 @@
             {% set taxa_preenchimento = ((ns.empossados / ns.vagas) * 100)|round(1) if ns.vagas > 0 else 0 %}
 
             <section class="bg-white text-slate-800 p-8 rounded-3xl shadow-sm border border-slate-200/90 space-y-6">
-                <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-5 gap-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 pb-5 gap-4">
                     <div>
                         <div class="flex items-center space-x-2">
-                            <span class="bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase px-2.5 py-1 rounded-full border border-emerald-500/30">
+                            <span class="bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase px-2.5 py-1 rounded-full border border-emerald-300">
                                 Visão Executiva & Alta Gestão
                             </span>
-                            <span class="bg-indigo-500/20 text-indigo-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-indigo-500/30">
+                            <span class="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2.5 py-1 rounded-full border border-indigo-300">
                                 Edital {{ certame.numero_certame }}
                             </span>
                         </div>
                         <h2 class="text-xl font-black text-slate-900 mt-2 flex items-center">
                             <i class="fa-solid fa-chart-line text-emerald-600 mr-2.5"></i> Curva de Atendimento das Vagas Editalícias
                         </h2>
-                        <p class="text-xs text-slate-400">Acompanhamento gráfico em tempo real do provimento de vagas, taxa de efetivação de empossados e saldo remanescente do certame.</p>
+                        <p class="text-xs text-slate-600 font-medium">Acompanhamento gráfico em tempo real do provimento de vagas, taxa de efetivação de empossados e saldo remanescente do certame.</p>
                     </div>
                     <div class="flex items-center space-x-3 self-start md:self-auto">
                         <div class="text-right">
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Taxa Global de Posse</p>
-                            <p class="text-2xl font-black text-emerald-400">{{ taxa_preenchimento }}%</p>
+                            <p class="text-[10px] text-slate-600 font-extrabold uppercase tracking-wider">Taxa Global de Posse</p>
+                            <p class="text-2xl font-black text-emerald-700 font-mono">{{ taxa_preenchimento }}%</p>
                         </div>
-                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 shadow-sm">
                             <i class="fa-solid fa-award text-xl"></i>
                         </div>
                     </div>
@@ -554,46 +554,46 @@
 
                 <!-- KPI Cards Executivos -->
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                    <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/60 flex flex-col justify-between">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Vagas Edital</span>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 border-t-4 border-t-indigo-600 shadow-sm flex flex-col justify-between">
+                        <span class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider">Vagas Edital</span>
                         <div class="mt-2 flex items-baseline justify-between">
-                            <span class="text-2xl font-black text-white">{{ ns.vagas }}</span>
-                            <i class="fa-solid fa-file-contract text-slate-500 text-sm"></i>
+                            <span class="text-2xl font-black text-slate-900 font-mono">{{ ns.vagas }}</span>
+                            <i class="fa-solid fa-file-contract text-indigo-500/70 text-sm"></i>
                         </div>
                     </div>
-                    <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/60 flex flex-col justify-between">
-                        <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Convocados</span>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 border-t-4 border-t-blue-600 shadow-sm flex flex-col justify-between">
+                        <span class="text-[10px] font-extrabold text-blue-900 uppercase tracking-wider">Convocados</span>
                         <div class="mt-2 flex items-baseline justify-between">
-                            <span class="text-2xl font-black text-blue-400">{{ ns.convocados }}</span>
-                            <i class="fa-solid fa-bullhorn text-blue-500/50 text-sm"></i>
+                            <span class="text-2xl font-black text-blue-700 font-mono">{{ ns.convocados }}</span>
+                            <i class="fa-solid fa-bullhorn text-blue-500/70 text-sm"></i>
                         </div>
                     </div>
-                    <div class="bg-slate-800/80 p-4 rounded-2xl border border-emerald-900/50 flex flex-col justify-between bg-gradient-to-br from-slate-800 to-emerald-950/40">
-                        <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Empossados</span>
+                    <div class="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-200 border-t-4 border-t-emerald-600 shadow-sm flex flex-col justify-between">
+                        <span class="text-[10px] font-extrabold text-emerald-950 uppercase tracking-wider">Empossados</span>
                         <div class="mt-2 flex items-baseline justify-between">
-                            <span class="text-2xl font-black text-emerald-400">{{ ns.empossados }}</span>
-                            <i class="fa-solid fa-user-check text-emerald-500 text-sm"></i>
+                            <span class="text-2xl font-black text-emerald-700 font-mono">{{ ns.empossados }}</span>
+                            <i class="fa-solid fa-user-check text-emerald-600 text-sm"></i>
                         </div>
                     </div>
-                    <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/60 flex flex-col justify-between">
-                        <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Em Trâmite</span>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 border-t-4 border-t-amber-500 shadow-sm flex flex-col justify-between">
+                        <span class="text-[10px] font-extrabold text-amber-900 uppercase tracking-wider">Em Trâmite</span>
                         <div class="mt-2 flex items-baseline justify-between">
-                            <span class="text-2xl font-black text-amber-400">{{ em_tramite }}</span>
-                            <i class="fa-solid fa-hourglass-half text-amber-500/50 text-sm"></i>
+                            <span class="text-2xl font-black text-amber-700 font-mono">{{ em_tramite }}</span>
+                            <i class="fa-solid fa-hourglass-half text-amber-500/70 text-sm"></i>
                         </div>
                     </div>
-                    <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/60 flex flex-col justify-between">
-                        <span class="text-[10px] font-bold text-rose-400 uppercase tracking-wider">Desist. / Fim Fila</span>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 border-t-4 border-t-rose-600 shadow-sm flex flex-col justify-between">
+                        <span class="text-[10px] font-extrabold text-rose-900 uppercase tracking-wider">Desist. / Fim Fila</span>
                         <div class="mt-2 flex items-baseline justify-between">
-                            <span class="text-2xl font-black text-rose-400">{{ ns.desistencias + ns.fim_fila }}</span>
-                            <i class="fa-solid fa-user-xmark text-rose-500/50 text-sm"></i>
+                            <span class="text-2xl font-black text-rose-700 font-mono">{{ ns.desistencias + ns.fim_fila }}</span>
+                            <i class="fa-solid fa-user-xmark text-rose-500/70 text-sm"></i>
                         </div>
                     </div>
-                    <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/60 flex flex-col justify-between">
-                        <span class="text-[10px] font-bold text-sky-400 uppercase tracking-wider">Saldo Livre</span>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 border-t-4 border-t-sky-600 shadow-sm flex flex-col justify-between">
+                        <span class="text-[10px] font-extrabold text-sky-950 uppercase tracking-wider">Saldo Livre</span>
                         <div class="mt-2 flex items-baseline justify-between">
-                            <span class="text-2xl font-black text-sky-400">{{ ns.saldo }}</span>
-                            <i class="fa-solid fa-layer-group text-sky-500/50 text-sm"></i>
+                            <span class="text-2xl font-black text-sky-700 font-mono">{{ ns.saldo }}</span>
+                            <i class="fa-solid fa-layer-group text-sky-500/70 text-sm"></i>
                         </div>
                     </div>
                 </div>
@@ -601,43 +601,43 @@
                 <!-- Gráficos Integrados -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
                     <!-- Gráfico Rosca (Distribuição Global) -->
-                    <div class="bg-slate-800/60 p-5 rounded-2xl border border-slate-700/60 flex flex-col justify-between">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
                         <div>
-                            <h3 class="text-xs font-extrabold text-slate-200 uppercase tracking-wider mb-1 flex items-center">
-                                <i class="fa-solid fa-chart-pie text-emerald-400 mr-2"></i> Status Global das Vagas
+                            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center">
+                                <i class="fa-solid fa-chart-pie text-emerald-600 mr-2"></i> Status Global das Vagas
                             </h3>
-                            <p class="text-[11px] text-slate-400 mb-4">Distribuição proporcional do provimento do concurso.</p>
+                            <p class="text-[11px] text-slate-500 mb-3">Distribuição proporcional do provimento do concurso.</p>
                         </div>
                         <div class="relative flex items-center justify-center my-auto py-2" style="height: 220px;">
                             <canvas id="chartRoscaPreenchimento"></canvas>
                         </div>
-                        <div class="grid grid-cols-2 gap-2 text-[10.5px] border-t border-slate-700/60 pt-3 mt-2">
-                            <div class="flex items-center text-slate-300">
-                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1.5 inline-block"></span>
-                                <span>Empossados: <strong class="text-white">{{ ns.empossados }}</strong></span>
+                        <div class="grid grid-cols-2 gap-2 text-[10.5px] border-t border-slate-200 pt-3 mt-2">
+                            <div class="flex items-center text-slate-700">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-600 mr-1.5 inline-block shrink-0"></span>
+                                <span>Empossados: <strong class="text-slate-900 font-black">{{ ns.empossados }}</strong></span>
                             </div>
-                            <div class="flex items-center text-slate-300">
-                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500 mr-1.5 inline-block"></span>
-                                <span>Em Trâmite: <strong class="text-white">{{ em_tramite }}</strong></span>
+                            <div class="flex items-center text-slate-700">
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500 mr-1.5 inline-block shrink-0"></span>
+                                <span>Em Trâmite: <strong class="text-slate-900 font-black">{{ em_tramite }}</strong></span>
                             </div>
-                            <div class="flex items-center text-slate-300">
-                                <span class="w-2.5 h-2.5 rounded-full bg-rose-500 mr-1.5 inline-block"></span>
-                                <span>Desist./Fim Fila: <strong class="text-white">{{ ns.desistencias + ns.fim_fila }}</strong></span>
+                            <div class="flex items-center text-slate-700">
+                                <span class="w-2.5 h-2.5 rounded-full bg-rose-600 mr-1.5 inline-block shrink-0"></span>
+                                <span>Desist./Fim Fila: <strong class="text-slate-900 font-black">{{ ns.desistencias + ns.fim_fila }}</strong></span>
                             </div>
-                            <div class="flex items-center text-slate-300">
-                                <span class="w-2.5 h-2.5 rounded-full bg-sky-500 mr-1.5 inline-block"></span>
-                                <span>Saldo Livre: <strong class="text-white">{{ ns.saldo }}</strong></span>
+                            <div class="flex items-center text-slate-700">
+                                <span class="w-2.5 h-2.5 rounded-full bg-sky-600 mr-1.5 inline-block shrink-0"></span>
+                                <span>Saldo Livre: <strong class="text-slate-900 font-black">{{ ns.saldo }}</strong></span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Gráfico Barras/Linha (Comparativo por Cargo) -->
-                    <div class="lg:col-span-2 bg-slate-800/60 p-5 rounded-2xl border border-slate-700/60 flex flex-col justify-between">
+                    <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
                         <div>
-                            <h3 class="text-xs font-extrabold text-slate-200 uppercase tracking-wider mb-1 flex items-center">
-                                <i class="fa-solid fa-chart-column text-indigo-400 mr-2"></i> Curva de Preenchimento por Cargo
+                            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center">
+                                <i class="fa-solid fa-chart-column text-indigo-600 mr-2"></i> Curva de Preenchimento por Cargo
                             </h3>
-                            <p class="text-[11px] text-slate-400 mb-4">Comparativo de Vagas do Edital vs Convocados vs Empossados vs Saldo Remanescente.</p>
+                            <p class="text-[11px] text-slate-500 mb-3">Comparativo de Vagas do Edital vs Convocados vs Empossados vs Saldo Remanescente.</p>
                         </div>
                         <div class="relative py-2" style="height: 250px;">
                             <canvas id="chartCurvaCargos"></canvas>
@@ -1304,20 +1304,19 @@
                 }
 
                 // Inicialização dos Gráficos Executivos (Chart.js)
-                document.addEventListener('DOMContentLoaded', function() {
-                    filtrarTabelaCandidatos();
-
+                function initAcompanhamentoCharts() {
                     const ctxRosca = document.getElementById('chartRoscaPreenchimento');
-                    if (ctxRosca) {
+                    if (ctxRosca && !ctxRosca.dataset.chartInitialized) {
+                        ctxRosca.dataset.chartInitialized = 'true';
                         new Chart(ctxRosca, {
                             type: 'doughnut',
                             data: {
                                 labels: ['Empossados', 'Em Trâmite (Convocados)', 'Desistências / Fim de Fila', 'Saldo Remanescente Livre'],
                                 datasets: [{
                                     data: [{{ ns.empossados }}, {{ em_tramite }}, {{ ns.desistencias + ns.fim_fila }}, {{ ns.saldo }}],
-                                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#0ea5e9'],
+                                    backgroundColor: ['#059669', '#d97706', '#e11d48', '#0284c7'],
                                     borderWidth: 2,
-                                    borderColor: '#0f172a',
+                                    borderColor: '#ffffff',
                                     hoverOffset: 6
                                 }]
                             },
@@ -1328,9 +1327,9 @@
                                     legend: { display: false },
                                     tooltip: {
                                         backgroundColor: '#0f172a',
-                                        titleColor: '#f8fafc',
-                                        bodyColor: '#cbd5e1',
-                                        borderColor: '#334155',
+                                        titleColor: '#ffffff',
+                                        bodyColor: '#e2e8f0',
+                                        borderColor: '#cbd5e1',
                                         borderWidth: 1,
                                         padding: 10
                                     }
@@ -1341,12 +1340,13 @@
                     }
 
                     const ctxCargos = document.getElementById('chartCurvaCargos');
-                    if (ctxCargos) {
-                        const cargoLabels = [{% for m in matriz_cargos %}"{{ m.cargo_nome }}"{% if not loop.last %}, {% endif %}{% endfor %}];
-                        const vagasData = [{% for m in matriz_cargos %}{{ m.vagas_edital }}{% if not loop.last %}, {% endif %}{% endfor %}];
-                        const convocadosData = [{% for m in matriz_cargos %}{{ m.convocados }}{% if not loop.last %}, {% endif %}{% endfor %}];
-                        const empossadosData = [{% for m in matriz_cargos %}{{ m.empossados }}{% if not loop.last %}, {% endif %}{% endfor %}];
-                        const saldoData = [{% for m in matriz_cargos %}{{ m.saldo }}{% if not loop.last %}, {% endif %}{% endfor %}];
+                    if (ctxCargos && !ctxCargos.dataset.chartInitialized) {
+                        ctxCargos.dataset.chartInitialized = 'true';
+                        const cargoLabels = {{ matriz_cargos|map(attribute='cargo_nome')|list|tojson }};
+                        const vagasData = {{ matriz_cargos|map(attribute='vagas_edital')|list|tojson }};
+                        const convocadosData = {{ matriz_cargos|map(attribute='convocados')|list|tojson }};
+                        const empossadosData = {{ matriz_cargos|map(attribute='empossados')|list|tojson }};
+                        const saldoData = {{ matriz_cargos|map(attribute='saldo')|list|tojson }};
 
                         new Chart(ctxCargos, {
                             type: 'bar',
@@ -1357,10 +1357,10 @@
                                         label: 'Vagas Edital',
                                         data: vagasData,
                                         type: 'line',
-                                        borderColor: '#94a3b8',
+                                        borderColor: '#475569',
                                         borderWidth: 2.5,
                                         borderDash: [5, 5],
-                                        pointBackgroundColor: '#cbd5e1',
+                                        pointBackgroundColor: '#0f172a',
                                         pointRadius: 4,
                                         fill: false,
                                         order: 1
@@ -1368,21 +1368,21 @@
                                     {
                                         label: 'Empossados',
                                         data: empossadosData,
-                                        backgroundColor: '#10b981',
+                                        backgroundColor: '#059669',
                                         borderRadius: 6,
                                         order: 2
                                     },
                                     {
                                         label: 'Convocados',
                                         data: convocadosData,
-                                        backgroundColor: '#3b82f6',
+                                        backgroundColor: '#2563eb',
                                         borderRadius: 6,
                                         order: 3
                                     },
                                     {
                                         label: 'Saldo Livre',
                                         data: saldoData,
-                                        backgroundColor: '#0ea5e9',
+                                        backgroundColor: '#0284c7',
                                         borderRadius: 6,
                                         order: 4
                                     }
@@ -1395,31 +1395,43 @@
                                     legend: {
                                         display: true,
                                         position: 'top',
-                                        labels: { color: '#94a3b8', font: { size: 11, weight: '600' }, usePointStyle: true }
+                                        labels: { color: '#334155', font: { size: 11, weight: '700' }, usePointStyle: true }
                                     },
                                     tooltip: {
                                         backgroundColor: '#0f172a',
-                                        titleColor: '#f8fafc',
-                                        bodyColor: '#cbd5e1',
-                                        borderColor: '#334155',
+                                        titleColor: '#ffffff',
+                                        bodyColor: '#e2e8f0',
+                                        borderColor: '#cbd5e1',
                                         borderWidth: 1,
                                         padding: 10
                                     }
                                 },
                                 scales: {
                                     x: {
-                                        ticks: { color: '#94a3b8', font: { size: 10 } },
+                                        ticks: { color: '#475569', font: { size: 10, weight: '600' } },
                                         grid: { display: false }
                                     },
                                     y: {
                                         beginAtZero: true,
-                                        ticks: { color: '#94a3b8', stepSize: 1 },
-                                        grid: { color: '#334155', drawBorder: false }
+                                        ticks: { color: '#475569', font: { size: 10, weight: '600' }, stepSize: 1 },
+                                        grid: { color: '#e2e8f0', drawBorder: false }
                                     }
                                 }
                             }
                         });
                     }
+                }
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', function() {
+                        filtrarTabelaCandidatos();
+                        initAcompanhamentoCharts();
+                    });
+                } else {
+                    filtrarTabelaCandidatos();
+                    initAcompanhamentoCharts();
+                }
+
                 function confirmarZerarBanco(event, tipo) {
                     let titulo = "BANCO DE DADOS GERAL";
                     let palavraChave = "ZERAR";
