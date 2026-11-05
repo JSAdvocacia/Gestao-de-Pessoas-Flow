@@ -633,13 +633,80 @@
 
                     <!-- Gráfico Barras/Linha (Comparativo por Cargo) -->
                     <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                        <div>
-                            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center">
-                                <i class="fa-solid fa-chart-column text-indigo-600 mr-2"></i> Curva de Preenchimento por Cargo
-                            </h3>
-                            <p class="text-[11px] text-slate-500 mb-3">Comparativo de Vagas do Edital vs Convocados vs Empossados vs Saldo Remanescente.</p>
+                        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-2 pb-3 border-b border-slate-100">
+                            <div>
+                                <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center">
+                                    <i class="fa-solid fa-chart-column text-indigo-600 mr-2"></i> Curva de Preenchimento por Cargo
+                                </h3>
+                                <p class="text-[11px] text-slate-500">Comparativo de Vagas do Edital vs Convocados vs Empossados vs Saldo Remanescente.</p>
+                            </div>
+
+                            <!-- Seletor / Filtro de Cargos Interativo -->
+                            <div class="relative shrink-0" id="container_filtro_cargos_grafico">
+                                <button type="button" onclick="toggleDropdownCargosGrafico(event)" class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-extrabold shadow-sm transition focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <i class="fa-solid fa-filter text-indigo-600 text-xs"></i>
+                                    <span id="label_cargos_selecionados_grafico">Todos os Cargos ({{ matriz_cargos|length }})</span>
+                                    <i class="fa-solid fa-chevron-down text-slate-400 text-[10px] ml-1"></i>
+                                </button>
+
+                                <!-- Dropdown Flutuante de Seleção de Cargos -->
+                                <div id="dropdown_cargos_grafico" class="hidden absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 p-4 space-y-3">
+                                    <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                                        <div>
+                                            <span class="text-xs font-black text-slate-900 flex items-center">
+                                                <i class="fa-solid fa-layer-group text-indigo-600 mr-1.5"></i> Filtrar Cargos no Gráfico
+                                            </span>
+                                            <p class="text-[10px] text-slate-400">Marque os cargos que deseja analisar</p>
+                                        </div>
+                                        <button type="button" onclick="fecharDropdownCargosGrafico()" class="text-slate-400 hover:text-slate-600 text-sm p-1 rounded-lg hover:bg-slate-100">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
+                                    </div>
+
+                                    <!-- Botões de Ação Rápida -->
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" onclick="marcarTodosCargosGrafico(true)" class="flex-1 py-1.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-extrabold rounded-xl text-[11px] transition flex items-center justify-center">
+                                            <i class="fa-solid fa-check-double mr-1.5 text-xs"></i> Selecionar Todos
+                                        </button>
+                                        <button type="button" onclick="marcarTodosCargosGrafico(false)" class="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold rounded-xl text-[11px] transition flex items-center justify-center">
+                                            <i class="fa-solid fa-ban mr-1.5 text-xs"></i> Desmarcar Todos
+                                        </button>
+                                    </div>
+
+                                    <!-- Campo de busca rápida de cargos -->
+                                    <div class="relative">
+                                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                                        <input type="text" id="busca_cargo_grafico" oninput="filtrarListaCargosDropdown()" placeholder="Filtrar por nome do cargo..." class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                    </div>
+
+                                    <!-- Lista rolável de checkboxes -->
+                                    <div id="lista_checkboxes_cargos_grafico" class="max-h-56 overflow-y-auto space-y-1 pr-1 text-xs divide-y divide-slate-100">
+                                        {% for m in matriz_cargos %}
+                                        <label class="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl cursor-pointer cargo-item-label transition" data-cargo-nome="{{ m.cargo_nome }}">
+                                            <div class="flex items-center space-x-2.5 min-w-0 pr-2">
+                                                <input type="checkbox" value="{{ m.cargo_nome }}" checked onchange="atualizarGraficoCargosSelecionados()" class="cargo-chk-grafico rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4 shrink-0">
+                                                <span class="text-slate-800 font-semibold truncate text-xs" title="{{ m.cargo_nome }}">{{ m.cargo_nome }}</span>
+                                            </div>
+                                            <span class="text-[10px] text-slate-500 font-mono shrink-0 bg-slate-100 px-2 py-0.5 rounded-md">
+                                                {{ m.convocados }}/{{ m.vagas_edital }}
+                                            </span>
+                                        </label>
+                                        {% endfor %}
+                                    </div>
+
+                                    <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+                                        <span id="contador_cargos_selecionados_dropdown" class="text-slate-600 font-extrabold text-[11px]">
+                                            {{ matriz_cargos|length }} de {{ matriz_cargos|length }} selecionados
+                                        </span>
+                                        <button type="button" onclick="fecharDropdownCargosGrafico()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold px-3 py-1.5 rounded-xl text-xs shadow-sm transition">
+                                            Aplicar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="relative py-2" style="height: 250px;">
+
+                        <div class="relative py-2" style="height: 280px; min-height: 280px;">
                             <canvas id="chartCurvaCargos"></canvas>
                         </div>
                     </div>
@@ -1304,6 +1371,112 @@
                 }
 
                 // Inicialização dos Gráficos Executivos (Chart.js)
+                let chartCurvaCargosInstance = null;
+                const todosCargosData = [
+                    {% for m in matriz_cargos %}
+                    {
+                        cargo_nome: {{ m.cargo_nome|tojson }},
+                        vagas_edital: {{ m.vagas_edital|int if m.vagas_edital else 0 }},
+                        convocados: {{ m.convocados|int if m.convocados else 0 }},
+                        empossados: {{ m.empossados|int if m.empossados else 0 }},
+                        saldo: {{ m.saldo|int if m.saldo else 0 }}
+                    }{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                ];
+
+                function toggleDropdownCargosGrafico(e) {
+                    if (e) e.stopPropagation();
+                    const drop = document.getElementById('dropdown_cargos_grafico');
+                    if (drop) {
+                        drop.classList.toggle('hidden');
+                        if (!drop.classList.contains('hidden')) {
+                            const input = document.getElementById('busca_cargo_grafico');
+                            if (input) setTimeout(() => input.focus(), 50);
+                        }
+                    }
+                }
+
+                function fecharDropdownCargosGrafico() {
+                    const drop = document.getElementById('dropdown_cargos_grafico');
+                    if (drop) drop.classList.add('hidden');
+                }
+
+                function marcarTodosCargosGrafico(marcar) {
+                    const checkboxes = document.querySelectorAll('.cargo-chk-grafico');
+                    checkboxes.forEach(chk => {
+                        const label = chk.closest('.cargo-item-label');
+                        if (!label || label.style.display !== 'none') {
+                            chk.checked = marcar;
+                        }
+                    });
+                    atualizarGraficoCargosSelecionados();
+                }
+
+                function filtrarListaCargosDropdown() {
+                    const termo = (document.getElementById('busca_cargo_grafico') ? document.getElementById('busca_cargo_grafico').value : '')
+                        .normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+                    const items = document.querySelectorAll('.cargo-item-label');
+                    items.forEach(item => {
+                        const nome = (item.getAttribute('data-cargo-nome') || '')
+                            .normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+                        if (!termo || nome.includes(termo)) {
+                            item.style.display = '';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                }
+
+                function atualizarGraficoCargosSelecionados() {
+                    if (!chartCurvaCargosInstance) return;
+
+                    const chks = document.querySelectorAll('.cargo-chk-grafico:checked');
+                    const selectedNomes = new Set(Array.from(chks).map(c => c.value));
+                    const totalCargos = todosCargosData.length;
+                    const selecionadosCount = selectedNomes.size;
+
+                    // Atualizar rótulo do botão
+                    const labelBtn = document.getElementById('label_cargos_selecionados_grafico');
+                    if (labelBtn) {
+                        if (selecionadosCount === totalCargos) {
+                            labelBtn.innerText = `Todos os Cargos (${totalCargos})`;
+                        } else if (selecionadosCount === 0) {
+                            labelBtn.innerText = `Nenhum Cargo Selecionado`;
+                        } else {
+                            labelBtn.innerText = `${selecionadosCount} de ${totalCargos} Cargos`;
+                        }
+                    }
+
+                    // Atualizar contador do dropdown
+                    const contadorDrop = document.getElementById('contador_cargos_selecionados_dropdown');
+                    if (contadorDrop) {
+                        contadorDrop.innerText = `${selecionadosCount} de ${totalCargos} selecionados`;
+                    }
+
+                    // Filtrar dados correspondentes
+                    const filteredData = todosCargosData.filter(d => selectedNomes.has(d.cargo_nome));
+
+                    chartCurvaCargosInstance.data.labels = filteredData.map(d => d.cargo_nome);
+                    chartCurvaCargosInstance.data.datasets[0].data = filteredData.map(d => d.vagas_edital);
+                    chartCurvaCargosInstance.data.datasets[1].data = filteredData.map(d => d.empossados);
+                    chartCurvaCargosInstance.data.datasets[2].data = filteredData.map(d => d.convocados);
+                    chartCurvaCargosInstance.data.datasets[3].data = filteredData.map(d => d.saldo);
+
+                    // Ajuste dinâmico de rotação dos rótulos baseado na densidade de itens
+                    if (filteredData.length <= 6) {
+                        chartCurvaCargosInstance.options.scales.x.ticks.maxRotation = 15;
+                        chartCurvaCargosInstance.options.scales.x.ticks.minRotation = 0;
+                    } else if (filteredData.length <= 15) {
+                        chartCurvaCargosInstance.options.scales.x.ticks.maxRotation = 35;
+                        chartCurvaCargosInstance.options.scales.x.ticks.minRotation = 20;
+                    } else {
+                        chartCurvaCargosInstance.options.scales.x.ticks.maxRotation = 50;
+                        chartCurvaCargosInstance.options.scales.x.ticks.minRotation = 35;
+                    }
+
+                    chartCurvaCargosInstance.update();
+                }
+
                 function initAcompanhamentoCharts() {
                     const ctxRosca = document.getElementById('chartRoscaPreenchimento');
                     if (ctxRosca && !ctxRosca.dataset.chartInitialized) {
@@ -1342,13 +1515,13 @@
                     const ctxCargos = document.getElementById('chartCurvaCargos');
                     if (ctxCargos && !ctxCargos.dataset.chartInitialized) {
                         ctxCargos.dataset.chartInitialized = 'true';
-                        const cargoLabels = {{ matriz_cargos|map(attribute='cargo_nome')|list|tojson }};
-                        const vagasData = {{ matriz_cargos|map(attribute='vagas_edital')|list|tojson }};
-                        const convocadosData = {{ matriz_cargos|map(attribute='convocados')|list|tojson }};
-                        const empossadosData = {{ matriz_cargos|map(attribute='empossados')|list|tojson }};
-                        const saldoData = {{ matriz_cargos|map(attribute='saldo')|list|tojson }};
+                        const cargoLabels = todosCargosData.map(d => d.cargo_nome);
+                        const vagasData = todosCargosData.map(d => d.vagas_edital);
+                        const convocadosData = todosCargosData.map(d => d.convocados);
+                        const empossadosData = todosCargosData.map(d => d.empossados);
+                        const saldoData = todosCargosData.map(d => d.saldo);
 
-                        new Chart(ctxCargos, {
+                        chartCurvaCargosInstance = new Chart(ctxCargos, {
                             type: 'bar',
                             data: {
                                 labels: cargoLabels,
@@ -1408,7 +1581,13 @@
                                 },
                                 scales: {
                                     x: {
-                                        ticks: { color: '#475569', font: { size: 10, weight: '600' } },
+                                        ticks: {
+                                            color: '#475569',
+                                            font: { size: 10, weight: '600' },
+                                            maxRotation: 50,
+                                            minRotation: 35,
+                                            autoSkip: false
+                                        },
                                         grid: { display: false }
                                     },
                                     y: {
@@ -1421,6 +1600,15 @@
                         });
                     }
                 }
+
+                // Fechar dropdown de filtro ao clicar fora
+                document.addEventListener('click', function(e) {
+                    const container = document.getElementById('container_filtro_cargos_grafico');
+                    const drop = document.getElementById('dropdown_cargos_grafico');
+                    if (container && drop && !container.contains(e.target)) {
+                        drop.classList.add('hidden');
+                    }
+                });
 
                 if (document.readyState === 'loading') {
                     document.addEventListener('DOMContentLoaded', function() {
